@@ -1,3 +1,13 @@
+:root {
+            --bg: #f3f5f2;
+            --card: #ffffff;
+            --border: #cfd5cf;
+            --soft: #e9eee8;
+            --strong: #dce5db;
+            --text: #1f2a22;
+            --danger: #fff0f0;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -21,15 +31,7 @@
             font-size: 24px;
         }
 
-        .card {
-            margin-bottom: 12px;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--card);
-        }
-
-        .section-title {
+                .section-title {
             margin: 0 0 10px;
             font-size: 17px;
         }
@@ -40,18 +42,7 @@
             gap: 8px;
         }
 
-        .player-count button,
-        .action-button {
-            min-height: 46px;
-            padding: 10px;
-            border: 1px solid #9da69e;
-            border-radius: 8px;
-            background: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .player-count button.active {
+                .player-count button.active {
             font-weight: bold;
             background: var(--strong);
             border-color: #6f7c70;
@@ -250,14 +241,7 @@
             flex: 0 0 auto;
         }
 
-        .voice-card {
-            position: sticky;
-            top: 8px;
-            z-index: 50;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-        }
-
-
+        
         .form-grid {
             display: grid;
             gap: 10px;
@@ -348,13 +332,6 @@
 
         /* --- Golf Voice Scorecard AI visual theme --- */
         :root {
-            --bg: #f3f5f2;
-            --card: #ffffff;
-            --border: #cfd5cf;
-            --soft: #e9eee8;
-            --strong: #dce5db;
-            --text: #1f2a22;
-            --danger: #fff0f0;
             --forest: #173f18;
             --forest-2: #286f24;
             --leaf: #75a96c;
@@ -519,7 +496,9 @@
         }
 
         .voice-card {
+            position: sticky;
             top: 8px;
+            z-index: 50;
             padding: 20px;
             border-color: #9fc49a;
             box-shadow: 0 15px 36px rgba(23,63,24,.20);
