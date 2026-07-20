@@ -494,8 +494,7 @@
             if (hole < 18) {
                 nextHole = hole + 1;
             } else {
-                nextHole = 18;
-                roundComplete = true;
+                nextHole = 1;
             }
 
             updateNextHole();
@@ -865,17 +864,8 @@
 
                     checkFrontNineCompletion();
 
-                    if (successfulResult.hole === 18) {
-                        const winnerMessage = buildWinnerMessage();
-
-                        if (winnerMessage) {
-                            pendingVoiceMessage += `. ${winnerMessage}`;
-                            voiceStatus.innerHTML +=
-                                `<br><strong>${escapeHtml(winnerMessage)}</strong>`;
-                        }
-
-                        setTimeout(showRoundCompleteModal, 1100);
-                    }
+                    // 18. reikä ei päätä kierrosta automaattisesti.
+                    // Käyttäjä päättää kierroksen Päätä kierros -painikkeella.
                 } else {
                     voiceStatus.innerHTML =
                         `<strong>Kuulin:</strong> ${escapeHtml(heardText)}<br>` +
@@ -1158,6 +1148,22 @@
                 : "🎤 Anna tulokset puheella";
 
             roundCompleteActions.classList.toggle("visible", roundComplete);
+        }
+
+        function finishRound() {
+            const playedHoles = getPlayedHoleCount();
+
+            if (playedHoles < 18) {
+                voiceStatus.textContent =
+                    "Kierros ei ole vielä valmis. Pelaa 18 reikää ennen päättämistä.";
+                speakMessage("Kierros ei ole vielä valmis");
+                return;
+            }
+
+            roundComplete = true;
+            updateRoundCompleteState();
+            saveState();
+            showRoundCompleteModal();
         }
 
         function showRoundCompleteModal() {

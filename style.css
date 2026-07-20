@@ -1064,3 +1064,8 @@ body {
         letter-spacing: -0.02em;
     }
 }
+
+/* Feature 1 - kierroksen hallinta */
+.actions {
+    grid-template-columns: 1fr 1fr;
+}
