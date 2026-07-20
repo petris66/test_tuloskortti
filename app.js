@@ -986,7 +986,7 @@
         function updateRoundLayout() {
             const playedHoles = getPlayedHoleCount();
             const roundStarted = playedHoles > 0 || roundComplete;
-            const showBackNine = nextHole >= 10 || roundComplete;
+            const showBackNine = nextHole >= 10;
 
             document.body.classList.toggle("round-active", roundStarted);
             document.body.classList.toggle("show-back-nine", showBackNine);
