@@ -950,11 +950,11 @@
         }
 
         function updateRoundLayout() {
-            const playedHoles = getPlayedHoleCount();
-            const roundStarted = playedHoles > 0 || roundComplete;
+            // Tiivis mobiilinäkymä on oletusnäkymä.
+            // Kierroksen aloitus tai aloitusreikä ei vaikuta käyttöliittymän kokoon.
             const showBackNine = nextHole >= 10 || roundComplete;
 
-            document.body.classList.toggle("round-active", roundStarted);
+            document.body.classList.add("round-active");
             document.body.classList.toggle("show-back-nine", showBackNine);
 
             document.querySelectorAll("[data-hole-row]").forEach(row => {
