@@ -769,30 +769,6 @@
             }
         }
 
-        function scrollElementBelowVoiceCard(element, extraSpace = 14) {
-            if (!element) {
-                return;
-            }
-
-            const voiceCard = document.getElementById("voiceCard");
-            const stickyHeight = voiceCard
-                ? voiceCard.getBoundingClientRect().height
-                : 0;
-
-            const elementTop =
-                window.scrollY + element.getBoundingClientRect().top;
-
-            const targetTop = Math.max(
-                0,
-                elementTop - stickyHeight - extraSpace
-            );
-
-            window.scrollTo({
-                top: targetTop,
-                behavior: "smooth"
-            });
-        }
-
         function showSavedHoleInScorecard(hole) {
             const row = document.querySelector(
                 `[data-hole-row="${hole}"]`
@@ -986,7 +962,7 @@
         function updateRoundLayout() {
             const playedHoles = getPlayedHoleCount();
             const roundStarted = playedHoles > 0 || roundComplete;
-            const showBackNine = nextHole >= 10;
+            const showBackNine = nextHole >= 10 || roundComplete;
 
             document.body.classList.toggle("round-active", roundStarted);
             document.body.classList.toggle("show-back-nine", showBackNine);
