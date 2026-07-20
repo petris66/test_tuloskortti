@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#173f18">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Golf Voice">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-v372.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32-v372.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16-v372.png">
+    <link rel="shortcut icon" href="icons/favicon-v372.ico">
+
+    <title>Golf Voice Scorecard AI</title>
+
+    <link rel="stylesheet" href="style.css?v=3.7.4">
+
+</head>
+
+<body>
+    <main class="app">
+        <header class="hero" id="hero">
+            <div class="hero-badge">⛳ VOICE SCORING</div>
+            <h1><span>Golf Voice</span><strong>Scorecard AI</strong></h1>
+            <p class="hero-subtitle">Kirjaa golfkierros nopeasti puheella</p>
+            <p class="hero-signature">© 2026 Petri Suokas</p>
+        </header>
+
+        <section class="card setup-card" id="setupCard">
+            <h2 class="section-title">KIERROKSEN ASETUKSET</h2>
+            <p class="section-help">Valitse kierroksella pelaavien määrä.</p>
+
+            <div class="player-count" id="playerCountButtons">
+                <button type="button" data-count="1">1</button>
+                <button type="button" data-count="2">2</button>
+                <button type="button" data-count="3">3</button>
+                <button type="button" data-count="4">4</button>
+            </div>
+        </section>
+
+        <section class="card next-hole-box next-hole-card" id="nextHoleCard">
+            <div>
+                <div class="next-hole-label">Seuraava reikä</div>
+                <div class="muted">Reikä vaihtuu onnistuneen kirjauksen jälkeen.</div>
+            </div>
+
+            <div class="next-hole-number" id="nextHole">1</div>
+        </section>
+
+        <section class="card voice-card voice-command-card" id="voiceCard">
+            <h2 class="section-title">PUHEKIRJAUS</h2>
+            <button
+                type="button"
+                class="action-button"
+                id="voiceButton"
+                onclick="startVoiceInput()"
+            >
+                🎤 Anna tulokset puheella
+            </button>
+
+            <div id="voiceStatus">
+                Paina mikrofonipainiketta ja sano tulokset.
+            </div>
+
+            <div class="compact-hole-line">
+                <span>Seuraava reikä</span>
+                <strong id="compactNextHole">1</strong>
+            </div>
+
+            <div class="voice-quick-controls">
+                <label class="compact-toggle" for="announceStandings">
+                    <span>🔊 Pelitilanne</span>
+                    <input
+                        type="checkbox"
+                        id="announceStandings"
+                        aria-label="Kerro pelitilanne reiän jälkeen"
+                    >
+                </label>
+
+                <button
+                    type="button"
+                    class="dash-button"
+                    onclick="setDashForSelectedScore()"
+                >
+                    ➖ Viiva tuloskorttiin
+                </button>
+            </div>
+
+            <div class="round-complete-actions" id="roundCompleteActions">
+                <button type="button" class="action-button primary-button"
+                        onclick="saveCompletedRound()">
+                    💾 Tallenna tarkistettu kierros
+                </button>
+            </div>
+        </section>
+
+        <section class="card scorecard-card">
+            <h2 class="section-title">TULOSKORTTI</h2>
+            <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr id="headerRow">
+                        <th class="hole-cell">Reikä</th>
+                        <th class="player-column" data-player="1">
+                            <input
+                                type="text"
+                                class="player-name"
+                                id="name1"
+                                value=""
+                                placeholder="P1"
+                                maxlength="12"
+                                aria-label="Pelaajan 1 nimi"
+                            >
+                        </th>
+                        <th class="player-column" data-player="2">
+                            <input
+                                type="text"
+                                class="player-name"
+                                id="name2"
+                                value=""
+                                placeholder="P2"
+                                maxlength="12"
+                                aria-label="Pelaajan 2 nimi"
+                            >
+                        </th>
+                        <th class="player-column" data-player="3">
+                            <input
+                                type="text"
+                                class="player-name"
+                                id="name3"
+                                value=""
+                                placeholder="P3"
+                                maxlength="12"
+                                aria-label="Pelaajan 3 nimi"
+                            >
+                        </th>
+                        <th class="player-column" data-player="4">
+                            <input
+                                type="text"
+                                class="player-name"
+                                id="name4"
+                                value=""
+                                placeholder="P4"
+                                maxlength="12"
+                                aria-label="Pelaajan 4 nimi"
+                            >
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody"></tbody>
+
+                <tfoot>
+                    <tr class="total">
+                        <td>Yhteensä</td>
+                        <td class="player-column" data-player="1" id="sum1">0</td>
+                        <td class="player-column" data-player="2" id="sum2">0</td>
+                        <td class="player-column" data-player="3" id="sum3">0</td>
+                        <td class="player-column" data-player="4" id="sum4">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+            </div>
+        </section>
+
+        <div class="actions">
+            <button type="button" class="action-button" onclick="resetRound()">
+                Aloita uusi kierros
+            </button>
+
+            <button type="button" class="action-button" onclick="toggleHistory()">
+                📚 Kierroshistoria
+            </button>
+        </div>
+
+        <section class="card history-card" id="historyCard">
+            <h2 class="section-title">Tallennetut kierrokset</h2>
+            <div class="muted" id="historyCount">Tallennettuja kierroksia: 0</div>
+            <div class="history-list" id="historyList"></div>
+
+            <button
+                type="button"
+                class="action-button danger-button"
+                id="deleteAllRoundsButton"
+                onclick="deleteAllRounds()"
+                style="display:none; margin-top:10px;"
+            >
+                Poista kaikki kierrokset
+            </button>
+        </section>
+
+
+        <details class="card about-card">
+            <summary>Tietoja sovelluksesta</summary>
+            <div class="about-content">
+                <strong>Golf Voice Scorecard AI</strong>
+                <span>Versio 3.7.4 · Field Test Edition</span>
+                <span class="about-signature">Petri Suokas<br>AI Golf Apps</span>
+                <span>© 2026</span>
+            </div>
+        </details>
+
+        <footer class="app-footer" aria-label="Sovelluksen tekijätiedot">
+            <span>Petri Suokas</span>
+            <strong>AI Golf Apps</strong>
+        </footer>
+    </main>
+
+    <div class="modal-backdrop" id="roundCompleteModal" role="dialog"
+         aria-modal="true" aria-labelledby="roundCompleteTitle">
+        <div class="modal-card">
+            <h2 id="roundCompleteTitle">18 reikää pelattu</h2>
+            <p>Lisää kierroksen tiedot ja tallenna tai palaa tarkistamaan tulokset.</p>
+
+            <div class="form-grid">
+                <label>
+                    Kenttä
+                    <input
+                        type="text"
+                        id="courseName"
+                        list="recentCourses"
+                        placeholder="Esimerkiksi Master Golf"
+                        maxlength="60"
+                    >
+                    <datalist id="recentCourses"></datalist>
+                </label>
+
+                <label>
+                    Päivämäärä
+                    <input type="date" id="roundDate">
+                </label>
+
+                <label>
+                    Pelimuoto
+                    <select id="gameFormat">
+                        <option value="Lyöntipeli">Lyöntipeli</option>
+                        <option value="Stableford">Stableford</option>
+                        <option value="Muu">Muu</option>
+                    </select>
+                </label>
+
+                <label>
+                    Huomautukset
+                    <textarea
+                        id="roundNotes"
+                        placeholder="Valinnainen huomautus kierroksesta"
+                        maxlength="500"
+                    ></textarea>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="action-button"
+                        onclick="reviewCompletedRound()">
+                    Palaa tarkistamaan
+                </button>
+
+                <button type="button" class="action-button primary-button"
+                        onclick="saveCompletedRound()">
+                    Tallenna kierros
+                </button>
+            </div>
+
+            <div class="saved-message" id="savedMessage"></div>
+        </div>
+    </div>
+    </div>
+
+    <script src="app.js?v=3.7.4" defer></script>
+
+</body>
+</html>
