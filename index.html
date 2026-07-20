@@ -33,7 +33,6 @@
         <section class="card setup-card" id="setupCard">
             <h2 class="section-title">KIERROKSEN ASETUKSET</h2>
             <p class="section-help">Valitse kierroksella pelaavien määrä.</p>
-            <p class="section-help">Tarkista pelaajien nimet tuloskortista.</p>
 
             <div class="player-count" id="playerCountButtons">
                 <button type="button" data-count="1">1</button>
@@ -41,12 +40,16 @@
                 <button type="button" data-count="3">3</button>
                 <button type="button" data-count="4">4</button>
             </div>
+            <p class="section-help">Tarkista pelaajien nimet tuloskortista.</p>
+            <label class="section-help">Aloitusreikä
+                <input id="startHoleInput" type="number" min="1" max="18" value="1" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
+            </label>
         </section>
 
         <section class="card next-hole-box next-hole-card" id="nextHoleCard">
             <div>
-                <div class="next-hole-label" id="nextHoleLabel">Aloitusreikä</div>
-                <div class="muted" id="nextHoleHelp">Sano aloitusreikä ennen ensimmäistä kirjausta.</div>
+                <div class="next-hole-label">Aloitusreikä</div>
+                <div class="muted">Anna aloitusreikä ennen ensimmäistä kirjausta.</div>
             </div>
 
             <div class="next-hole-number" id="nextHole">1</div>

@@ -6,8 +6,8 @@
 
         let playerCount = 1;
         let roundSetupConfirmed = false;
-        let startHoleConfirmed = false;
         let nextHole = 1;
+        let startHole = 1;
         let roundComplete = false;
         let frontNineAnnounced = false;
         let pendingVoiceMessage = "";
@@ -19,6 +19,7 @@
         const voiceStatus = document.getElementById("voiceStatus");
         const voiceButton = document.getElementById("voiceButton");
         const nextHoleElement = document.getElementById("nextHole");
+        const startHoleInput = document.getElementById("startHoleInput");
         const compactNextHoleElement =
             document.getElementById("compactNextHole");
         const roundCompleteModal = document.getElementById("roundCompleteModal");
@@ -423,37 +424,6 @@
             }
 
             return mappedTokens;
-        }
-
-
-        function handleStartHoleCommand(spokenText) {
-            const text = normalizeText(spokenText);
-            if (!text.includes("aloitus")) {
-                return false;
-            }
-
-            const numbers = extractVoiceTokens(text)
-                .filter(token => typeof token === "object")
-                .map(token => token.number);
-
-            const hole = numbers.find(value => value >= 1 && value <= 18);
-
-            if (!hole) {
-                return false;
-            }
-
-            nextHole = hole;
-            startHoleConfirmed = true;
-            updateNextHole();
-
-            const label = document.getElementById("nextHoleLabel");
-            const help = document.getElementById("nextHoleHelp");
-            if (label) label.textContent = "Seuraava reikä";
-            if (help) help.textContent = "Reikä vaihtuu onnistuneen kirjauksen jälkeen.";
-
-            saveState();
-            speakMessage(`Aloitusreikä ${hole} asetettu.`);
-            return true;
         }
 
         function parseVoiceResults(spokenText) {
@@ -866,12 +836,6 @@
                 let heardText = alternatives[0].transcript;
                 let lastError = new Error("Puhetta ei voitu käsitellä.");
 
-                if (handleStartHoleCommand(heardText)) {
-                    voiceStatus.innerHTML =
-                        `<strong>Aloitusreikä asetettu ✅</strong><br>${escapeHtml(heardText)}`;
-                    return;
-                }
-
                 for (let i = 0; i < alternatives.length; i++) {
                     try {
                         successfulResult = parseVoiceResults(
@@ -1031,7 +995,7 @@
             const state = {
                 playerCount,
                 roundSetupConfirmed,
-                startHoleConfirmed,
+                startHole,
                 nextHole,
                 roundComplete,
                 frontNineAnnounced,
@@ -1060,6 +1024,7 @@
 
             if (!raw) {
                 setPlayerCount(1);
+                startHole = 1;
                 updateNextHole();
                 updateRoundLayout();
                 return;
@@ -1070,7 +1035,7 @@
 
                 playerCount = Number(state.playerCount) || 1;
                 roundSetupConfirmed = Boolean(state.roundSetupConfirmed);
-                startHoleConfirmed = Boolean(state.startHoleConfirmed);
+                startHole = Number(state.startHole) || 1;
                 nextHole = Number(state.nextHole) || 1;
                 roundComplete = Boolean(state.roundComplete);
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
@@ -1103,6 +1068,7 @@
             } catch (error) {
                 localStorage.removeItem(STORAGE_KEY);
                 setPlayerCount(1);
+                startHole = 1;
                 updateNextHole();
                 updateRoundLayout();
             }
@@ -2224,6 +2190,8 @@
             frontNineAnnounced = false;
             selectedScoreInput = null;
             roundSetupConfirmed = false;
+            startHole = 1;
+            if (startHoleInput) startHoleInput.value = "1";
             document.querySelectorAll(".selected-score").forEach(input => {
                 input.classList.remove("selected-score");
             });
@@ -2264,6 +2232,18 @@
 
             input.addEventListener("input", saveState);
         });
+
+        if (startHoleInput) {
+            startHoleInput.addEventListener("input", () => {
+                const value = Number(startHoleInput.value);
+                if (value >= 1 && value <= 18) {
+                    startHole = value;
+                    nextHole = value;
+                    updateNextHole();
+                    saveState();
+                }
+            });
+        }
 
         announceStandingsInput.addEventListener("change", () => {
             announceStandings = announceStandingsInput.checked;
