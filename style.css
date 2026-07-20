@@ -1,13 +1,3 @@
-:root {
-            --bg: #f3f5f2;
-            --card: #ffffff;
-            --border: #cfd5cf;
-            --soft: #e9eee8;
-            --strong: #dce5db;
-            --text: #1f2a22;
-            --danger: #fff0f0;
-        }
-
         * {
             box-sizing: border-box;
         }
@@ -358,6 +348,13 @@
 
         /* --- Golf Voice Scorecard AI visual theme --- */
         :root {
+            --bg: #f3f5f2;
+            --card: #ffffff;
+            --border: #cfd5cf;
+            --soft: #e9eee8;
+            --strong: #dce5db;
+            --text: #1f2a22;
+            --danger: #fff0f0;
             --forest: #173f18;
             --forest-2: #286f24;
             --leaf: #75a96c;
