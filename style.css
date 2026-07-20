@@ -454,13 +454,13 @@
         .player-count button,
         .action-button,
         .small-button {
-            min-height: 46px;
-            padding: 10px;
+            min-height: 44px;
+            padding: 9px;
             border: 1px solid #afc6aa;
             border-radius: 16px;
             color: var(--ink);
             background: #f7fbf4;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(23, 63, 24, .06);
