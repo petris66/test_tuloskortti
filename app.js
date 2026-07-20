@@ -5,6 +5,7 @@
         const MAX_PLAYERS = 4;
 
         let playerCount = 1;
+        let roundSetupConfirmed = false;
         let nextHole = 1;
         let roundComplete = false;
         let frontNineAnnounced = false;
@@ -116,8 +117,12 @@
             return row;
         }
 
-        function setPlayerCount(count) {
+        function setPlayerCount(count, activateRound = false) {
             playerCount = Math.min(Math.max(Number(count) || 1, 1), MAX_PLAYERS);
+
+            if (activateRound) {
+                roundSetupConfirmed = true;
+            }
 
             document.querySelectorAll("#playerCountButtons button").forEach(button => {
                 button.classList.toggle(
@@ -954,7 +959,7 @@
             // Kierroksen aloitus tai aloitusreikä ei vaikuta käyttöliittymän kokoon.
             const showBackNine = nextHole >= 10 || roundComplete;
 
-            document.body.classList.add("round-active");
+            document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
             document.body.classList.toggle("show-back-nine", showBackNine);
 
             document.querySelectorAll("[data-hole-row]").forEach(row => {
@@ -987,6 +992,7 @@
         function saveState() {
             const state = {
                 playerCount,
+                roundSetupConfirmed,
                 nextHole,
                 roundComplete,
                 frontNineAnnounced,
@@ -1024,6 +1030,7 @@
                 const state = JSON.parse(raw);
 
                 playerCount = Number(state.playerCount) || 1;
+                roundSetupConfirmed = Boolean(state.roundSetupConfirmed);
                 nextHole = Number(state.nextHole) || 1;
                 roundComplete = Boolean(state.roundComplete);
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
@@ -2176,6 +2183,7 @@
             roundComplete = false;
             frontNineAnnounced = false;
             selectedScoreInput = null;
+            roundSetupConfirmed = false;
             document.querySelectorAll(".selected-score").forEach(input => {
                 input.classList.remove("selected-score");
             });
@@ -2200,7 +2208,7 @@
 
         document.querySelectorAll("#playerCountButtons button").forEach(button => {
             button.addEventListener("click", () => {
-                setPlayerCount(Number(button.dataset.count));
+                setPlayerCount(Number(button.dataset.count), true);
             });
         });
 
