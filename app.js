@@ -6,6 +6,7 @@
 
         let playerCount = 1;
         let roundSetupConfirmed = false;
+        let startHoleConfirmed = false;
         let nextHole = 1;
         let roundComplete = false;
         let frontNineAnnounced = false;
@@ -424,6 +425,37 @@
             return mappedTokens;
         }
 
+
+        function handleStartHoleCommand(spokenText) {
+            const text = normalizeText(spokenText);
+            if (!text.includes("aloitus")) {
+                return false;
+            }
+
+            const numbers = extractVoiceTokens(text)
+                .filter(token => typeof token === "object")
+                .map(token => token.number);
+
+            const hole = numbers.find(value => value >= 1 && value <= 18);
+
+            if (!hole) {
+                return false;
+            }
+
+            nextHole = hole;
+            startHoleConfirmed = true;
+            updateNextHole();
+
+            const label = document.getElementById("nextHoleLabel");
+            const help = document.getElementById("nextHoleHelp");
+            if (label) label.textContent = "Seuraava reikä";
+            if (help) help.textContent = "Reikä vaihtuu onnistuneen kirjauksen jälkeen.";
+
+            saveState();
+            speakMessage(`Aloitusreikä ${hole} asetettu.`);
+            return true;
+        }
+
         function parseVoiceResults(spokenText) {
             const tokens = extractVoiceTokens(spokenText);
 
@@ -834,6 +866,12 @@
                 let heardText = alternatives[0].transcript;
                 let lastError = new Error("Puhetta ei voitu käsitellä.");
 
+                if (handleStartHoleCommand(heardText)) {
+                    voiceStatus.innerHTML =
+                        `<strong>Aloitusreikä asetettu ✅</strong><br>${escapeHtml(heardText)}`;
+                    return;
+                }
+
                 for (let i = 0; i < alternatives.length; i++) {
                     try {
                         successfulResult = parseVoiceResults(
@@ -993,6 +1031,7 @@
             const state = {
                 playerCount,
                 roundSetupConfirmed,
+                startHoleConfirmed,
                 nextHole,
                 roundComplete,
                 frontNineAnnounced,
@@ -1031,6 +1070,7 @@
 
                 playerCount = Number(state.playerCount) || 1;
                 roundSetupConfirmed = Boolean(state.roundSetupConfirmed);
+                startHoleConfirmed = Boolean(state.startHoleConfirmed);
                 nextHole = Number(state.nextHole) || 1;
                 roundComplete = Boolean(state.roundComplete);
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
