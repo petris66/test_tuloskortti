@@ -546,8 +546,36 @@
             return lastPlayedHole;
         }
 
+        function getPlayedHoles() {
+            const playedHoles = [];
+
+            for (let offset = 0; offset < 18; offset++) {
+                const hole = ((startHole - 1 + offset) % 18) + 1;
+                let complete = true;
+
+                for (let player = 1; player <= playerCount; player++) {
+                    const input = document.querySelector(
+                        `.p${player}[data-hole="${hole}"]`
+                    );
+
+                    if (!input || input.value === "") {
+                        complete = false;
+                        break;
+                    }
+                }
+
+                if (!complete) {
+                    break;
+                }
+
+                playedHoles.push(hole);
+            }
+
+            return playedHoles;
+        }
+
         function getStandingsData() {
-            const playedHoles = getPlayedHoleCount();
+            const playedHoleNumbers = getPlayedHoles();
             const activePlayers = [];
             const dnfPlayers = [];
 
@@ -559,7 +587,7 @@
                 let total = 0;
                 let dnf = false;
 
-                for (let hole = 1; hole <= playedHoles; hole++) {
+                for (const hole of playedHoleNumbers) {
                     const input = document.querySelector(
                         `.p${player}[data-hole="${hole}"]`
                     );
@@ -585,7 +613,7 @@
             activePlayers.sort((a, b) => a.total - b.total);
 
             return {
-                playedHoles,
+                playedHoles: playedHoleNumbers.length,
                 activePlayers,
                 dnfPlayers
             };

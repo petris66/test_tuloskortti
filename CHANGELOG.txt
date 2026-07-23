@@ -1,5 +1,6 @@
-Feature 1.4.1
-- Ensimmäisten yhdeksän pelatun reiän yhteenveto perustuu aloitusreikään.
-- Toimii myös kierron yli, esimerkiksi 15–18 ja 1–5.
-- Yhteenveto lasketaan juuri ensimmäisistä yhdeksästä pelatusta reiästä.
-- Pelitilanteen ja kierroksen tarkistusnäkymän logiikkaa ei muutettu.
+Feature 1.4.2
+- Pelitilanne lasketaan aloitusreiästä lähtien oikeassa pelijärjestyksessä.
+- Logiikka toimii myös reiän 18 yli, esimerkiksi 15–18 ja 1–3.
+- Johto, lyöntierot ja DNF huomioivat vain siihen asti pelatut reiät.
+- Feature 1.4.1:n ensimmäisten 9 reiän logiikka säilyy ennallaan.
+- Kierroksen päättämistä, tarkistusnäkymää ja tallennusta ei muutettu.
