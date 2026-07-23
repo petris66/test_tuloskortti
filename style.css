@@ -1131,3 +1131,47 @@ body {
         font-weight: 900;
     }
 }
+
+/* --- Feature 1.5.1 test 2: kelluva puhepainike, vain CSS --- */
+/*
+   Muutos koskee vain itse puhepainiketta kierroksen aikana.
+   voice-card säilyy sticky-rakenteena, joten nykyinen scrollaus- ja kierroslogiikka ei muutu.
+*/
+
+.round-active #voiceButton {
+    position: fixed;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 900;
+    width: auto;
+    max-width: 736px;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 58px;
+    border-radius: 18px;
+    box-shadow: 0 14px 30px rgba(23, 63, 24, .34);
+}
+
+/* Estää kelluvaa painiketta peittämästä tuloskortin viimeisiä rivejä. */
+.round-active .app {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+}
+
+/* Kierros valmis -tilassa painike pysyy näkyvissä samalla paikalla. */
+.round-active #voiceButton:disabled {
+    opacity: 1;
+}
+
+@media (max-width: 500px) {
+    .round-active #voiceButton {
+        left: max(8px, env(safe-area-inset-left));
+        right: max(8px, env(safe-area-inset-right));
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        min-height: 56px;
+    }
+
+    .round-active .app {
+        padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    }
+}
