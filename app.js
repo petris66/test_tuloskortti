@@ -817,10 +817,16 @@
 
             row.classList.add("recently-saved");
 
+            requestAnimationFrame(() => {
+                row.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            });
+
             setTimeout(() => {
                 row.classList.remove("recently-saved");
             }, 2200);
-
         }
 
         function startVoiceInput() {
@@ -988,30 +994,32 @@
         }
 
         function updateRoundLayout() {
-            // Kierroksen valmistuttua näytetään koko tuloskortti tarkistusta varten.
-            if (roundComplete) {
-                document.body.classList.add("round-active");
+            const roundIsActive = roundSetupConfirmed || roundComplete;
+
+            document.body.classList.toggle("round-active", roundIsActive);
+
+            // Kun kierros on käynnissä tai valmis, koko 18 reiän
+            // tuloskortti pidetään näkyvissä ja selattavissa.
+            if (roundIsActive) {
                 document.body.classList.remove("show-back-nine");
 
-                document.querySelectorAll("[data-hole-row]").forEach(row => {
-                    row.classList.remove("nine-hidden");
-                });
-
-                document.querySelectorAll(".subtotal").forEach(row => {
+                document.querySelectorAll("[data-hole-row], .subtotal").forEach(row => {
                     row.classList.remove("nine-hidden");
                 });
 
                 return;
             }
 
+            // Ennen kierroksen käynnistymistä säilytetään tiivis ysikohtainen näkymä.
             const showBackNine = nextHole >= 10;
-
-            document.body.classList.toggle("round-active", roundSetupConfirmed);
             document.body.classList.toggle("show-back-nine", showBackNine);
 
             document.querySelectorAll("[data-hole-row]").forEach(row => {
                 const hole = Number(row.dataset.holeRow);
-                const shouldShow = showBackNine ? hole >= 10 : hole <= 9;
+                const shouldShow = showBackNine
+                    ? hole >= 10
+                    : hole <= 9;
+
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
 
@@ -1019,6 +1027,7 @@
                 const shouldShow = showBackNine
                     ? row.dataset.nine === "back"
                     : row.dataset.nine === "front";
+
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
         }
