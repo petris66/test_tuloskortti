@@ -1,6 +1,4 @@
-Feature 1.4.2
-- Pelitilanne lasketaan aloitusreiästä lähtien oikeassa pelijärjestyksessä.
-- Logiikka toimii myös reiän 18 yli, esimerkiksi 15–18 ja 1–3.
-- Johto, lyöntierot ja DNF huomioivat vain siihen asti pelatut reiät.
-- Feature 1.4.1:n ensimmäisten 9 reiän logiikka säilyy ennallaan.
-- Kierroksen päättämistä, tarkistusnäkymää ja tallennusta ei muutettu.
+Feature 1.4.3
+- Kierroksen päättämisen jälkeen näytetään kaikki 18 reikää.
+- Etuysin ja takaysin välisummat näkyvät yhtä aikaa.
+- Tarkistus ennen tallennusta onnistuu yhdestä näkymästä.

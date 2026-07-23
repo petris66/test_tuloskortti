@@ -988,19 +988,30 @@
         }
 
         function updateRoundLayout() {
-            // Tiivis mobiilinäkymä on oletusnäkymä.
-            // Kierroksen aloitus tai aloitusreikä ei vaikuta käyttöliittymän kokoon.
-            const showBackNine = nextHole >= 10 || roundComplete;
+            // Kierroksen valmistuttua näytetään koko tuloskortti tarkistusta varten.
+            if (roundComplete) {
+                document.body.classList.add("round-active");
+                document.body.classList.remove("show-back-nine");
 
-            document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
+                document.querySelectorAll("[data-hole-row]").forEach(row => {
+                    row.classList.remove("nine-hidden");
+                });
+
+                document.querySelectorAll(".subtotal").forEach(row => {
+                    row.classList.remove("nine-hidden");
+                });
+
+                return;
+            }
+
+            const showBackNine = nextHole >= 10;
+
+            document.body.classList.toggle("round-active", roundSetupConfirmed);
             document.body.classList.toggle("show-back-nine", showBackNine);
 
             document.querySelectorAll("[data-hole-row]").forEach(row => {
                 const hole = Number(row.dataset.holeRow);
-                const shouldShow = showBackNine
-                    ? hole >= 10
-                    : hole <= 9;
-
+                const shouldShow = showBackNine ? hole >= 10 : hole <= 9;
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
 
@@ -1008,7 +1019,6 @@
                 const shouldShow = showBackNine
                     ? row.dataset.nine === "back"
                     : row.dataset.nine === "front";
-
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
         }
