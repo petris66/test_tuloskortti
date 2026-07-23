@@ -504,6 +504,9 @@
                 nextHole = 1;
             }
 
+            // Ensimmäinen onnistunut tulos käynnistää varsinaisen kierrosnäkymän.
+            roundSetupConfirmed = true;
+
             updateNextHole();
             updateRoundCompleteState();
             updateRoundLayout();
@@ -1037,6 +1040,12 @@
                 roundSetupConfirmed = Boolean(state.roundSetupConfirmed);
                 startHole = Number(state.startHole) || 1;
                 nextHole = Number(state.nextHole) || 1;
+
+                if (startHoleInput) {
+                    startHoleInput.value = roundSetupConfirmed
+                        ? String(startHole)
+                        : (state.startHole ? String(startHole) : "");
+                }
                 roundComplete = Boolean(state.roundComplete);
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
                 announceStandings = Boolean(state.announceStandings);
@@ -2191,7 +2200,7 @@
             selectedScoreInput = null;
             roundSetupConfirmed = false;
             startHole = 1;
-            if (startHoleInput) startHoleInput.value = "1";
+            if (startHoleInput) startHoleInput.value = "";
             document.querySelectorAll(".selected-score").forEach(input => {
                 input.classList.remove("selected-score");
             });
@@ -2216,7 +2225,8 @@
 
         document.querySelectorAll("#playerCountButtons button").forEach(button => {
             button.addEventListener("click", () => {
-                setPlayerCount(Number(button.dataset.count), true);
+                setPlayerCount(Number(button.dataset.count));
+                updateRoundLayout();
             });
         });
 
@@ -2234,7 +2244,24 @@
         });
 
         if (startHoleInput) {
+            const selectStartHoleValue = () => {
+                if (startHoleInput.value) {
+                    startHoleInput.select();
+                }
+            };
+
+            startHoleInput.addEventListener("focus", selectStartHoleValue);
+            startHoleInput.addEventListener("click", selectStartHoleValue);
+
             startHoleInput.addEventListener("input", () => {
+                if (startHoleInput.value === "") {
+                    startHole = 1;
+                    nextHole = 1;
+                    updateNextHole();
+                    saveState();
+                    return;
+                }
+
                 const value = Number(startHoleInput.value);
                 if (value >= 1 && value <= 18) {
                     startHole = value;
