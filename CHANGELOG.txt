@@ -1,0 +1,5 @@
+Feature 1.4.1
+- Ensimmäisten yhdeksän pelatun reiän yhteenveto perustuu aloitusreikään.
+- Toimii myös kierron yli, esimerkiksi 15–18 ja 1–5.
+- Yhteenveto lasketaan juuri ensimmäisistä yhdeksästä pelatusta reiästä.
+- Pelitilanteen ja kierroksen tarkistusnäkymän logiikkaa ei muutettu.

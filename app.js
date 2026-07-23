@@ -1086,9 +1086,21 @@
 
 
 
-        function isFrontNineComplete() {
+        function getFirstNineHoles() {
+            const holes = [];
+
+            for (let offset = 0; offset < 9; offset++) {
+                holes.push(((startHole - 1 + offset) % 18) + 1);
+            }
+
+            return holes;
+        }
+
+        function isFirstNineComplete() {
+            const firstNineHoles = getFirstNineHoles();
+
             for (let player = 1; player <= playerCount; player++) {
-                for (let hole = 1; hole <= 9; hole++) {
+                for (const hole of firstNineHoles) {
                     const input = document.querySelector(
                         `.p${player}[data-hole="${hole}"]`
                     );
@@ -1102,7 +1114,8 @@
             return true;
         }
 
-        function getFrontNineSummary() {
+        function getFirstNineSummary() {
+            const firstNineHoles = getFirstNineHoles();
             const parts = [];
 
             for (let player = 1; player <= playerCount; player++) {
@@ -1110,19 +1123,35 @@
                     document.getElementById(`name${player}`).value.trim() ||
                     `P${player}`;
 
-                const totalText =
-                    document.getElementById(`front${player}`).textContent;
+                let total = 0;
+                let dnf = false;
+
+                for (const hole of firstNineHoles) {
+                    const input = document.querySelector(
+                        `.p${player}[data-hole="${hole}"]`
+                    );
+                    const value = normalizeScoreValue(input?.value);
+
+                    if (value === "-") {
+                        dnf = true;
+                        break;
+                    }
+
+                    if (typeof value === "number") {
+                        total += value;
+                    }
+                }
 
                 parts.push({
                     name,
-                    result: totalText
+                    result: dnf ? "DNF" : total
                 });
             }
 
             return parts;
         }
 
-        function buildFrontNineSpeech(summary) {
+        function buildFirstNineSpeech(summary) {
             return summary.map(item => {
                 if (item.result === "DNF") {
                     return `${item.name}, ei lyöntipelitulosta`;
@@ -1133,7 +1162,7 @@
         }
 
         function checkFrontNineCompletion() {
-            if (frontNineAnnounced || !isFrontNineComplete()) {
+            if (frontNineAnnounced || !isFirstNineComplete()) {
                 return;
             }
 
@@ -1141,7 +1170,7 @@
             updateRoundLayout();
             saveState();
 
-            const summary = getFrontNineSummary();
+            const summary = getFirstNineSummary();
             const summaryText = summary.map(item =>
                 item.result === "DNF"
                     ? `${escapeHtml(item.name)}: DNF`
@@ -1149,16 +1178,16 @@
             ).join(", ");
 
             voiceStatus.innerHTML =
-                "<strong>Etuysi pelattu ✅</strong><br>" +
+                "<strong>Ensimmäiset 9 reikää pelattu ✅</strong><br>" +
                 summaryText;
 
-            const frontNineSpeech =
-                `Etuysi pelattu. ${buildFrontNineSpeech(summary)}`;
+            const firstNineSpeech =
+                `Ensimmäiset 9 reikää pelattu. ${buildFirstNineSpeech(summary)}`;
 
             if (pendingVoiceMessage) {
-                pendingVoiceMessage += `. ${frontNineSpeech}`;
+                pendingVoiceMessage += `. ${firstNineSpeech}`;
             } else {
-                speakMessage(frontNineSpeech);
+                speakMessage(firstNineSpeech);
             }
 
         }
