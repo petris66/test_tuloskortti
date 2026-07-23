@@ -546,36 +546,8 @@
             return lastPlayedHole;
         }
 
-        function getPlayedHoles() {
-            const playedHoles = [];
-
-            for (let offset = 0; offset < 18; offset++) {
-                const hole = ((startHole - 1 + offset) % 18) + 1;
-                let complete = true;
-
-                for (let player = 1; player <= playerCount; player++) {
-                    const input = document.querySelector(
-                        `.p${player}[data-hole="${hole}"]`
-                    );
-
-                    if (!input || input.value === "") {
-                        complete = false;
-                        break;
-                    }
-                }
-
-                if (!complete) {
-                    break;
-                }
-
-                playedHoles.push(hole);
-            }
-
-            return playedHoles;
-        }
-
         function getStandingsData() {
-            const playedHoleNumbers = getPlayedHoles();
+            const playedHoles = getPlayedHoleCount();
             const activePlayers = [];
             const dnfPlayers = [];
 
@@ -587,7 +559,7 @@
                 let total = 0;
                 let dnf = false;
 
-                for (const hole of playedHoleNumbers) {
+                for (let hole = 1; hole <= playedHoles; hole++) {
                     const input = document.querySelector(
                         `.p${player}[data-hole="${hole}"]`
                     );
@@ -613,7 +585,7 @@
             activePlayers.sort((a, b) => a.total - b.total);
 
             return {
-                playedHoles: playedHoleNumbers.length,
+                playedHoles,
                 activePlayers,
                 dnfPlayers
             };
@@ -817,16 +789,10 @@
 
             row.classList.add("recently-saved");
 
-            requestAnimationFrame(() => {
-                row.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-            });
-
             setTimeout(() => {
                 row.classList.remove("recently-saved");
             }, 2200);
+
         }
 
         function startVoiceInput() {
@@ -994,24 +960,11 @@
         }
 
         function updateRoundLayout() {
-            const roundIsActive = roundSetupConfirmed || roundComplete;
+            // Tiivis mobiilinäkymä on oletusnäkymä.
+            // Kierroksen aloitus tai aloitusreikä ei vaikuta käyttöliittymän kokoon.
+            const showBackNine = nextHole >= 10 || roundComplete;
 
-            document.body.classList.toggle("round-active", roundIsActive);
-
-            // Kun kierros on käynnissä tai valmis, koko 18 reiän
-            // tuloskortti pidetään näkyvissä ja selattavissa.
-            if (roundIsActive) {
-                document.body.classList.remove("show-back-nine");
-
-                document.querySelectorAll("[data-hole-row], .subtotal").forEach(row => {
-                    row.classList.remove("nine-hidden");
-                });
-
-                return;
-            }
-
-            // Ennen kierroksen käynnistymistä säilytetään tiivis ysikohtainen näkymä.
-            const showBackNine = nextHole >= 10;
+            document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
             document.body.classList.toggle("show-back-nine", showBackNine);
 
             document.querySelectorAll("[data-hole-row]").forEach(row => {
@@ -1133,21 +1086,9 @@
 
 
 
-        function getFirstNineHoles() {
-            const holes = [];
-
-            for (let offset = 0; offset < 9; offset++) {
-                holes.push(((startHole - 1 + offset) % 18) + 1);
-            }
-
-            return holes;
-        }
-
-        function isFirstNineComplete() {
-            const firstNineHoles = getFirstNineHoles();
-
+        function isFrontNineComplete() {
             for (let player = 1; player <= playerCount; player++) {
-                for (const hole of firstNineHoles) {
+                for (let hole = 1; hole <= 9; hole++) {
                     const input = document.querySelector(
                         `.p${player}[data-hole="${hole}"]`
                     );
@@ -1161,8 +1102,7 @@
             return true;
         }
 
-        function getFirstNineSummary() {
-            const firstNineHoles = getFirstNineHoles();
+        function getFrontNineSummary() {
             const parts = [];
 
             for (let player = 1; player <= playerCount; player++) {
@@ -1170,35 +1110,19 @@
                     document.getElementById(`name${player}`).value.trim() ||
                     `P${player}`;
 
-                let total = 0;
-                let dnf = false;
-
-                for (const hole of firstNineHoles) {
-                    const input = document.querySelector(
-                        `.p${player}[data-hole="${hole}"]`
-                    );
-                    const value = normalizeScoreValue(input?.value);
-
-                    if (value === "-") {
-                        dnf = true;
-                        break;
-                    }
-
-                    if (typeof value === "number") {
-                        total += value;
-                    }
-                }
+                const totalText =
+                    document.getElementById(`front${player}`).textContent;
 
                 parts.push({
                     name,
-                    result: dnf ? "DNF" : total
+                    result: totalText
                 });
             }
 
             return parts;
         }
 
-        function buildFirstNineSpeech(summary) {
+        function buildFrontNineSpeech(summary) {
             return summary.map(item => {
                 if (item.result === "DNF") {
                     return `${item.name}, ei lyöntipelitulosta`;
@@ -1209,7 +1133,7 @@
         }
 
         function checkFrontNineCompletion() {
-            if (frontNineAnnounced || !isFirstNineComplete()) {
+            if (frontNineAnnounced || !isFrontNineComplete()) {
                 return;
             }
 
@@ -1217,7 +1141,7 @@
             updateRoundLayout();
             saveState();
 
-            const summary = getFirstNineSummary();
+            const summary = getFrontNineSummary();
             const summaryText = summary.map(item =>
                 item.result === "DNF"
                     ? `${escapeHtml(item.name)}: DNF`
@@ -1225,16 +1149,16 @@
             ).join(", ");
 
             voiceStatus.innerHTML =
-                "<strong>Ensimmäiset 9 reikää pelattu ✅</strong><br>" +
+                "<strong>Etuysi pelattu ✅</strong><br>" +
                 summaryText;
 
-            const firstNineSpeech =
-                `Ensimmäiset 9 reikää pelattu. ${buildFirstNineSpeech(summary)}`;
+            const frontNineSpeech =
+                `Etuysi pelattu. ${buildFrontNineSpeech(summary)}`;
 
             if (pendingVoiceMessage) {
-                pendingVoiceMessage += `. ${firstNineSpeech}`;
+                pendingVoiceMessage += `. ${frontNineSpeech}`;
             } else {
-                speakMessage(firstNineSpeech);
+                speakMessage(frontNineSpeech);
             }
 
         }

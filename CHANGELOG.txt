@@ -1,6 +1,7 @@
-Feature 1.4.3 – Full scorecard review and correction visibility
-- All 18 holes remain visible and scrollable while the round is active.
-- All 18 holes remain visible after the round is completed.
-- Both front-nine and back-nine subtotal rows remain visible.
-- After voice entry or correction, the saved hole is scrolled to the center of the screen and highlighted.
-- Scoring, standings, speech parsing, saving and sharing logic are unchanged.
+Feature 1.5.1-test1 — Kelluva puhepainike
+
+- "Anna tulokset puheella" -painike pysyy kierroksen aikana näytön alareunassa.
+- iPhonen safe area huomioidaan.
+- Sivun alareunaan lisätään tilaa, jotta tuloskortin viimeiset rivit eivät jää painikkeen alle.
+- Painikkeen nykyiset tilat ja JavaScript-toiminta säilyvät ennallaan.
+- Ei muutoksia piste-, puheentunnistus-, kierros-, tallennus- tai jakologiikkaan.

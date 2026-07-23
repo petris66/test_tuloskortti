@@ -1131,3 +1131,36 @@ body {
         font-weight: 900;
     }
 }
+
+/* --- Feature 1.5.1 test1: kelluva puhepainike kierroksen aikana --- */
+.round-active {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom));
+}
+
+.round-active #voiceButton {
+    position: fixed;
+    left: 50%;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 250;
+    width: min(calc(100vw - 24px), 420px);
+    margin: 0;
+    transform: translateX(-50%);
+    box-shadow:
+        0 14px 30px rgba(16, 49, 16, 0.34),
+        0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.round-active #voiceButton:disabled {
+    opacity: 0.88;
+}
+
+@media (max-width: 500px) {
+    .round-active {
+        padding-bottom: calc(106px + env(safe-area-inset-bottom));
+    }
+
+    .round-active #voiceButton {
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        width: calc(100vw - 16px);
+    }
+}
