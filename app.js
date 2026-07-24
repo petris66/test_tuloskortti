@@ -448,19 +448,10 @@
             }
 
             const mappedTokens = tokens.map(token =>
-                token === "-" ? "-" : Number(token.number)
+                token === "-" ? "-" : token.number
             );
 
-            const normalizedTokens = mappedTokens.map(token => {
-                if (typeof token === "number") {
-                    return token;
-                }
-
-                const parsed = Number(token);
-                return Number.isFinite(parsed) ? parsed : token;
-            });
-
-            if (normalizedTokens.length === 0) {
+            if (mappedTokens.length === 0) {
                 const raw = String(spokenText || "").toLowerCase();
 
                 if (
@@ -472,7 +463,7 @@
                 }
             }
 
-            return normalizedTokens;
+            return mappedTokens;
         }
 
         function parseVoiceResults(spokenText) {
@@ -488,7 +479,12 @@
             let hole;
             let scores;
 
-            if (tokens.length === expectedWithHole && typeof tokens[0] === "number") {
+            const hasExplicitHoleWord = normalizeText(spokenText).includes("reikä");
+
+            if (tokens.length === expectedWithoutHole && !hasExplicitHoleWord) {
+                hole = nextHole;
+                scores = tokens;
+            } else if (tokens.length === expectedWithHole && typeof tokens[0] === "number") {
                 hole = tokens[0];
                 scores = tokens.slice(1);
             } else if (tokens.length === expectedWithoutHole) {
