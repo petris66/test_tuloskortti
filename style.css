@@ -1259,13 +1259,19 @@ body {
     border-top-right-radius: 10px;
 }
 
-/* --- Feature 1.5.3 test 2: sticky-nimirivin turvallinen yläreuna --- */
+
+/* --- Feature 1.5.3 test 3: sticky-nimirivi ilman tyhjää yläväliä --- */
 /*
-   Jätetään iPhone Safarin yläpalkille riittävä tila, jotta pelaajien nimet
-   eivät jää näkymän yläreunan alle rei'illä 11–18. Vain CSS-muutos.
+   Nimirivi kiinnittyy heti näkymän yläreunaan eikä jää reiän 2 kohdalle.
+   Tuloskortin alareunaan lisätty tila pitää otsikkorivin näkyvissä myös
+   rei'illä 14–18. Vain CSS-muutos.
 */
+.round-active .scorecard-card {
+    padding-bottom: 58px;
+}
+
 .round-active .scorecard-card thead th {
-    top: calc(58px + env(safe-area-inset-top, 0px));
+    top: max(4px, env(safe-area-inset-top, 0px));
     z-index: 120;
 }
 
