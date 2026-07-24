@@ -14,6 +14,7 @@
         let announceStandings = false;
         let selectedScoreInput = null;
         let speechSynthesisPrimed = false;
+        let lastVoiceSnapshot = null;
 
         const tableBody = document.getElementById("tableBody");
         const voiceStatus = document.getElementById("voiceStatus");
@@ -871,6 +872,71 @@
             }, 2200);
         }
 
+
+        function createVoiceSnapshot() {
+            const snapshot = {
+                nextHole,
+                roundSetupConfirmed,
+                roundComplete,
+                frontNineAnnounced,
+                scores: {},
+                names: []
+            };
+
+            for (let player = 1; player <= MAX_PLAYERS; player++) {
+                snapshot.names.push(
+                    document.getElementById(`name${player}`)?.value || ""
+                );
+                snapshot.scores[player] = [];
+
+                document.querySelectorAll(`.p${player}`).forEach(input => {
+                    snapshot.scores[player].push(input.value);
+                });
+            }
+
+            return snapshot;
+        }
+
+        function restoreVoiceSnapshot() {
+            if (!lastVoiceSnapshot) {
+                voiceStatus.textContent = "Ei peruttavaa kirjausta.";
+                speakMessage("Ei peruttavaa kirjausta");
+                return false;
+            }
+
+            nextHole = lastVoiceSnapshot.nextHole;
+            roundSetupConfirmed = lastVoiceSnapshot.roundSetupConfirmed;
+            roundComplete = lastVoiceSnapshot.roundComplete;
+            frontNineAnnounced = lastVoiceSnapshot.frontNineAnnounced;
+
+            for (let player = 1; player <= MAX_PLAYERS; player++) {
+                document.querySelectorAll(`.p${player}`).forEach((input, index) => {
+                    input.value = lastVoiceSnapshot.scores[player][index] || "";
+                });
+            }
+
+            calculateScores();
+            updateNextHole();
+            updateRoundCompleteState();
+            updateRoundLayout();
+            saveState();
+
+            voiceStatus.innerHTML = "<strong>Viimeisin kirjaus peruttu. ✅</strong>";
+            speakMessage("Viimeisin kirjaus peruttu");
+            return true;
+        }
+
+        function isUndoVoiceCommand(text) {
+            const command = normalizeText(text);
+            return [
+                "peru",
+                "kumoa",
+                "kumoa viimeisin",
+                "poista",
+                "poista viimeisin"
+            ].includes(command);
+        }
+
         function startVoiceInput() {
             primeSpeechSynthesis();
 
@@ -911,6 +977,13 @@
 
             recognition.onresult = function(event) {
                 const alternatives = event.results[0];
+
+                if (isUndoVoiceCommand(alternatives[0].transcript)) {
+                    restoreVoiceSnapshot();
+                    return;
+                }
+
+                const snapshotBeforeEntry = createVoiceSnapshot();
                 let successfulResult = null;
                 let heardText = alternatives[0].transcript;
                 let lastError = new Error("Puhetta ei voitu käsitellä.");
@@ -928,6 +1001,8 @@
                 }
 
                 if (successfulResult) {
+                    lastVoiceSnapshot = snapshotBeforeEntry;
+
                     voiceStatus.innerHTML =
                         `<strong>Kuulin:</strong> ${escapeHtml(heardText)}<br>` +
                         `<strong>Reikä ${successfulResult.hole} tallennettu ✅</strong><br>` +
