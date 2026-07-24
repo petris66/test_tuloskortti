@@ -406,7 +406,37 @@
             const words = normalizeText(spokenText).split(" ");
             const tokens = [];
 
-            words.forEach(word => {
+            const combineSpokenDigits = (items) => {
+                const combined = [];
+                let i = 0;
+
+                while (i < items.length) {
+                    const current = wordToNumber(items[i]);
+
+                    if (
+                        current !== null &&
+                        current <= 9 &&
+                        i + 1 < items.length
+                    ) {
+                        const next = wordToNumber(items[i + 1]);
+
+                        if (next !== null && next <= 9) {
+                            combined.push(String(current) + String(next));
+                            i += 2;
+                            continue;
+                        }
+                    }
+
+                    combined.push(items[i]);
+                    i++;
+                }
+
+                return combined;
+            };
+
+            const normalizedWords = combineSpokenDigits(words);
+
+            normalizedWords.forEach(word => {
                 if (isDashWord(word)) {
                     tokens.push("-");
                     return;
@@ -429,17 +459,6 @@
                 tokens[0].isDigits &&
                 tokens[0].raw.length >= 2
             ) {
-                // Esim. Safari voi palauttaa "10 10" muodossa "1010".
-                // Pilkotaan se pelaajamäärän mukaisiksi tuloksiksi ennen
-                // reikänumerotulkintaa.
-                if (tokens[0].raw.length === playerCount * 2) {
-                    const compactScores = [];
-                    for (let i = 0; i < tokens[0].raw.length; i += 2) {
-                        compactScores.push(Number(tokens[0].raw.slice(i, i + 2)));
-                    }
-                    return compactScores;
-                }
-
                 return decodeCompactDigits(tokens[0].raw);
             }
 
