@@ -1258,3 +1258,19 @@ body {
 .round-active .scorecard-card thead th:last-child {
     border-top-right-radius: 10px;
 }
+
+/* --- Feature 1.5.3 test 2: sticky-nimirivin turvallinen yläreuna --- */
+/*
+   Jätetään iPhone Safarin yläpalkille riittävä tila, jotta pelaajien nimet
+   eivät jää näkymän yläreunan alle rei'illä 11–18. Vain CSS-muutos.
+*/
+.round-active .scorecard-card thead th {
+    top: calc(58px + env(safe-area-inset-top, 0px));
+    z-index: 120;
+}
+
+@media (min-width: 761px) {
+    .round-active .scorecard-card thead th {
+        top: 12px;
+    }
+}
