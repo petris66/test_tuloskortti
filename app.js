@@ -448,10 +448,19 @@
             }
 
             const mappedTokens = tokens.map(token =>
-                token === "-" ? "-" : token.number
+                token === "-" ? "-" : Number(token.number)
             );
 
-            if (mappedTokens.length === 0) {
+            const normalizedTokens = mappedTokens.map(token => {
+                if (typeof token === "number") {
+                    return token;
+                }
+
+                const parsed = Number(token);
+                return Number.isFinite(parsed) ? parsed : token;
+            });
+
+            if (normalizedTokens.length === 0) {
                 const raw = String(spokenText || "").toLowerCase();
 
                 if (
@@ -463,7 +472,7 @@
                 }
             }
 
-            return mappedTokens;
+            return normalizedTokens;
         }
 
         function parseVoiceResults(spokenText) {
@@ -502,18 +511,6 @@
             if (scores.length !== playerCount) {
                 throw new Error("Tulosten määrä ei vastaa pelaajien määrää.");
             }
-
-            scores = scores.map(score => {
-                if (score === "-") {
-                    return score;
-                }
-
-                if (typeof score === "string" && /^\\d+$/.test(score)) {
-                    return Number(score);
-                }
-
-                return score;
-            });
 
             scores.forEach(score => {
                 if (score === "-") {
