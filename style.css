@@ -1178,3 +1178,54 @@ body {
     padding-bottom: 8px;
 }
 
+
+
+/* --- Feature 1.5.2 test 1: kelluva Seuraava reikä -tieto --- */
+/*
+   Nykyinen automaattisesti päivittyvä compactNextHole-elementti nostetaan
+   kelluvaksi tietolaataksi puhepainikkeen yläpuolelle. Sovelluslogiikkaa ei muuteta.
+*/
+.round-active {
+    padding-bottom: calc(164px + env(safe-area-inset-bottom, 0px));
+}
+
+.round-active .compact-hole-line {
+    position: fixed;
+    z-index: 901;
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    width: auto;
+    max-width: 736px;
+    min-height: 44px;
+    margin: 0 auto;
+    padding: 8px 16px;
+    border: 1px solid #9fc49a;
+    border-radius: 15px;
+    color: var(--forest);
+    background: rgba(253, 254, 249, .97);
+    box-shadow:
+        0 10px 24px rgba(12, 45, 16, .25),
+        0 0 0 1px rgba(255, 255, 255, .35);
+    font-size: 14px;
+    font-weight: 900;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.round-active .compact-hole-line strong {
+    min-width: 34px;
+    color: var(--forest-2);
+    font-size: 27px;
+    text-align: center;
+}
+
+@media (min-width: 761px) {
+    .round-active .compact-hole-line {
+        left: 50%;
+        right: auto;
+        width: calc(100% - 24px);
+        transform: translateX(-50%);
+    }
+}
