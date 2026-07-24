@@ -39,6 +39,32 @@
             document.getElementById("announceStandings");
         const floatingPlayerHeader = document.getElementById("floatingPlayerHeader");
 
+        function syncFloatingPlayerHeaderColumns() {
+            if (!floatingPlayerHeader || !document.body.classList.contains("round-active")) {
+                return;
+            }
+
+            const table = document.querySelector(".scorecard-card .table-wrap table");
+            const headerCells = Array.from(
+                document.querySelectorAll("#headerRow > th")
+            ).filter(cell => getComputedStyle(cell).display !== "none");
+
+            if (!table || headerCells.length === 0) {
+                return;
+            }
+
+            const tableRect = table.getBoundingClientRect();
+            const columnWidths = headerCells.map(cell =>
+                Math.max(0, cell.getBoundingClientRect().width)
+            );
+
+            floatingPlayerHeader.style.left = `${tableRect.left}px`;
+            floatingPlayerHeader.style.right = "auto";
+            floatingPlayerHeader.style.width = `${tableRect.width}px`;
+            floatingPlayerHeader.style.gridTemplateColumns =
+                columnWidths.map(width => `${width}px`).join(" ");
+        }
+
         function updateFloatingPlayerHeader() {
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 const source = document.getElementById(`name${player}`);
@@ -47,10 +73,8 @@
                 target.textContent = (source?.value || source?.placeholder || `P${player}`).trim();
                 target.classList.toggle("is-hidden", player > playerCount);
             }
-            if (floatingPlayerHeader) {
-                floatingPlayerHeader.style.gridTemplateColumns =
-                    `48px repeat(${playerCount}, minmax(0, 1fr))`;
-            }
+
+            requestAnimationFrame(syncFloatingPlayerHeaderColumns);
         }
 
         function buildScoreTable() {
@@ -2371,6 +2395,14 @@
         announceStandingsInput.addEventListener("change", () => {
             announceStandings = announceStandingsInput.checked;
             saveState();
+        });
+
+        window.addEventListener("resize", () => {
+            requestAnimationFrame(syncFloatingPlayerHeaderColumns);
+        });
+
+        window.addEventListener("orientationchange", () => {
+            setTimeout(syncFloatingPlayerHeaderColumns, 150);
         });
 
         buildScoreTable();
