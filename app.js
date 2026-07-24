@@ -928,13 +928,15 @@
 
         function isUndoVoiceCommand(text) {
             const command = normalizeText(text);
-            return [
-                "peru",
-                "kumoa",
-                "kumoa viimeisin",
-                "poista",
-                "poista viimeisin"
-            ].includes(command);
+            return (
+                command === "peru" ||
+                command === "kumoa" ||
+                command === "kumoa viimeisin" ||
+                command === "poista" ||
+                command === "poista viimeisin" ||
+                command.includes("kumoa viime") ||
+                command.includes("poista viime")
+            );
         }
 
         function startVoiceInput() {
@@ -978,9 +980,11 @@
             recognition.onresult = function(event) {
                 const alternatives = event.results[0];
 
-                if (isUndoVoiceCommand(alternatives[0].transcript)) {
-                    restoreVoiceSnapshot();
-                    return;
+                for (let i = 0; i < alternatives.length; i++) {
+                    if (isUndoVoiceCommand(alternatives[i].transcript)) {
+                        restoreVoiceSnapshot();
+                        return;
+                    }
                 }
 
                 const snapshotBeforeEntry = createVoiceSnapshot();
