@@ -1229,3 +1229,32 @@ body {
         transform: translateX(-50%);
     }
 }
+
+/* --- Feature 1.5.3 test 1: pelaajien nimet pysyvät näkyvissä --- */
+/*
+   Tuloskortin otsikkorivi kiinnitetään näytön yläreunaan kierroksen aikana.
+   Muutos koskee vain käyttöliittymää; kirjaus- ja kierroslogiikkaa ei muuteta.
+*/
+.round-active .voice-card {
+    position: static;
+}
+
+.round-active .table-wrap {
+    overflow: visible;
+}
+
+.round-active .scorecard-card thead th {
+    position: sticky;
+    top: 4px;
+    z-index: 80;
+    background: #e8f1e4;
+    box-shadow: 0 2px 0 #cbdac7, 0 5px 12px rgba(23, 63, 24, .14);
+}
+
+.round-active .scorecard-card thead th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.round-active .scorecard-card thead th:last-child {
+    border-top-right-radius: 10px;
+}
