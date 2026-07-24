@@ -1131,3 +1131,50 @@ body {
         font-weight: 900;
     }
 }
+
+/* --- Feature 1.5.1 test 1: kelluva puhepainike kierroksen aikana --- */
+/*
+   Muutos koskee vain painikkeen sijoittelua.
+   Kierros-, tulos-, puhe-, ysi- ja tallennuslogiikkaa ei muuteta.
+*/
+.round-active {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+}
+
+.round-active #voiceButton {
+    position: fixed;
+    z-index: 900;
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    max-width: 736px;
+    min-height: 58px;
+    margin: 0 auto;
+    border-radius: 18px;
+    box-shadow:
+        0 14px 32px rgba(12, 45, 16, .38),
+        0 0 0 1px rgba(255, 255, 255, .18);
+}
+
+/* Keskitetään kelluva painike myös leveämmillä näytöillä. */
+@media (min-width: 761px) {
+    .round-active #voiceButton {
+        left: 50%;
+        right: auto;
+        width: calc(100% - 24px);
+        transform: translateX(-50%);
+    }
+}
+
+/* Kierroksen päätyttyä sama painike säilyy näkyvänä mutta pois käytöstä. */
+.round-active #voiceButton:disabled {
+    cursor: default;
+    opacity: .88;
+}
+
+/* Varmistetaan, etteivät viimeiset tulosrivit tai toimintopainikkeet jää alle. */
+.round-active .app {
+    padding-bottom: 8px;
+}
+
