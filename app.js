@@ -927,7 +927,10 @@
         }
 
         function isUndoVoiceCommand(text) {
-            const command = normalizeText(text);
+            const command = normalizeText(text)
+                .replace(/[.,!?]/g, "")
+                .trim();
+
             return (
                 command === "peru" ||
                 command === "kumoa" ||
@@ -980,11 +983,9 @@
             recognition.onresult = function(event) {
                 const alternatives = event.results[0];
 
-                for (let i = 0; i < alternatives.length; i++) {
-                    if (isUndoVoiceCommand(alternatives[i].transcript)) {
-                        restoreVoiceSnapshot();
-                        return;
-                    }
+                if (isUndoVoiceCommand(alternatives[0].transcript)) {
+                    restoreVoiceSnapshot();
+                    return;
                 }
 
                 const snapshotBeforeEntry = createVoiceSnapshot();
