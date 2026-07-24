@@ -403,40 +403,30 @@
         }
 
         function extractVoiceTokens(spokenText) {
-            const words = normalizeText(spokenText).split(" ");
-            const tokens = [];
+            const rawWords = normalizeText(spokenText).split(" ");
 
-            const combineSpokenDigits = (items) => {
-                const combined = [];
-                let i = 0;
-
-                while (i < items.length) {
-                    const current = wordToNumber(items[i]);
-
-                    if (
-                        current !== null &&
-                        current <= 9 &&
-                        i + 1 < items.length
-                    ) {
-                        const next = wordToNumber(items[i + 1]);
-
-                        if (next !== null && next <= 9) {
-                            combined.push(String(current) + String(next));
-                            i += 2;
-                            continue;
-                        }
-                    }
-
-                    combined.push(items[i]);
-                    i++;
-                }
-
-                return combined;
+            const spokenCompoundNumbers = {
+                "kaksitoista": "12",
+                "kolmetoista": "13",
+                "neljätoista": "14",
+                "neljatoista": "14",
+                "viisitoista": "15",
+                "kuusitoista": "16",
+                "seitsemäntoista": "17",
+                "seitsemantoista": "17",
+                "kahdeksantoista": "18",
+                "yhdeksäntoista": "19",
+                "kaksikymmentä": "20",
+                "kaksikymmenta": "20"
             };
 
-            const normalizedWords = combineSpokenDigits(words);
+            const words = rawWords.map(word =>
+                spokenCompoundNumbers[word] || word
+            );
 
-            normalizedWords.forEach(word => {
+            const tokens = [];
+
+            words.forEach(word => {
                 if (isDashWord(word)) {
                     tokens.push("-");
                     return;
