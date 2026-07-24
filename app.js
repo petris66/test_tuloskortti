@@ -429,6 +429,17 @@
                 tokens[0].isDigits &&
                 tokens[0].raw.length >= 2
             ) {
+                // Esim. Safari voi palauttaa "10 10" muodossa "1010".
+                // Pilkotaan se pelaajamäärän mukaisiksi tuloksiksi ennen
+                // reikänumerotulkintaa.
+                if (tokens[0].raw.length === playerCount * 2) {
+                    const compactScores = [];
+                    for (let i = 0; i < tokens[0].raw.length; i += 2) {
+                        compactScores.push(Number(tokens[0].raw.slice(i, i + 2)));
+                    }
+                    return compactScores;
+                }
+
                 return decodeCompactDigits(tokens[0].raw);
             }
 
@@ -479,12 +490,7 @@
             let hole;
             let scores;
 
-            const hasExplicitHoleWord = normalizeText(spokenText).includes("reikä");
-
-            if (tokens.length === expectedWithoutHole && !hasExplicitHoleWord) {
-                hole = nextHole;
-                scores = tokens;
-            } else if (tokens.length === expectedWithHole && typeof tokens[0] === "number") {
+            if (tokens.length === expectedWithHole && typeof tokens[0] === "number") {
                 hole = tokens[0];
                 scores = tokens.slice(1);
             } else if (tokens.length === expectedWithoutHole) {
