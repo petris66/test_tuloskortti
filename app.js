@@ -503,6 +503,18 @@
                 throw new Error("Tulosten määrä ei vastaa pelaajien määrää.");
             }
 
+            scores = scores.map(score => {
+                if (score === "-") {
+                    return score;
+                }
+
+                if (typeof score === "string" && /^\\d+$/.test(score)) {
+                    return Number(score);
+                }
+
+                return score;
+            });
+
             scores.forEach(score => {
                 if (score === "-") {
                     return;
@@ -927,19 +939,14 @@
         }
 
         function isUndoVoiceCommand(text) {
-            const command = normalizeText(text)
-                .replace(/[.,!?]/g, "")
-                .trim();
-
-            return (
-                command === "peru" ||
-                command === "kumoa" ||
-                command === "kumoa viimeisin" ||
-                command === "poista" ||
-                command === "poista viimeisin" ||
-                command.includes("kumoa viime") ||
-                command.includes("poista viime")
-            );
+            const command = normalizeText(text);
+            return [
+                "peru",
+                "kumoa",
+                "kumoa viimeisin",
+                "poista",
+                "poista viimeisin"
+            ].includes(command);
         }
 
         function startVoiceInput() {
