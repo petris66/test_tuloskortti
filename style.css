@@ -1280,3 +1280,54 @@ body {
         top: 12px;
     }
 }
+
+
+/* --- Feature 1.5.3 test 4: erillinen kiinteä nimipalkki --- */
+/* Taulukon oma otsikkorivi ei enää ole sticky, joten se ei peitä reikärivejä. */
+.round-active .scorecard-card { padding-bottom: 0; }
+.round-active .scorecard-card thead th {
+    position: static;
+    top: auto;
+    z-index: auto;
+    box-shadow: none;
+}
+.floating-player-header {
+    display: none;
+}
+.round-active .floating-player-header {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 8px;
+    right: 8px;
+    z-index: 300;
+    display: grid;
+    grid-template-columns: 48px repeat(4, minmax(0, 1fr));
+    align-items: center;
+    min-height: 44px;
+    padding: 4px;
+    border: 1px solid #cbdac7;
+    border-radius: 10px;
+    background: #e8f1e4;
+    box-shadow: 0 4px 14px rgba(23,63,24,.2);
+}
+.floating-hole-label, .floating-player-name {
+    min-width: 0;
+    padding: 7px 3px;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+}
+.floating-player-name.is-hidden { display:none; }
+.round-active [data-hole-row] {
+    scroll-margin-top: calc(64px + env(safe-area-inset-top, 0px));
+}
+@media (min-width: 761px) {
+    .round-active .floating-player-header {
+        left: 50%;
+        right: auto;
+        width: min(760px, calc(100% - 24px));
+        transform: translateX(-50%);
+    }
+}

@@ -37,6 +37,21 @@
             document.getElementById("deleteAllRoundsButton");
         const announceStandingsInput =
             document.getElementById("announceStandings");
+        const floatingPlayerHeader = document.getElementById("floatingPlayerHeader");
+
+        function updateFloatingPlayerHeader() {
+            for (let player = 1; player <= MAX_PLAYERS; player++) {
+                const source = document.getElementById(`name${player}`);
+                const target = document.getElementById(`floatingName${player}`);
+                if (!target) continue;
+                target.textContent = (source?.value || source?.placeholder || `P${player}`).trim();
+                target.classList.toggle("is-hidden", player > playerCount);
+            }
+            if (floatingPlayerHeader) {
+                floatingPlayerHeader.style.gridTemplateColumns =
+                    `48px repeat(${playerCount}, minmax(0, 1fr))`;
+            }
+        }
 
         function buildScoreTable() {
             tableBody.innerHTML = "";
@@ -818,9 +833,12 @@
             row.classList.add("recently-saved");
 
             requestAnimationFrame(() => {
-                row.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
+                const headerOffset = 72;
+                const targetTop = row.getBoundingClientRect().top + window.scrollY - headerOffset;
+                window.scrollTo({
+                    top: Math.max(0, targetTop),
+                    left: 0,
+                    behavior: "smooth"
                 });
             });
 
@@ -997,6 +1015,7 @@
             const roundIsActive = roundSetupConfirmed || roundComplete;
 
             document.body.classList.toggle("round-active", roundIsActive);
+            updateFloatingPlayerHeader();
 
             // Kun kierros on käynnissä tai valmis, koko 18 reiän
             // tuloskortti pidetään näkyvissä ja selattavissa.
@@ -2307,6 +2326,7 @@
         });
 
         document.querySelectorAll(".player-name").forEach(input => {
+            input.addEventListener("input", updateFloatingPlayerHeader);
             input.addEventListener("focus", () => {
                 const genericName = /^P[1-4]$/i.test(input.value.trim());
 
