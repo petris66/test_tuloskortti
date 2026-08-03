@@ -14,10 +14,6 @@
         let announceStandings = false;
         let selectedScoreInput = null;
         let speechSynthesisPrimed = false;
-        let courseData = [];
-        let selectedCourseId = "";
-        let selectedTee = "";
-        let selectedGender = "";
         let manualNineView = null;
 
         const tableBody = document.getElementById("tableBody");
@@ -42,199 +38,11 @@
             document.getElementById("deleteAllRoundsButton");
         const announceStandingsInput =
             document.getElementById("announceStandings");
-        const courseSelect = document.getElementById("courseSelect");
-        const teeSelect = document.getElementById("teeSelect");
-        const genderSelect = document.getElementById("genderSelect");
-        const courseDataStatus = document.getElementById("courseDataStatus");
-        const selectedCourseInfo = document.getElementById("selectedCourseInfo");
-        const nineViewButton = document.getElementById("nineViewButton");
-        const saveRoundActionButton = document.getElementById("saveRoundActionButton");
-        const historyActionButton = document.getElementById("historyActionButton");
-
-        function getSavedCourseSelection() {
-            try {
-                const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-                return {
-                    courseId: state.courseId || "",
-                    tee: state.tee || "",
-                    gender: state.gender || ""
-                };
-            } catch (error) {
-                return { courseId: "", tee: "", gender: "" };
-            }
-        }
-
-        async function loadCourseData() {
-            courseDataStatus.textContent = "Ladataan kenttädataa…";
-
-            try {
-                const response = await fetch("data/courses_2026-08-03.json", {
-                    cache: "no-store"
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (!Array.isArray(data) || data.length === 0) {
-                    throw new Error("Kenttädata on tyhjä.");
-                }
-
-                courseData = data.filter(row =>
-                    row && row.courseId && row.course && row.tee && row.gender &&
-                    Number(row.hole) >= 1 && Number(row.hole) <= 18
-                );
-
-                populateCourseOptions();
-                restoreCourseSelection();
-                courseDataStatus.textContent = `${getUniqueCourses().length} kenttää ladattu`;
-            } catch (error) {
-                console.error("Kenttädatan lataus epäonnistui:", error);
-                courseData = [];
-                courseDataStatus.textContent = "Kenttädatan lataus epäonnistui";
-                courseSelect.innerHTML = '<option value="">Kenttädata ei käytettävissä</option>';
-                teeSelect.innerHTML = '<option value="">—</option>';
-                genderSelect.innerHTML = '<option value="">—</option>';
-            }
-        }
-
-        function getUniqueCourses() {
-            const map = new Map();
-
-            courseData.forEach(row => {
-                if (!map.has(row.courseId)) {
-                    map.set(row.courseId, row.course);
-                }
-            });
-
-            return [...map.entries()]
-                .map(([id, name]) => ({ id, name }))
-                .sort((a, b) => a.name.localeCompare(b.name, "fi"));
-        }
-
-        function populateCourseOptions() {
-            const courses = getUniqueCourses();
-            courseSelect.innerHTML = '<option value="">Valitse kenttä</option>';
-
-            courses.forEach(course => {
-                const option = document.createElement("option");
-                option.value = course.id;
-                option.textContent = course.name;
-                courseSelect.appendChild(option);
-            });
-        }
-
-        function restoreCourseSelection() {
-            const saved = getSavedCourseSelection();
-            const courses = getUniqueCourses();
-            const courseExists = courses.some(course => course.id === saved.courseId);
-
-            selectedCourseId = courseExists ? saved.courseId : "";
-            courseSelect.value = selectedCourseId;
-            populateGenderOptions(saved.gender);
-            populateTeeOptions(saved.tee);
-            updateSelectedCourseInfo();
-        }
-
-        function getRowsForSelectedCourse() {
-            return courseData.filter(row => row.courseId === selectedCourseId);
-        }
-
-        function populateGenderOptions(preferredGender = "") {
-            const genders = [...new Set(
-                getRowsForSelectedCourse().map(row => row.gender).filter(Boolean)
-            )].sort((a, b) => a.localeCompare(b, "fi"));
-
-            genderSelect.innerHTML = '<option value="">Valitse</option>';
-            genders.forEach(gender => {
-                const option = document.createElement("option");
-                option.value = gender;
-                option.textContent = gender;
-                genderSelect.appendChild(option);
-            });
-
-            selectedGender = genders.includes(preferredGender)
-                ? preferredGender
-                : (genders[0] || "");
-            genderSelect.value = selectedGender;
-        }
-
-        function populateTeeOptions(preferredTee = "") {
-            const tees = [...new Set(
-                getRowsForSelectedCourse()
-                    .filter(row => !selectedGender || row.gender === selectedGender)
-                    .map(row => row.tee)
-                    .filter(Boolean)
-            )].sort((a, b) => a.localeCompare(b, "fi", { numeric: true }));
-
-            teeSelect.innerHTML = '<option value="">Valitse tii</option>';
-            tees.forEach(tee => {
-                const option = document.createElement("option");
-                option.value = tee;
-                option.textContent = tee;
-                teeSelect.appendChild(option);
-            });
-
-            selectedTee = tees.includes(preferredTee)
-                ? preferredTee
-                : (tees[0] || "");
-            teeSelect.value = selectedTee;
-        }
-
-        function getSelectedCourseRows() {
-            return courseData
-                .filter(row =>
-                    row.courseId === selectedCourseId &&
-                    row.tee === selectedTee &&
-                    row.gender === selectedGender
-                )
-                .sort((a, b) => Number(a.hole) - Number(b.hole));
-        }
-
-        function getHoleData(hole) {
-            return getSelectedCourseRows().find(row => Number(row.hole) === hole) || null;
-        }
-
-        function getSelectedCourseName() {
-            return getRowsForSelectedCourse()[0]?.course || "";
-        }
-
-        function updateSelectedCourseInfo() {
-            const rows = getSelectedCourseRows();
-            const firstRow = rows[0];
-
-            if (!selectedCourseId || !selectedTee || !selectedGender || rows.length === 0) {
-                selectedCourseInfo.textContent = "Valitse kenttä, pelaajaryhmä ja tii.";
-                return;
-            }
-
-            const cr = rows.find(row => row.CR !== null && row.CR !== "")?.CR;
-            const slope = rows.find(row => row.Slope !== null && row.Slope !== "")?.Slope;
-            const meters = rows.reduce((sum, row) => sum + (Number(row.meters) || 0), 0);
-            const details = [
-                `${getSelectedCourseName()} · ${selectedTee} · ${selectedGender}`,
-                cr !== undefined ? `CR ${cr}` : "",
-                slope !== undefined ? `Slope ${slope}` : "",
-                meters > 0 ? `${meters} m` : ""
-            ].filter(Boolean);
-
-            selectedCourseInfo.textContent = details.join(" · ");
-
-            if (courseNameInput && getSelectedCourseName()) {
-                courseNameInput.value = getSelectedCourseName();
-            }
-        }
-
-        function refreshScoreTableForCourse() {
-            buildScoreTable();
-            setPlayerCount(playerCount);
-            calculateScores();
-            updateRoundLayout();
-            updateSelectedCourseInfo();
-            saveState();
-        }
+        const nineToggleButton = document.getElementById("nineToggleButton");
+        const finishRoundButton = document.getElementById("finishRoundButton");
+        const saveRoundButton = document.getElementById("saveRoundButton");
+        const historyButton = document.getElementById("historyButton");
+        const newRoundButton = document.getElementById("newRoundButton");
 
         function buildScoreTable() {
             tableBody.innerHTML = "";
@@ -243,14 +51,8 @@
                 const row = document.createElement("tr");
                 row.dataset.holeRow = hole;
 
-                const holeData = getHoleData(hole);
-                const par = holeData?.par ?? "–";
-                const hcp = holeData?.hcp ?? "–";
-
                 row.innerHTML = `
                     <td class="hole-cell">${hole}</td>
-                    <td class="course-stat-cell">${par}</td>
-                    <td class="course-stat-cell">${hcp}</td>
                     ${buildPlayerCells(hole)}
                 `;
 
@@ -305,7 +107,7 @@
             row.className = "subtotal";
             row.dataset.nine = prefix === "front" ? "front" : "back";
 
-            let cells = `<td>${label}</td><td colspan="2"></td>`;
+            let cells = `<td>${label}</td>`;
 
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 cells += `
@@ -630,140 +432,7 @@
             return mappedTokens;
         }
 
-        function normalizePlayerNameForVoice(value) {
-            return String(value || "")
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/[^a-z0-9åäö]+/g, " ")
-                .trim();
-        }
-
-        function parseNamedVoiceResults(spokenText) {
-            const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
-            const words = normalizedSpeech.split(/\s+/).filter(Boolean);
-            const playerMatches = [];
-
-            for (let player = 1; player <= playerCount; player++) {
-                const inputName = document.getElementById(`name${player}`).value.trim();
-
-                if (!inputName) {
-                    continue;
-                }
-
-                const normalizedName = normalizePlayerNameForVoice(inputName);
-                const nameWords = normalizedName.split(/\s+/).filter(Boolean);
-
-                if (nameWords.length === 0) {
-                    continue;
-                }
-
-                for (let index = 0; index <= words.length - nameWords.length; index++) {
-                    const matches = nameWords.every((word, offset) =>
-                        words[index + offset] === word
-                    );
-
-                    if (!matches) {
-                        continue;
-                    }
-
-                    const scoreWord = words[index + nameWords.length];
-                    let score = null;
-
-                    if (isDashWord(scoreWord)) {
-                        score = "-";
-                    } else {
-                        score = wordToNumber(scoreWord);
-                    }
-
-                    if (score === "-" || (typeof score === "number" && score >= 1 && score <= 20)) {
-                        playerMatches.push({
-                            player,
-                            score,
-                            index
-                        });
-                        break;
-                    }
-                }
-            }
-
-            if (playerMatches.length === 0) {
-                return null;
-            }
-
-            const uniquePlayers = new Map();
-            playerMatches
-                .sort((a, b) => a.index - b.index)
-                .forEach(match => uniquePlayers.set(match.player, match.score));
-
-            if (uniquePlayers.size < playerCount) {
-                throw new Error("Tuloksia puuttuu.");
-            }
-
-            let hole = nextHole;
-            const holeMatch = normalizedSpeech.match(/(?:reika|reikä)\s+(\d{1,2}|[a-zåäö]+)/);
-
-            if (holeMatch) {
-                const parsedHole = wordToNumber(holeMatch[1]);
-
-                if (typeof parsedHole !== "number" || parsedHole < 1 || parsedHole > 18) {
-                    throw new Error("Reiän numeron pitää olla 1–18.");
-                }
-
-                hole = parsedHole;
-            }
-
-            return {
-                hole,
-                scoresByPlayer: uniquePlayers
-            };
-        }
-
-        function saveParsedScores(hole, scoresByPlayer) {
-            const addedScores = [];
-
-            for (let player = 1; player <= playerCount; player++) {
-                const score = scoresByPlayer.get(player);
-                const input = document.querySelector(
-                    `.p${player}[data-hole="${hole}"]`
-                );
-
-                if (!input) {
-                    continue;
-                }
-
-                input.value = score === "-" ? "-" : String(score);
-
-                const playerName =
-                    document.getElementById(`name${player}`).value.trim() ||
-                    `P${player}`;
-
-                addedScores.push(
-                    `${playerName}: ${score === "-" ? "viiva" : score}`
-                );
-            }
-
-            calculateScores();
-            nextHole = hole < 18 ? hole + 1 : 1;
-            roundSetupConfirmed = true;
-            updateNextHole();
-            updateRoundCompleteState();
-            updateRoundLayout();
-            saveState();
-
-            return { hole, addedScores };
-        }
-
         function parseVoiceResults(spokenText) {
-            const namedResult = parseNamedVoiceResults(spokenText);
-
-            if (namedResult) {
-                return saveParsedScores(
-                    namedResult.hole,
-                    namedResult.scoresByPlayer
-                );
-            }
-
             const tokens = extractVoiceTokens(spokenText);
 
             if (tokens.length === 0) {
@@ -810,13 +479,49 @@
                 }
             });
 
-            const scoresByPlayer = new Map();
+            const addedScores = [];
 
             scores.forEach((score, index) => {
-                scoresByPlayer.set(index + 1, score);
+                const player = index + 1;
+                const input = document.querySelector(
+                    `.p${player}[data-hole="${hole}"]`
+                );
+
+                if (!input) {
+                    return;
+                }
+
+                input.value = score === "-" ? "-" : String(score);
+
+                const playerName =
+                    document.getElementById(`name${player}`).value.trim() ||
+                    `P${player}`;
+
+                addedScores.push(
+                    `${playerName}: ${score === "-" ? "viiva" : score}`
+                );
             });
 
-            return saveParsedScores(hole, scoresByPlayer);
+            calculateScores();
+
+            if (hole < 18) {
+                nextHole = hole + 1;
+            } else {
+                nextHole = 1;
+            }
+
+            // Ensimmäinen onnistunut tulos käynnistää varsinaisen kierrosnäkymän.
+            roundSetupConfirmed = true;
+
+            updateNextHole();
+            updateRoundCompleteState();
+            updateRoundLayout();
+            saveState();
+
+            return {
+                hole,
+                addedScores
+            };
         }
 
 
@@ -1261,19 +966,11 @@
         }
 
         function updateRoundLayout() {
-            // Ennen ensimmäistä kirjausta näkymä seuraa suoraan asetettua aloitusreikää.
-            // Kierroksen aikana näkymä seuraa seuraavaa kirjattavaa reikää, ellei
-            // käyttäjä ole vaihtanut näkymää Etuysi / Takaysi -painikkeella.
-            const setupHole = Number(startHoleInput?.value);
-            const visibleHole = !roundSetupConfirmed && setupHole >= 1 && setupHole <= 18
-                ? setupHole
-                : nextHole;
-            const automaticBackNine = visibleHole >= 10 || roundComplete;
-            const showBackNine = manualNineView === "back"
-                ? true
-                : manualNineView === "front"
-                    ? false
-                    : automaticBackNine;
+            // Tiivis mobiilinäkymä on oletusnäkymä.
+            // Käyttäjä voi vaihtaa etu- ja takaysin välillä myös kesken kierroksen.
+            const automaticNine = nextHole >= 10 ? "back" : "front";
+            const activeNine = manualNineView || automaticNine;
+            const showBackNine = activeNine === "back";
 
             document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
             document.body.classList.toggle("show-back-nine", showBackNine);
@@ -1294,18 +991,28 @@
 
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
-
-            if (nineViewButton) {
-                nineViewButton.textContent = showBackNine
-                    ? "Näytä etuysi"
-                    : "Näytä takaysi";
-            }
         }
 
         function toggleNineView() {
-            const showingBackNine = document.body.classList.contains("show-back-nine");
-            manualNineView = showingBackNine ? "front" : "back";
+            const currentlyBack = document.body.classList.contains("show-back-nine");
+            manualNineView = currentlyBack ? "front" : "back";
             updateRoundLayout();
+        }
+
+        function updateActionVisibility() {
+            const activeRound = roundSetupConfirmed && !roundComplete;
+            const completedRound = roundComplete;
+            const beforeRound = !roundSetupConfirmed && !roundComplete;
+
+            nineToggleButton.hidden = beforeRound;
+            finishRoundButton.hidden = !activeRound;
+            saveRoundButton.hidden = !completedRound;
+            newRoundButton.hidden = !completedRound;
+            historyButton.hidden = activeRound;
+
+            if (activeRound && historyCard.classList.contains("visible")) {
+                historyCard.classList.remove("visible");
+            }
         }
 
         function escapeHtml(text) {
@@ -1326,9 +1033,6 @@
                 roundComplete,
                 frontNineAnnounced,
                 announceStandings,
-                courseId: selectedCourseId,
-                tee: selectedTee,
-                gender: selectedGender,
                 names: [],
                 scores: {}
             };
@@ -1496,37 +1200,37 @@
                 : "🎤 Anna tulokset puheella";
 
             roundCompleteActions.classList.toggle("visible", roundComplete);
-
-            if (saveRoundActionButton) {
-                saveRoundActionButton.hidden = !roundComplete;
-            }
-
-            const configuredStartHole = Number(startHoleInput?.value);
-            const startHoleConfirmed =
-                configuredStartHole >= 1 && configuredStartHole <= 18;
-            const historyAvailable =
-                roundComplete || (!roundSetupConfirmed && !startHoleConfirmed);
-
-            if (historyActionButton) {
-                historyActionButton.hidden = !historyAvailable;
-            }
-
-            if (!historyAvailable && historyCard) {
-                historyCard.classList.remove("visible");
-            }
+            updateActionVisibility();
         }
 
         function finishRound() {
-            const playedHoles = getPlayedHoleCount();
+            const missingHoles = [];
 
-            if (playedHoles < 18) {
+            for (let hole = 1; hole <= 18; hole++) {
+                let complete = true;
+
+                for (let player = 1; player <= playerCount; player++) {
+                    const input = document.querySelector(`.p${player}[data-hole="${hole}"]`);
+                    if (!input || input.value === "") {
+                        complete = false;
+                        break;
+                    }
+                }
+
+                if (!complete) missingHoles.push(hole);
+            }
+
+            if (missingHoles.length > 0) {
+                manualNineView = missingHoles[0] >= 10 ? "back" : "front";
+                updateRoundLayout();
                 voiceStatus.textContent =
-                    "Kierros ei ole vielä valmis. Pelaa 18 reikää ennen päättämistä.";
-                speakMessage("Kierros ei ole vielä valmis");
+                    `Kierrokselta puuttuu tuloksia. Tarkista reiät: ${missingHoles.join(", ")}.`;
+                speakMessage("Kierrokselta puuttuu tuloksia");
                 return;
             }
 
             roundComplete = true;
+            manualNineView = "back";
             updateRoundCompleteState();
             saveState();
             showRoundCompleteModal();
@@ -1561,10 +1265,7 @@
                     ? crypto.randomUUID()
                     : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
                 savedAt: new Date().toISOString(),
-                course: courseNameInput.value.trim() || getSelectedCourseName() || "Kenttä nimeämättä",
-                courseId: selectedCourseId,
-                tee: selectedTee,
-                gender: selectedGender,
+                course: courseNameInput.value.trim() || "Kenttä nimeämättä",
                 date: roundDateInput.value || getTodayDateValue(),
                 gameFormat: gameFormatInput.value,
                 notes: roundNotesInput.value.trim(),
@@ -1610,6 +1311,8 @@
             rememberCourse(snapshot.course);
             hideRoundCompleteModal();
             renderHistory();
+            historyCard.classList.add("visible");
+            updateActionVisibility();
 
             voiceStatus.innerHTML =
                 `<strong>Kierros tallennettu ✅</strong><br>` +
@@ -2546,8 +2249,8 @@
             frontNineAnnounced = false;
             selectedScoreInput = null;
             roundSetupConfirmed = false;
-            manualNineView = null;
             startHole = 1;
+            manualNineView = null;
             if (startHoleInput) startHoleInput.value = "";
             document.querySelectorAll(".selected-score").forEach(input => {
                 input.classList.remove("selected-score");
@@ -2557,6 +2260,8 @@
             updateRoundCompleteState();
             calculateScores();
             updateRoundLayout();
+            historyCard.classList.add("visible");
+            renderHistory();
             saveState();
 
             voiceStatus.textContent = "Uusi kierros aloitettu.";
@@ -2591,24 +2296,6 @@
             input.addEventListener("input", saveState);
         });
 
-        courseSelect.addEventListener("change", () => {
-            selectedCourseId = courseSelect.value;
-            populateGenderOptions();
-            populateTeeOptions();
-            refreshScoreTableForCourse();
-        });
-
-        genderSelect.addEventListener("change", () => {
-            selectedGender = genderSelect.value;
-            populateTeeOptions();
-            refreshScoreTableForCourse();
-        });
-
-        teeSelect.addEventListener("change", () => {
-            selectedTee = teeSelect.value;
-            refreshScoreTableForCourse();
-        });
-
         if (startHoleInput) {
             const selectStartHoleValue = () => {
                 if (startHoleInput.value) {
@@ -2619,13 +2306,11 @@
             startHoleInput.addEventListener("focus", selectStartHoleValue);
             startHoleInput.addEventListener("click", selectStartHoleValue);
 
-            const applyStartHole = () => {
+            startHoleInput.addEventListener("input", () => {
                 if (startHoleInput.value === "") {
                     startHole = 1;
                     nextHole = 1;
                     updateNextHole();
-                    updateRoundCompleteState();
-                    updateRoundLayout();
                     saveState();
                     return;
                 }
@@ -2635,15 +2320,9 @@
                     startHole = value;
                     nextHole = value;
                     updateNextHole();
-                    updateRoundCompleteState();
-                    updateRoundLayout();
                     saveState();
                 }
-            };
-
-            startHoleInput.addEventListener("input", applyStartHole);
-            startHoleInput.addEventListener("change", applyStartHole);
-            startHoleInput.addEventListener("blur", applyStartHole);
+            });
         }
 
         announceStandingsInput.addEventListener("change", () => {
@@ -2651,16 +2330,14 @@
             saveState();
         });
 
-        async function initializeApp() {
-            await loadCourseData();
-            buildScoreTable();
-            loadState();
-            updateSelectedCourseInfo();
-            updateRoundCompleteState();
-            updateRoundLayout();
-            prepareRoundMetadataForm();
-            renderHistory();
-            processResultsFromUrl();
+        buildScoreTable();
+        loadState();
+        updateRoundCompleteState();
+        updateRoundLayout();
+        prepareRoundMetadataForm();
+        renderHistory();
+        updateActionVisibility();
+        if (!roundSetupConfirmed && !roundComplete) {
+            historyCard.classList.add("visible");
         }
-
-        initializeApp();
+        processResultsFromUrl();

@@ -1,0 +1,9 @@
+Version 3.8.0
+Package 3
+
+- Package 2.5 base retained
+- Round actions shown by round state
+- Round history visible before round start
+- Front nine / back nine switch available during round
+- Save, history and new round shown after ending round
+- End-round check validates all 18 holes
