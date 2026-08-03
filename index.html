@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=feature1_7_1">
+    <link rel="stylesheet" href="style.css?v=course-data-2">
 
 </head>
 
@@ -32,15 +32,7 @@
 
         <section class="card setup-card" id="setupCard">
             <h2 class="section-title">KIERROKSEN ASETUKSET</h2>
-            <label class="course-select-row">
-                <span>Kenttä</span>
-                <select id="courseSelect">
-                    <option value="">Valitse kenttä</option>
-                </select>
-            </label>
-            <div id="courseDataStatus" class="course-data-status">Kenttädataa ei ole vielä valittu.</div>
-
-            <p class="section-help settings-spacing">Valitse kierroksella pelaavien määrä.</p>
+            <p class="section-help">Valitse kierroksella pelaavien määrä.</p>
 
             <div class="player-count" id="playerCountButtons">
                 <button type="button" data-count="1">1</button>
@@ -48,37 +40,33 @@
                 <button type="button" data-count="3">3</button>
                 <button type="button" data-count="4">4</button>
             </div>
-
-            <div class="player-setup-header" aria-hidden="true">
-                <span>Pelaaja</span><span>Tasoitus</span><span>Tii</span>
-            </div>
-            <div class="player-settings" id="playerSettings">
-                <div class="player-setting-row" data-player="1">
-                    <input id="setupName1" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 1" maxlength="12" aria-label="Pelaajan 1 nimi">
-                    <input id="handicap1" class="setup-handicap" type="text" inputmode="decimal" placeholder="12,4" maxlength="5" aria-label="Pelaajan 1 tarkka tasoitus">
-                    <select id="tee1" class="setup-tee" disabled aria-label="Pelaajan 1 tii"><option value="">Valitse kenttä</option></select>
-                </div>
-                <div class="player-setting-row" data-player="2">
-                    <input id="setupName2" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 2" maxlength="12" aria-label="Pelaajan 2 nimi">
-                    <input id="handicap2" class="setup-handicap" type="text" inputmode="decimal" placeholder="8,7" maxlength="5" aria-label="Pelaajan 2 tarkka tasoitus">
-                    <select id="tee2" class="setup-tee" disabled aria-label="Pelaajan 2 tii"><option value="">Valitse kenttä</option></select>
-                </div>
-                <div class="player-setting-row" data-player="3">
-                    <input id="setupName3" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 3" maxlength="12" aria-label="Pelaajan 3 nimi">
-                    <input id="handicap3" class="setup-handicap" type="text" inputmode="decimal" placeholder="17,8" maxlength="5" aria-label="Pelaajan 3 tarkka tasoitus">
-                    <select id="tee3" class="setup-tee" disabled aria-label="Pelaajan 3 tii"><option value="">Valitse kenttä</option></select>
-                </div>
-                <div class="player-setting-row" data-player="4">
-                    <input id="setupName4" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 4" maxlength="12" aria-label="Pelaajan 4 nimi">
-                    <input id="handicap4" class="setup-handicap" type="text" inputmode="decimal" placeholder="24,1" maxlength="5" aria-label="Pelaajan 4 tarkka tasoitus">
-                    <select id="tee4" class="setup-tee" disabled aria-label="Pelaajan 4 tii"><option value="">Valitse kenttä</option></select>
-                </div>
-            </div>
-            <datalist id="savedPlayers"></datalist>
-            <p class="section-help">Pelaajien nimet ja tasoitukset muistetaan tällä laitteella.</p>
+            <p class="section-help">Tarkista pelaajien nimet tuloskortista.</p>
             <label class="section-help">Aloitusreikä
                 <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
             </label>
+
+            <div class="course-settings" aria-label="Kenttävalinta">
+                <label>
+                    Kenttä
+                    <select id="courseSelect">
+                        <option value="">Ladataan kenttiä…</option>
+                    </select>
+                </label>
+                <label>
+                    Pelaajaryhmä
+                    <select id="genderSelect">
+                        <option value="">—</option>
+                    </select>
+                </label>
+                <label>
+                    Tii
+                    <select id="teeSelect">
+                        <option value="">—</option>
+                    </select>
+                </label>
+            </div>
+            <p class="course-data-status" id="courseDataStatus">Ladataan kenttädataa…</p>
+            <p class="selected-course-info" id="selectedCourseInfo">Valitse kenttä, pelaajaryhmä ja tii.</p>
         </section>
 
         <section class="card next-hole-box next-hole-card" id="nextHoleCard">
@@ -127,16 +115,6 @@
                 >
                     ➖ Viiva tuloskorttiin
                 </button>
-
-                <button
-                    type="button"
-                    class="dash-button nine-switch-button"
-                    id="switchNineButton"
-                    onclick="toggleScorecardNine()"
-                    hidden
-                >
-                    Näytä takaysi
-                </button>
             </div>
 
             <div class="round-complete-actions" id="roundCompleteActions">
@@ -154,12 +132,12 @@
                 <thead>
                     <tr id="headerRow">
                         <th class="hole-cell">Reikä</th>
-                        <th class="par-cell">Par</th>
+                        <th class="course-stat-cell">Par</th>
+                        <th class="course-stat-cell">HCP</th>
                         <th class="player-column" data-player="1">
                             <input
                                 type="text"
                                 class="player-name"
-                                list="savedPlayers"
                                 id="name1"
                                 value=""
                                 placeholder="P1"
@@ -171,7 +149,6 @@
                             <input
                                 type="text"
                                 class="player-name"
-                                list="savedPlayers"
                                 id="name2"
                                 value=""
                                 placeholder="P2"
@@ -183,7 +160,6 @@
                             <input
                                 type="text"
                                 class="player-name"
-                                list="savedPlayers"
                                 id="name3"
                                 value=""
                                 placeholder="P3"
@@ -195,7 +171,6 @@
                             <input
                                 type="text"
                                 class="player-name"
-                                list="savedPlayers"
                                 id="name4"
                                 value=""
                                 placeholder="P4"
@@ -210,7 +185,8 @@
 
                 <tfoot>
                     <tr class="total">
-                        <td colspan="2">Yhteensä</td>
+                        <td>Yhteensä</td>
+                        <td colspan="2"></td>
                         <td class="player-column" data-player="1" id="sum1">0</td>
                         <td class="player-column" data-player="2" id="sum2">0</td>
                         <td class="player-column" data-player="3" id="sum3">0</td>
@@ -260,7 +236,7 @@
             <summary>Tietoja sovelluksesta</summary>
             <div class="about-content">
                 <strong>Golf Voice Scorecard AI</strong>
-                <span>Versio 3.7.7 · Field Test Edition</span>
+                <span>Versio 3.7.4 · Field Test Edition</span>
                 <span class="about-signature">Petri Suokas<br>AI Golf Apps</span>
                 <span>© 2026</span>
             </div>
@@ -331,7 +307,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=feature1_7_1" defer></script>
+    <script src="app.js?v=course-data-2" defer></script>
 
 </body>
 </html>

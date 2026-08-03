@@ -1133,83 +1133,66 @@ body {
 }
 
 
-/* --- v3.7.6: ysin vaihto kesken kierroksen --- */
-.nine-switch-button {
-    grid-column: 1 / -1;
+/* --- Paketti 2: JSON-pohjainen kenttädata --- */
+.course-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 9px;
+    margin-top: 8px;
 }
 
-.nine-switch-button[hidden] {
-    display: none;
-}
-
-
-/* --- Feature 1.7.1: tiiviit pelaajarivit ja pelaajakohtainen tii --- */
-.course-select-row {
+.course-settings label {
     display: grid;
     gap: 5px;
-    margin-bottom: 10px;
-    color: #355a35;
+    color: #557254;
     font-size: 13px;
     font-weight: 800;
 }
-.course-select-row select,
-.player-setting-row input,
-.player-setting-row select {
+
+.course-settings select {
     width: 100%;
     min-width: 0;
-    min-height: 42px;
-    padding: 8px 9px;
+    padding: 9px 8px;
     border: 1px solid #b8cdb3;
-    border-radius: 12px;
+    border-radius: 10px;
     color: var(--forest);
     background: #fbfdf9;
     font: inherit;
 }
-.course-data-status {
-    margin: 0 0 18px;
-    padding: 9px 11px;
-    border: 1px solid #c6d9c1;
-    border-radius: 12px;
-    color: #557254;
-    background: #f2f8ef;
+
+.course-data-status,
+.selected-course-info {
+    margin: 9px 0 0;
     font-size: 12px;
     line-height: 1.35;
 }
-.settings-spacing { margin-top: 4px; }
-.player-setup-header,
-.player-setting-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) 82px minmax(0, 1fr);
-    gap: 7px;
-    align-items: center;
-}
-.player-setup-header {
-    margin: 14px 2px 5px;
+
+.course-data-status {
     color: #557254;
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: .04em;
-}
-.player-settings {
-    display: grid;
-    gap: 7px;
-    margin: 0 0 14px;
-}
-.player-setting-row.hidden-player { display: none; }
-.setup-handicap { text-align: center; }
-.par-cell { width: 42px; font-weight: 800; }
-@media (max-width: 500px) {
-    .player-setup-header,
-    .player-setting-row {
-        grid-template-columns: minmax(0, 1.2fr) 68px minmax(0, .95fr);
-        gap: 5px;
-    }
-    .player-setting-row input,
-    .player-setting-row select {
-        min-height: 40px;
-        padding: 7px 6px;
-        font-size: 12px;
-    }
-    .par-cell { width: 35px; }
 }
 
+.selected-course-info {
+    padding: 8px 10px;
+    border: 1px solid #c6d9c1;
+    border-radius: 10px;
+    color: var(--forest);
+    background: #f2f8ef;
+    font-weight: 700;
+}
+
+.course-stat-cell {
+    width: 38px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 500px) {
+    .course-settings {
+        grid-template-columns: 1fr;
+    }
+
+    .course-stat-cell {
+        width: 33px;
+        font-size: 11px;
+    }
+}
