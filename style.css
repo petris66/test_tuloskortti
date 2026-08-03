@@ -1131,3 +1131,13 @@ body {
         font-weight: 900;
     }
 }
+
+
+/* --- v3.7.6: ysin vaihto kesken kierroksen --- */
+.nine-switch-button {
+    grid-column: 1 / -1;
+}
+
+.nine-switch-button[hidden] {
+    display: none;
+}

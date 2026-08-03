@@ -1,9 +1,8 @@
-Feature 1.4.1 testit
+Feature 1.4.2 testit
 
-1. Pelaajat Pete ja Sami: sano "Sami 4 Pete 5".
-   - Pete 5 ja Sami 4 oikeisiin sarakkeisiin.
-2. Sano pelkät luvut "5 4".
-   - Pete 5 ja Sami 4 pelaajajärjestyksessä.
-3. Pelaa/testitä 18 reikää ja paina Päätä kierros.
-4. Valitse Palaa tarkistamaan.
-   - Tuloskortissa näkyvät yhtä aikaa reiät 1-18 sekä Etuysi ja Takaysi.
+1. Nimeen perustuva puhekirjaus toimii eri järjestyksessä.
+2. Pelkät luvut kirjautuvat edelleen pelaajajärjestyksessä.
+3. Kesken kierroksen Näytä takaysi / Näytä etuysi vaihtaa tuloskortin ysiä.
+4. Toisen ysin tuloksia voi korjata käsin.
+5. Uusi puhekirjaus palauttaa näkymän automaattisesti pelattavalle ysille.
+6. Päätetyn kierroksen tarkistuksessa näkyvät kaikki 18 reikää.

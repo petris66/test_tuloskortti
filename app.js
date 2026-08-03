@@ -14,6 +14,7 @@
         let announceStandings = false;
         let selectedScoreInput = null;
         let speechSynthesisPrimed = false;
+        let scorecardNineOverride = null;
 
         const tableBody = document.getElementById("tableBody");
         const voiceStatus = document.getElementById("voiceStatus");
@@ -562,6 +563,7 @@
 
             nextHole = hole < 18 ? hole + 1 : 1;
             roundSetupConfirmed = true;
+            scorecardNineOverride = null;
 
             updateNextHole();
             updateRoundCompleteState();
@@ -1087,12 +1089,28 @@
             compactNextHoleElement.textContent = nextHole;
         }
 
+        function toggleScorecardNine() {
+            if (roundComplete) {
+                return;
+            }
+
+            const currentlyShowingBack = scorecardNineOverride
+                ? scorecardNineOverride === "back"
+                : nextHole >= 10;
+
+            scorecardNineOverride = currentlyShowingBack ? "front" : "back";
+            updateRoundLayout();
+        }
+
         function updateRoundLayout() {
             // Tiivis mobiilinäkymä on oletusnäkymä.
-            // Kierroksen aikana näytetään pelattava ysi.
-            // Päätetyn kierroksen tarkistuksessa näytetään kaikki 18 reikää.
+            // Kierroksen aikana näytetään pelattava ysi, ellei käyttäjä vaihda
+            // tarkistusta varten toiselle ysille. Päätetyn kierroksen
+            // tarkistuksessa näytetään kaikki 18 reikää.
             const showAllHoles = roundComplete;
-            const showBackNine = nextHole >= 10;
+            const showBackNine = scorecardNineOverride
+                ? scorecardNineOverride === "back"
+                : nextHole >= 10;
 
             document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
             document.body.classList.toggle("show-back-nine", !showAllHoles && showBackNine);
@@ -1113,6 +1131,14 @@
 
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
+
+            const switchButton = document.getElementById("switchNineButton");
+            if (switchButton) {
+                switchButton.hidden = !roundSetupConfirmed || roundComplete;
+                switchButton.textContent = showBackNine
+                    ? "Näytä etuysi"
+                    : "Näytä takaysi";
+            }
         }
 
         function escapeHtml(text) {
@@ -2331,6 +2357,7 @@
             selectedScoreInput = null;
             roundSetupConfirmed = false;
             startHole = 1;
+            scorecardNineOverride = null;
             if (startHoleInput) startHoleInput.value = "";
             document.querySelectorAll(".selected-score").forEach(input => {
                 input.classList.remove("selected-score");

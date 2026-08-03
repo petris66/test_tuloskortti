@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=feature1_4_1">
+    <link rel="stylesheet" href="style.css?v=feature1_4_2">
 
 </head>
 
@@ -91,6 +91,16 @@
                     onclick="setDashForSelectedScore()"
                 >
                     ➖ Viiva tuloskorttiin
+                </button>
+
+                <button
+                    type="button"
+                    class="dash-button nine-switch-button"
+                    id="switchNineButton"
+                    onclick="toggleScorecardNine()"
+                    hidden
+                >
+                    Näytä takaysi
                 </button>
             </div>
 
@@ -281,7 +291,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=feature1_4_1" defer></script>
+    <script src="app.js?v=feature1_4_2" defer></script>
 
 </body>
 </html>
