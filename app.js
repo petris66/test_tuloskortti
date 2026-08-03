@@ -1587,7 +1587,7 @@
         }
 
         function checkFrontNineCompletion() {
-            if (frontNineAnnounced || !isFrontNineComplete()) {
+            if (startHole !== 1 || frontNineAnnounced || !isFrontNineComplete()) {
                 return;
             }
 

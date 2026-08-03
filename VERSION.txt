@@ -1,9 +1,7 @@
-Version 3.1
-Package 3.1 player settings correction
+Version 3.2
+Package 3.2 front-nine announcement correction
 
-- Shared player group and tee controls removed from the visible UI
-- Course remains the only shared course setting
-- Each player selects an individual tee from all course tee/group combinations
-- Only the selected number of player setting rows is shown
-- Exact per-player HCP fields retained
-- Voice scoring and round logic unchanged
+- Front-nine voice summary is announced only when the round starts from hole 1
+- No automatic front-nine summary for rounds starting from hole 10 or another hole
+- Per-player HCP and tee settings retained
+- Voice scoring, course data and round logic otherwise unchanged
