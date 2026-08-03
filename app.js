@@ -14,7 +14,6 @@
         let announceStandings = false;
         let selectedScoreInput = null;
         let speechSynthesisPrimed = false;
-        let manualNineView = null;
 
         const tableBody = document.getElementById("tableBody");
         const voiceStatus = document.getElementById("voiceStatus");
@@ -38,11 +37,6 @@
             document.getElementById("deleteAllRoundsButton");
         const announceStandingsInput =
             document.getElementById("announceStandings");
-        const nineToggleButton = document.getElementById("nineToggleButton");
-        const finishRoundButton = document.getElementById("finishRoundButton");
-        const saveRoundButton = document.getElementById("saveRoundButton");
-        const historyButton = document.getElementById("historyButton");
-        const newRoundButton = document.getElementById("newRoundButton");
 
         function buildScoreTable() {
             tableBody.innerHTML = "";
@@ -967,10 +961,8 @@
 
         function updateRoundLayout() {
             // Tiivis mobiilinäkymä on oletusnäkymä.
-            // Käyttäjä voi vaihtaa etu- ja takaysin välillä myös kesken kierroksen.
-            const automaticNine = nextHole >= 10 ? "back" : "front";
-            const activeNine = manualNineView || automaticNine;
-            const showBackNine = activeNine === "back";
+            // Kierroksen aloitus tai aloitusreikä ei vaikuta käyttöliittymän kokoon.
+            const showBackNine = nextHole >= 10 || roundComplete;
 
             document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
             document.body.classList.toggle("show-back-nine", showBackNine);
@@ -991,28 +983,6 @@
 
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
-        }
-
-        function toggleNineView() {
-            const currentlyBack = document.body.classList.contains("show-back-nine");
-            manualNineView = currentlyBack ? "front" : "back";
-            updateRoundLayout();
-        }
-
-        function updateActionVisibility() {
-            const activeRound = roundSetupConfirmed && !roundComplete;
-            const completedRound = roundComplete;
-            const beforeRound = !roundSetupConfirmed && !roundComplete;
-
-            nineToggleButton.hidden = beforeRound;
-            finishRoundButton.hidden = !activeRound;
-            saveRoundButton.hidden = !completedRound;
-            newRoundButton.hidden = beforeRound;
-            historyButton.hidden = activeRound;
-
-            if (activeRound && historyCard.classList.contains("visible")) {
-                historyCard.classList.remove("visible");
-            }
         }
 
         function escapeHtml(text) {
@@ -1200,37 +1170,19 @@
                 : "🎤 Anna tulokset puheella";
 
             roundCompleteActions.classList.toggle("visible", roundComplete);
-            updateActionVisibility();
         }
 
         function finishRound() {
-            const missingHoles = [];
+            const playedHoles = getPlayedHoleCount();
 
-            for (let hole = 1; hole <= 18; hole++) {
-                let complete = true;
-
-                for (let player = 1; player <= playerCount; player++) {
-                    const input = document.querySelector(`.p${player}[data-hole="${hole}"]`);
-                    if (!input || input.value === "") {
-                        complete = false;
-                        break;
-                    }
-                }
-
-                if (!complete) missingHoles.push(hole);
-            }
-
-            if (missingHoles.length > 0) {
-                manualNineView = missingHoles[0] >= 10 ? "back" : "front";
-                updateRoundLayout();
+            if (playedHoles < 18) {
                 voiceStatus.textContent =
-                    `Kierrokselta puuttuu tuloksia. Tarkista reiät: ${missingHoles.join(", ")}.`;
-                speakMessage("Kierrokselta puuttuu tuloksia");
+                    "Kierros ei ole vielä valmis. Pelaa 18 reikää ennen päättämistä.";
+                speakMessage("Kierros ei ole vielä valmis");
                 return;
             }
 
             roundComplete = true;
-            manualNineView = "back";
             updateRoundCompleteState();
             saveState();
             showRoundCompleteModal();
@@ -1311,8 +1263,6 @@
             rememberCourse(snapshot.course);
             hideRoundCompleteModal();
             renderHistory();
-            historyCard.classList.add("visible");
-            updateActionVisibility();
 
             voiceStatus.innerHTML =
                 `<strong>Kierros tallennettu ✅</strong><br>` +
@@ -2250,7 +2200,6 @@
             selectedScoreInput = null;
             roundSetupConfirmed = false;
             startHole = 1;
-            manualNineView = null;
             if (startHoleInput) startHoleInput.value = "";
             document.querySelectorAll(".selected-score").forEach(input => {
                 input.classList.remove("selected-score");
@@ -2260,8 +2209,6 @@
             updateRoundCompleteState();
             calculateScores();
             updateRoundLayout();
-            historyCard.classList.add("visible");
-            renderHistory();
             saveState();
 
             voiceStatus.textContent = "Uusi kierros aloitettu.";
@@ -2336,8 +2283,4 @@
         updateRoundLayout();
         prepareRoundMetadataForm();
         renderHistory();
-        updateActionVisibility();
-        if (!roundSetupConfirmed && !roundComplete) {
-            historyCard.classList.add("visible");
-        }
         processResultsFromUrl();

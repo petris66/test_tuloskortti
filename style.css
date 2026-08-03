@@ -1131,19 +1131,3 @@ body {
         font-weight: 900;
     }
 }
-
-
-/* --- Paketti 3: kierroksen toimintojen tilat --- */
-.actions [hidden] {
-    display: none !important;
-}
-
-.round-active .actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-@media (max-width: 500px) {
-    .round-active .actions {
-        gap: 7px;
-    }
-}
