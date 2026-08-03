@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=feature1_4_3">
+    <link rel="stylesheet" href="style.css?v=feature1_7_0">
 
 </head>
 
@@ -32,7 +32,23 @@
 
         <section class="card setup-card" id="setupCard">
             <h2 class="section-title">KIERROKSEN ASETUKSET</h2>
-            <p class="section-help">Valitse kierroksella pelaavien määrä.</p>
+            <div class="round-settings-grid">
+                <label>
+                    Kenttä
+                    <select id="courseSelect">
+                        <option value="">Valitse kenttä</option>
+                    </select>
+                </label>
+                <label>
+                    Tii
+                    <select id="teeSelect" disabled>
+                        <option value="">Valitse ensin kenttä</option>
+                    </select>
+                </label>
+            </div>
+            <div id="courseDataStatus" class="course-data-status">Kenttädataa ei ole vielä valittu.</div>
+
+            <p class="section-help settings-spacing">Valitse kierroksella pelaavien määrä.</p>
 
             <div class="player-count" id="playerCountButtons">
                 <button type="button" data-count="1">1</button>
@@ -40,7 +56,27 @@
                 <button type="button" data-count="3">3</button>
                 <button type="button" data-count="4">4</button>
             </div>
-            <p class="section-help">Tarkista pelaajien nimet tuloskortista.</p>
+
+            <div class="handicap-settings" id="handicapSettings">
+                <label class="player-handicap-row" data-player="1">
+                    <span>Pelaaja 1 – tarkka tasoitus</span>
+                    <input id="handicap1" type="text" inputmode="decimal" placeholder="esim. 12,4" maxlength="5">
+                </label>
+                <label class="player-handicap-row" data-player="2">
+                    <span>Pelaaja 2 – tarkka tasoitus</span>
+                    <input id="handicap2" type="text" inputmode="decimal" placeholder="esim. 8,7" maxlength="5">
+                </label>
+                <label class="player-handicap-row" data-player="3">
+                    <span>Pelaaja 3 – tarkka tasoitus</span>
+                    <input id="handicap3" type="text" inputmode="decimal" placeholder="esim. 17,8" maxlength="5">
+                </label>
+                <label class="player-handicap-row" data-player="4">
+                    <span>Pelaaja 4 – tarkka tasoitus</span>
+                    <input id="handicap4" type="text" inputmode="decimal" placeholder="esim. 24,1" maxlength="5">
+                </label>
+            </div>
+            <datalist id="savedPlayers"></datalist>
+            <p class="section-help">Pelaajien nimet ja tasoitukset muistetaan tällä laitteella.</p>
             <label class="section-help">Aloitusreikä
                 <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
             </label>
@@ -119,10 +155,12 @@
                 <thead>
                     <tr id="headerRow">
                         <th class="hole-cell">Reikä</th>
+                        <th class="par-cell">Par</th>
                         <th class="player-column" data-player="1">
                             <input
                                 type="text"
                                 class="player-name"
+                                list="savedPlayers"
                                 id="name1"
                                 value=""
                                 placeholder="P1"
@@ -134,6 +172,7 @@
                             <input
                                 type="text"
                                 class="player-name"
+                                list="savedPlayers"
                                 id="name2"
                                 value=""
                                 placeholder="P2"
@@ -145,6 +184,7 @@
                             <input
                                 type="text"
                                 class="player-name"
+                                list="savedPlayers"
                                 id="name3"
                                 value=""
                                 placeholder="P3"
@@ -156,6 +196,7 @@
                             <input
                                 type="text"
                                 class="player-name"
+                                list="savedPlayers"
                                 id="name4"
                                 value=""
                                 placeholder="P4"
@@ -170,7 +211,7 @@
 
                 <tfoot>
                     <tr class="total">
-                        <td>Yhteensä</td>
+                        <td colspan="2">Yhteensä</td>
                         <td class="player-column" data-player="1" id="sum1">0</td>
                         <td class="player-column" data-player="2" id="sum2">0</td>
                         <td class="player-column" data-player="3" id="sum3">0</td>
@@ -291,7 +332,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=feature1_4_3" defer></script>
+    <script src="app.js?v=feature1_7_0" defer></script>
 
 </body>
 </html>

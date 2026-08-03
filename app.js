@@ -2,6 +2,7 @@
 
         const STORAGE_KEY = "golfTuloslaskuriV2";
         const HISTORY_KEY = "golfTuloslaskuriHistory";
+        const PLAYER_PROFILES_KEY = "golfVoicePlayerProfiles";
         const MAX_PLAYERS = 4;
 
         let playerCount = 1;
@@ -15,12 +16,21 @@
         let selectedScoreInput = null;
         let speechSynthesisPrimed = false;
         let scorecardNineOverride = null;
+        let courses = [];
+        let selectedCourseId = "";
+        let selectedTeeId = "";
+        let selectedPars = Array(18).fill(4);
+        let selectedStrokeIndexes = Array.from({ length: 18 }, (_, index) => index + 1);
+        let playerHandicaps = Array(MAX_PLAYERS).fill("");
 
         const tableBody = document.getElementById("tableBody");
         const voiceStatus = document.getElementById("voiceStatus");
         const voiceButton = document.getElementById("voiceButton");
         const nextHoleElement = document.getElementById("nextHole");
         const startHoleInput = document.getElementById("startHoleInput");
+        const courseSelect = document.getElementById("courseSelect");
+        const teeSelect = document.getElementById("teeSelect");
+        const courseDataStatus = document.getElementById("courseDataStatus");
         const compactNextHoleElement =
             document.getElementById("compactNextHole");
         const roundCompleteModal = document.getElementById("roundCompleteModal");
@@ -48,6 +58,7 @@
 
                 row.innerHTML = `
                     <td class="hole-cell">${hole}</td>
+                    <td class="par-cell" data-par-hole="${hole}">${selectedPars[hole - 1] || "–"}</td>
                     ${buildPlayerCells(hole)}
                 `;
 
@@ -102,7 +113,7 @@
             row.className = "subtotal";
             row.dataset.nine = prefix === "front" ? "front" : "back";
 
-            let cells = `<td>${label}</td>`;
+            let cells = `<td colspan="2">${label}</td>`;
 
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 cells += `
@@ -137,6 +148,11 @@
             document.querySelectorAll(".player-column").forEach(column => {
                 const player = Number(column.dataset.player);
                 column.classList.toggle("hidden-player", player > playerCount);
+            });
+
+            document.querySelectorAll(".player-handicap-row").forEach(row => {
+                const player = Number(row.dataset.player);
+                row.classList.toggle("hidden-player", player > playerCount);
             });
 
             calculateScores();
@@ -178,6 +194,165 @@
                 `Reikä ${hole}, ${escapeHtml(playerName)}`;
 
             speakMessage(`Viiva merkitty reiälle ${hole}`);
+        }
+
+
+        function normalizeHandicap(value) {
+            const normalized = String(value || "").trim().replace(",", ".");
+            if (normalized === "") return "";
+            const number = Number(normalized);
+            if (!Number.isFinite(number) || number < -10 || number > 54) return "";
+            return Math.round(number * 10) / 10;
+        }
+
+        function getPlayerProfiles() {
+            try {
+                const profiles = JSON.parse(localStorage.getItem(PLAYER_PROFILES_KEY) || "[]");
+                return Array.isArray(profiles) ? profiles : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function savePlayerProfiles() {
+            const profiles = getPlayerProfiles();
+            for (let player = 1; player <= playerCount; player++) {
+                const name = document.getElementById(`name${player}`).value.trim();
+                const handicap = normalizeHandicap(document.getElementById(`handicap${player}`).value);
+                if (!name) continue;
+                const existing = profiles.find(item => item.name.toLowerCase() === name.toLowerCase());
+                if (existing) {
+                    existing.name = name;
+                    existing.handicap = handicap;
+                    existing.updatedAt = new Date().toISOString();
+                } else {
+                    profiles.push({ name, handicap, updatedAt: new Date().toISOString() });
+                }
+            }
+            localStorage.setItem(PLAYER_PROFILES_KEY, JSON.stringify(profiles));
+            renderSavedPlayers();
+        }
+
+        function renderSavedPlayers() {
+            const list = document.getElementById("savedPlayers");
+            if (!list) return;
+            list.innerHTML = "";
+            getPlayerProfiles()
+                .sort((a, b) => a.name.localeCompare(b.name, "fi"))
+                .forEach(profile => {
+                    const option = document.createElement("option");
+                    option.value = profile.name;
+                    list.appendChild(option);
+                });
+        }
+
+        function fillHandicapFromProfile(player) {
+            const name = document.getElementById(`name${player}`).value.trim().toLowerCase();
+            const profile = getPlayerProfiles().find(item => item.name.toLowerCase() === name);
+            if (!profile || profile.handicap === "" || profile.handicap === null) return;
+            playerHandicaps[player - 1] = profile.handicap;
+            document.getElementById(`handicap${player}`).value = String(profile.handicap).replace(".", ",");
+        }
+
+        function normalizeCourse(course) {
+            const fallbackPars = Array.isArray(course.pars) && course.pars.length === 18
+                ? course.pars.map(Number)
+                : Array(18).fill(4);
+            const tees = Array.isArray(course.tees) && course.tees.length
+                ? course.tees
+                : [{
+                    id: "default",
+                    name: "Oletustii",
+                    pars: fallbackPars,
+                    courseRating: null,
+                    slopeRating: null,
+                    strokeIndexes: Array.from({ length: 18 }, (_, index) => index + 1)
+                }];
+            return { ...course, tees };
+        }
+
+        async function loadCourses() {
+            try {
+                const response = await fetch("data/courses.json", { cache: "no-store" });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                courses = Array.isArray(data) ? data.map(normalizeCourse) : [];
+                courseSelect.innerHTML = '<option value="">Valitse kenttä</option>' +
+                    courses.map(course => `<option value="${escapeHtml(course.id)}">${escapeHtml(course.name)}</option>`).join("");
+                if (selectedCourseId && courses.some(course => course.id === selectedCourseId)) {
+                    courseSelect.value = selectedCourseId;
+                    renderTeeOptions();
+                    applySelectedTee();
+                }
+            } catch (error) {
+                console.error("Kenttädatan lataus epäonnistui:", error);
+                courseDataStatus.textContent = "Kenttädatan lataus epäonnistui.";
+            }
+        }
+
+        function getSelectedCourse() {
+            return courses.find(course => course.id === selectedCourseId) || null;
+        }
+
+        function getSelectedTee() {
+            return getSelectedCourse()?.tees.find(tee => tee.id === selectedTeeId) || null;
+        }
+
+        function renderTeeOptions() {
+            const course = getSelectedCourse();
+            if (!course) {
+                teeSelect.disabled = true;
+                teeSelect.innerHTML = '<option value="">Valitse ensin kenttä</option>';
+                return;
+            }
+            teeSelect.disabled = false;
+            teeSelect.innerHTML = course.tees.map(tee =>
+                `<option value="${escapeHtml(tee.id)}">${escapeHtml(tee.name)}</option>`
+            ).join("");
+            if (!course.tees.some(tee => tee.id === selectedTeeId)) {
+                selectedTeeId = course.tees[0]?.id || "";
+            }
+            teeSelect.value = selectedTeeId;
+        }
+
+        function applySelectedTee() {
+            const tee = getSelectedTee();
+            selectedPars = Array.isArray(tee?.pars) && tee.pars.length === 18
+                ? tee.pars.map(Number)
+                : Array(18).fill(4);
+            selectedStrokeIndexes = Array.isArray(tee?.strokeIndexes) && tee.strokeIndexes.length === 18
+                ? tee.strokeIndexes.map(Number)
+                : Array.from({ length: 18 }, (_, index) => index + 1);
+            const ready = Number.isFinite(Number(tee?.courseRating)) && Number.isFinite(Number(tee?.slopeRating));
+            courseDataStatus.textContent = ready
+                ? `CR ${tee.courseRating} · Slope ${tee.slopeRating} · tasoituslaskenta valmis`
+                : "Parit käytössä. CR-, slope- ja reikäindeksit voidaan lisätä tähän tiihin myöhemmin.";
+            document.querySelectorAll("[data-par-hole]").forEach(cell => {
+                const hole = Number(cell.dataset.parHole);
+                cell.textContent = selectedPars[hole - 1] || "–";
+            });
+            calculateScores();
+            updateRoundLayout();
+            saveState();
+        }
+
+        function calculateCourseHandicap(handicapIndex, tee = getSelectedTee()) {
+            const hi = Number(handicapIndex);
+            const slope = Number(tee?.slopeRating);
+            const rating = Number(tee?.courseRating);
+            const par = Array.isArray(tee?.pars) ? tee.pars.reduce((sum, value) => sum + Number(value || 0), 0) : 0;
+            if (![hi, slope, rating, par].every(Number.isFinite) || slope <= 0) return null;
+            return Math.round(hi * (slope / 113) + (rating - par));
+        }
+
+        function getHoleHandicapStrokes(courseHandicap, hole) {
+            const index = Number(selectedStrokeIndexes[hole - 1]);
+            if (!Number.isFinite(courseHandicap) || !Number.isFinite(index)) return 0;
+            if (courseHandicap >= 0) {
+                return Math.floor(courseHandicap / 18) + (index <= courseHandicap % 18 ? 1 : 0);
+            }
+            const plus = Math.abs(courseHandicap);
+            return -(Math.floor(plus / 18) + (index > 18 - (plus % 18) ? 1 : 0));
         }
 
         function normalizeScoreValue(value) {
@@ -1159,6 +1334,9 @@
                 roundComplete,
                 frontNineAnnounced,
                 announceStandings,
+                selectedCourseId,
+                selectedTeeId,
+                playerHandicaps: [...playerHandicaps],
                 names: [],
                 scores: {}
             };
@@ -1206,6 +1384,11 @@
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
                 announceStandings = Boolean(state.announceStandings);
                 announceStandingsInput.checked = announceStandings;
+                selectedCourseId = String(state.selectedCourseId || "");
+                selectedTeeId = String(state.selectedTeeId || "");
+                playerHandicaps = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+                    normalizeHandicap(state.playerHandicaps?.[index])
+                );
 
                 for (let player = 1; player <= MAX_PLAYERS; player++) {
                     const name = state.names?.[player - 1];
@@ -1216,6 +1399,13 @@
 
                         nameInput.value =
                             /^P[1-4]$/i.test(name.trim()) ? "" : name;
+                    }
+
+                    const handicapInput = document.getElementById(`handicap${player}`);
+                    if (handicapInput) {
+                        handicapInput.value = playerHandicaps[player - 1] === ""
+                            ? ""
+                            : String(playerHandicaps[player - 1]).replace(".", ",");
                     }
 
                     const scores = state.scores?.[player] || [];
@@ -1374,7 +1564,15 @@
                     ? crypto.randomUUID()
                     : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
                 savedAt: new Date().toISOString(),
-                course: courseNameInput.value.trim() || "Kenttä nimeämättä",
+                course: getSelectedCourse()?.name || courseNameInput.value.trim() || "Kenttä nimeämättä",
+                courseId: selectedCourseId,
+                tee: getSelectedTee()?.name || "",
+                teeId: selectedTeeId,
+                courseRating: getSelectedTee()?.courseRating ?? null,
+                slopeRating: getSelectedTee()?.slopeRating ?? null,
+                pars: [...selectedPars],
+                strokeIndexes: [...selectedStrokeIndexes],
+                handicaps: [...playerHandicaps],
                 date: roundDateInput.value || getTodayDateValue(),
                 gameFormat: gameFormatInput.value,
                 notes: roundNotesInput.value.trim(),
@@ -1418,6 +1616,7 @@
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 
             rememberCourse(snapshot.course);
+            savePlayerProfiles();
             hideRoundCompleteModal();
             renderHistory();
 
@@ -2399,6 +2598,12 @@
             });
 
             input.addEventListener("input", saveState);
+            input.addEventListener("change", () => {
+                const player = Number(input.id.replace("name", ""));
+                fillHandicapFromProfile(player);
+                savePlayerProfiles();
+                saveState();
+            });
         });
 
         if (startHoleInput) {
@@ -2434,13 +2639,41 @@
             });
         }
 
+
+        courseSelect.addEventListener("change", () => {
+            selectedCourseId = courseSelect.value;
+            selectedTeeId = "";
+            renderTeeOptions();
+            applySelectedTee();
+            const course = getSelectedCourse();
+            if (course && courseNameInput) courseNameInput.value = course.name;
+        });
+
+        teeSelect.addEventListener("change", () => {
+            selectedTeeId = teeSelect.value;
+            applySelectedTee();
+        });
+
+        for (let player = 1; player <= MAX_PLAYERS; player++) {
+            const input = document.getElementById(`handicap${player}`);
+            input.addEventListener("change", () => {
+                const normalized = normalizeHandicap(input.value);
+                playerHandicaps[player - 1] = normalized;
+                input.value = normalized === "" ? "" : String(normalized).replace(".", ",");
+                savePlayerProfiles();
+                saveState();
+            });
+        }
+
         announceStandingsInput.addEventListener("change", () => {
             announceStandings = announceStandingsInput.checked;
             saveState();
         });
 
         buildScoreTable();
+        renderSavedPlayers();
         loadState();
+        loadCourses();
         updateRoundCompleteState();
         updateRoundLayout();
         prepareRoundMetadataForm();
