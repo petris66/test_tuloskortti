@@ -58,6 +58,9 @@
         const playerTeeSelects = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerTee${index + 1}`)
         );
+        const playerCourseHcpElements = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerCourseHcp${index + 1}`)
+        );
         const playerSettingNames = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerSettingName${index + 1}`)
         );
@@ -330,6 +333,104 @@
             applyPrimaryPlayerTeeToScorecard();
         }
 
+        function parseExactHandicap(value) {
+            const normalized = String(value ?? "")
+                .trim()
+                .replace(",", ".");
+            const number = Number(normalized);
+            return Number.isFinite(number) ? number : null;
+        }
+
+        function getPlayerSelectedCourseRows(playerIndex) {
+            const selection = playerTees[playerIndex] || "";
+            const { gender, tee } = decodePlayerTee(selection);
+
+            if (!selectedCourseId || !gender || !tee) {
+                return [];
+            }
+
+            return courseData
+                .filter(row =>
+                    row.courseId === selectedCourseId &&
+                    row.gender === gender &&
+                    row.tee === tee
+                )
+                .sort((a, b) => Number(a.hole) - Number(b.hole));
+        }
+
+        function calculatePlayerCourseHandicap(playerIndex) {
+            const exactHcp = parseExactHandicap(playerHandicaps[playerIndex]);
+            const rows = getPlayerSelectedCourseRows(playerIndex);
+
+            if (exactHcp === null || rows.length !== 18) {
+                return null;
+            }
+
+            const slope = Number(rows.find(row => row.Slope !== null && row.Slope !== "")?.Slope);
+            const cr = Number(rows.find(row => row.CR !== null && row.CR !== "")?.CR);
+            const par = rows.reduce((sum, row) => sum + (Number(row.par) || 0), 0);
+
+            if (!Number.isFinite(slope) || !Number.isFinite(cr) || par <= 0) {
+                return null;
+            }
+
+            return Math.round(exactHcp * slope / 113 + (cr - par));
+        }
+
+        function getHandicapStrokesForHole(courseHandicap, holeHcp) {
+            if (!Number.isInteger(courseHandicap) || courseHandicap <= 0) {
+                return 0;
+            }
+
+            const strokeIndex = Number(holeHcp);
+            if (!Number.isInteger(strokeIndex) || strokeIndex < 1 || strokeIndex > 18) {
+                return 0;
+            }
+
+            const fullRounds = Math.floor(courseHandicap / 18);
+            const remainder = courseHandicap % 18;
+            return fullRounds + (strokeIndex <= remainder ? 1 : 0);
+        }
+
+        function updatePlayerCourseHandicapsAndStrokeMarkers() {
+            for (let playerIndex = 0; playerIndex < MAX_PLAYERS; playerIndex++) {
+                const courseHandicap = calculatePlayerCourseHandicap(playerIndex);
+                const display = playerCourseHcpElements[playerIndex];
+
+                if (display) {
+                    display.textContent = courseHandicap === null
+                        ? "Kentän HCP: –"
+                        : `Kentän HCP: ${courseHandicap}`;
+                }
+
+                const rows = getPlayerSelectedCourseRows(playerIndex);
+                const holeHcpByHole = new Map(
+                    rows.map(row => [Number(row.hole), Number(row.hcp)])
+                );
+
+                for (let hole = 1; hole <= 18; hole++) {
+                    const marker = document.querySelector(
+                        `[data-stroke-player="${playerIndex + 1}"][data-stroke-hole="${hole}"]`
+                    );
+
+                    if (!marker) continue;
+
+                    const strokes = courseHandicap === null
+                        ? 0
+                        : getHandicapStrokesForHole(
+                            courseHandicap,
+                            holeHcpByHole.get(hole)
+                        );
+
+                    marker.textContent = strokes > 0 ? "•".repeat(strokes) : "";
+                    marker.setAttribute(
+                        "aria-label",
+                        strokes > 0 ? `${strokes} tasoituslyöntiä` : ""
+                    );
+                }
+            }
+        }
+
         function syncPlayerRoundSettingsFromInputs() {
             playerHandicaps = playerHcpInputs.map(input => input?.value.trim() || "");
             playerTees = playerTeeSelects.map(select => select?.value || "");
@@ -341,6 +442,7 @@
             });
             populatePlayerTeeOptions();
             updatePlayerSettingNames();
+            updatePlayerCourseHandicapsAndStrokeMarkers();
         }
 
         function refreshScoreTableForCourse() {
@@ -350,6 +452,7 @@
             updateRoundLayout();
             updateSelectedCourseInfo();
             populatePlayerTeeOptions();
+            updatePlayerCourseHandicapsAndStrokeMarkers();
             saveState();
         }
 
@@ -401,7 +504,13 @@
 
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 html += `
-                    <td class="player-column" data-player="${player}">
+                    <td class="player-column score-cell" data-player="${player}">
+                        <span
+                            class="handicap-stroke-marker"
+                            data-stroke-player="${player}"
+                            data-stroke-hole="${hole}"
+                            aria-hidden="true"
+                        ></span>
                         <input
                             type="text"
                             inputmode="numeric"
@@ -460,6 +569,7 @@
             });
 
             calculateScores();
+            updatePlayerCourseHandicapsAndStrokeMarkers();
             saveState();
         }
 
@@ -2730,6 +2840,7 @@
 
             input.addEventListener("input", () => {
                 playerHandicaps[index] = input.value.trim();
+                updatePlayerCourseHandicapsAndStrokeMarkers();
                 saveState();
             });
         });
@@ -2751,6 +2862,7 @@
                     updateSelectedCourseInfo();
                 }
 
+                updatePlayerCourseHandicapsAndStrokeMarkers();
                 saveState();
             });
         });

@@ -1,7 +1,8 @@
-Version 3.2
-Package 3.2 front-nine announcement correction
+Version 5.1
+Package 5.1 course handicap and stroke markers
 
-- Front-nine voice summary is announced only when the round starts from hole 1
-- No automatic front-nine summary for rounds starting from hole 10 or another hole
-- Per-player HCP and tee settings retained
-- Voice scoring, course data and round logic otherwise unchanged
+- Calculates each player course handicap from exact HCP, selected tee, Slope, CR and Par
+- Shows each player course handicap in round settings
+- Shows handicap strokes with dots in player score cells
+- One dot = one stroke, two dots = two strokes
+- Existing voice scoring, score calculation and round flow retained

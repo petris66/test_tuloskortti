@@ -1274,3 +1274,36 @@ body {
 .player-round-setting.hidden-player {
     display: none !important;
 }
+
+
+/* --- Paketti 5.1: kentän HCP ja tasoituslyöntimerkit --- */
+.player-course-hcp {
+    grid-column: 1 / -1;
+    margin-top: 1px;
+    color: var(--forest-2);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.score-cell {
+    position: relative;
+}
+
+.handicap-stroke-marker {
+    position: absolute;
+    top: 1px;
+    right: 3px;
+    z-index: 2;
+    color: var(--forest-2);
+    font-size: 9px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -1px;
+    pointer-events: none;
+}
+
+.round-active .handicap-stroke-marker {
+    top: 1px;
+    right: 2px;
+    font-size: 8px;
+}
