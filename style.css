@@ -1131,3 +1131,68 @@ body {
         font-weight: 900;
     }
 }
+
+
+/* --- Paketti 2: JSON-pohjainen kenttädata --- */
+.course-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 9px;
+    margin-top: 8px;
+}
+
+.course-settings label {
+    display: grid;
+    gap: 5px;
+    color: #557254;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.course-settings select {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 8px;
+    border: 1px solid #b8cdb3;
+    border-radius: 10px;
+    color: var(--forest);
+    background: #fbfdf9;
+    font: inherit;
+}
+
+.course-data-status,
+.selected-course-info {
+    margin: 9px 0 0;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.course-data-status {
+    color: #557254;
+}
+
+.selected-course-info {
+    padding: 8px 10px;
+    border: 1px solid #c6d9c1;
+    border-radius: 10px;
+    color: var(--forest);
+    background: #f2f8ef;
+    font-weight: 700;
+}
+
+.course-stat-cell {
+    width: 38px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 500px) {
+    .course-settings {
+        grid-template-columns: 1fr;
+    }
+
+    .course-stat-cell {
+        width: 33px;
+        font-size: 11px;
+    }
+}
