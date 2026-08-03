@@ -1,14 +1,9 @@
-Feature 1.4.0 – Pelaajan nimeen perustuva puhekirjaus
+Feature 1.4.1 testit
 
-Testaa kahdella pelaajalla, nimet Pete ja Sami:
-1. "Sami 4 Pete 5" -> Pete 5, Sami 4
-2. "Pete 5 Sami 4" -> Pete 5, Sami 4
-3. "5 4" -> Pete 5, Sami 4 (nykyinen järjestyssyöttö)
-4. "reikä 7 Sami 4 Pete 5" -> reikä 7: Pete 5, Sami 4
-5. "Sami viiva Pete 5" -> Pete 5, Sami viiva
-
-Kolmella pelaajalla, nimet Pete, Sami ja Jari:
-6. "Jari 6 Pete 5 Sami 4" -> Pete 5, Sami 4, Jari 6
-7. "5 4 6" -> Pete 5, Sami 4, Jari 6
-
-Nimellisessä syötössä kaikkien aktiivisten pelaajien nimi ja tulos pitää sanoa.
+1. Pelaajat Pete ja Sami: sano "Sami 4 Pete 5".
+   - Pete 5 ja Sami 4 oikeisiin sarakkeisiin.
+2. Sano pelkät luvut "5 4".
+   - Pete 5 ja Sami 4 pelaajajärjestyksessä.
+3. Pelaa/testitä 18 reikää ja paina Päätä kierros.
+4. Valitse Palaa tarkistamaan.
+   - Tuloskortissa näkyvät yhtä aikaa reiät 1-18 sekä Etuysi ja Takaysi.

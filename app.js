@@ -1089,25 +1089,27 @@
 
         function updateRoundLayout() {
             // Tiivis mobiilinäkymä on oletusnäkymä.
-            // Kierroksen aloitus tai aloitusreikä ei vaikuta käyttöliittymän kokoon.
-            const showBackNine = nextHole >= 10 || roundComplete;
+            // Kierroksen aikana näytetään pelattava ysi.
+            // Päätetyn kierroksen tarkistuksessa näytetään kaikki 18 reikää.
+            const showAllHoles = roundComplete;
+            const showBackNine = nextHole >= 10;
 
             document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
-            document.body.classList.toggle("show-back-nine", showBackNine);
+            document.body.classList.toggle("show-back-nine", !showAllHoles && showBackNine);
 
             document.querySelectorAll("[data-hole-row]").forEach(row => {
                 const hole = Number(row.dataset.holeRow);
-                const shouldShow = showBackNine
+                const shouldShow = showAllHoles || (showBackNine
                     ? hole >= 10
-                    : hole <= 9;
+                    : hole <= 9);
 
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
 
             document.querySelectorAll(".subtotal").forEach(row => {
-                const shouldShow = showBackNine
+                const shouldShow = showAllHoles || (showBackNine
                     ? row.dataset.nine === "back"
-                    : row.dataset.nine === "front";
+                    : row.dataset.nine === "front");
 
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
@@ -1312,6 +1314,7 @@
 
             roundComplete = true;
             updateRoundCompleteState();
+            updateRoundLayout();
             saveState();
             showRoundCompleteModal();
         }
