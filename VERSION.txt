@@ -1,8 +1,9 @@
-Version 3.8.1
-Package 3.1 hotfix
+Version 3.0
+Package 3 rebuilt from restored Package 2.5 base
 
-- Package 3 base retained
-- New Round is available during an active incomplete round
-- New Round still requires confirmation before clearing scores
-- End-round validation remains unchanged
+- New Round remains available during an active incomplete round
+- New Round requires confirmation before clearing the current scores
 - Voice score entry logic unchanged
+- Score calculation unchanged
+- Front-nine/back-nine logic unchanged
+- Existing style.css retained and not included in this package
