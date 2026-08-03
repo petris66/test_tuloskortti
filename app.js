@@ -1257,9 +1257,13 @@
         }
 
         function updateRoundLayout() {
-            // Tiivis mobiilinäkymä on oletusnäkymä.
-            // Kierroksen aloitus tai aloitusreikä ei vaikuta käyttöliittymän kokoon.
-            const showBackNine = nextHole >= 10 || roundComplete;
+            // Ennen ensimmäistä kirjausta näkymä seuraa suoraan asetettua aloitusreikää.
+            // Kierroksen aikana näkymä seuraa seuraavaa kirjattavaa reikää.
+            const setupHole = Number(startHoleInput?.value);
+            const visibleHole = !roundSetupConfirmed && setupHole >= 1 && setupHole <= 18
+                ? setupHole
+                : nextHole;
+            const showBackNine = visibleHole >= 10 || roundComplete;
 
             document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
             document.body.classList.toggle("show-back-nine", showBackNine);
@@ -2574,7 +2578,7 @@
             startHoleInput.addEventListener("focus", selectStartHoleValue);
             startHoleInput.addEventListener("click", selectStartHoleValue);
 
-            startHoleInput.addEventListener("input", () => {
+            const applyStartHole = () => {
                 if (startHoleInput.value === "") {
                     startHole = 1;
                     nextHole = 1;
@@ -2592,7 +2596,11 @@
                     updateRoundLayout();
                     saveState();
                 }
-            });
+            };
+
+            startHoleInput.addEventListener("input", applyStartHole);
+            startHoleInput.addEventListener("change", applyStartHole);
+            startHoleInput.addEventListener("blur", applyStartHole);
         }
 
         announceStandingsInput.addEventListener("change", () => {
