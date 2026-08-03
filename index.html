@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=feature1_3_3">
+    <link rel="stylesheet" href="style.css?v=course-data-2">
 
 </head>
 
@@ -44,6 +44,29 @@
             <label class="section-help">Aloitusreikä
                 <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
             </label>
+
+            <div class="course-settings" aria-label="Kenttävalinta">
+                <label>
+                    Kenttä
+                    <select id="courseSelect">
+                        <option value="">Ladataan kenttiä…</option>
+                    </select>
+                </label>
+                <label>
+                    Pelaajaryhmä
+                    <select id="genderSelect">
+                        <option value="">—</option>
+                    </select>
+                </label>
+                <label>
+                    Tii
+                    <select id="teeSelect">
+                        <option value="">—</option>
+                    </select>
+                </label>
+            </div>
+            <p class="course-data-status" id="courseDataStatus">Ladataan kenttädataa…</p>
+            <p class="selected-course-info" id="selectedCourseInfo">Valitse kenttä, pelaajaryhmä ja tii.</p>
         </section>
 
         <section class="card next-hole-box next-hole-card" id="nextHoleCard">
@@ -109,6 +132,8 @@
                 <thead>
                     <tr id="headerRow">
                         <th class="hole-cell">Reikä</th>
+                        <th class="course-stat-cell">Par</th>
+                        <th class="course-stat-cell">HCP</th>
                         <th class="player-column" data-player="1">
                             <input
                                 type="text"
@@ -161,6 +186,7 @@
                 <tfoot>
                     <tr class="total">
                         <td>Yhteensä</td>
+                        <td colspan="2"></td>
                         <td class="player-column" data-player="1" id="sum1">0</td>
                         <td class="player-column" data-player="2" id="sum2">0</td>
                         <td class="player-column" data-player="3" id="sum3">0</td>
@@ -176,15 +202,35 @@
                 Uusi kierros
             </button>
 
-            <button type="button" class="action-button" onclick="saveCompletedRound()">
-                Tallenna kierros
+            <button
+                type="button"
+                class="action-button"
+                id="nineViewButton"
+                onclick="toggleNineView()"
+            >
+                Näytä takaysi
             </button>
 
             <button type="button" class="action-button" onclick="finishRound()">
                 Päätä kierros
             </button>
 
-            <button type="button" class="action-button" onclick="toggleHistory()">
+            <button
+                type="button"
+                class="action-button"
+                id="saveRoundActionButton"
+                onclick="saveCompletedRound()"
+                hidden
+            >
+                Tallenna kierros
+            </button>
+
+            <button
+                type="button"
+                class="action-button"
+                id="historyActionButton"
+                onclick="toggleHistory()"
+            >
                 📚 Kierroshistoria
             </button>
         </div>
@@ -281,7 +327,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=feature1_3_3" defer></script>
+    <script src="app.js?v=course-data-2-5" defer></script>
 
 </body>
 </html>
