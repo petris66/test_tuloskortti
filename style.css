@@ -1264,3 +1264,13 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* --- Paketti 3.1: vain kenttä yhteisenä, aktiiviset pelaajarivit --- */
+.course-settings-single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.player-round-setting.hidden-player {
+    display: none !important;
+}

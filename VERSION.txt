@@ -1,7 +1,9 @@
-Version 3.0
-Package 3 – Player settings
+Version 3.1
+Package 3.1 player settings correction
 
-- Added exact handicap input for each active player
-- Added individual tee selection for each active player
-- Player handicap and tee selections are saved and restored
-- Existing course data, voice scoring, score calculation and round flow retained
+- Shared player group and tee controls removed from the visible UI
+- Course remains the only shared course setting
+- Each player selects an individual tee from all course tee/group combinations
+- Only the selected number of player setting rows is shown
+- Exact per-player HCP fields retained
+- Voice scoring and round logic unchanged

@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=package-3-player-settings">
+    <link rel="stylesheet" href="style.css?v=package-3-1-player-settings">
 
 </head>
 
@@ -45,28 +45,18 @@
                 <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
             </label>
 
-            <div class="course-settings" aria-label="Kenttävalinta">
+            <div class="course-settings course-settings-single" aria-label="Kenttävalinta">
                 <label>
                     Kenttä
                     <select id="courseSelect">
                         <option value="">Ladataan kenttiä…</option>
                     </select>
                 </label>
-                <label>
-                    Pelaajaryhmä
-                    <select id="genderSelect">
-                        <option value="">—</option>
-                    </select>
-                </label>
-                <label>
-                    Tii
-                    <select id="teeSelect">
-                        <option value="">—</option>
-                    </select>
-                </label>
             </div>
+            <select id="genderSelect" hidden aria-hidden="true"><option value="">—</option></select>
+            <select id="teeSelect" hidden aria-hidden="true"><option value="">—</option></select>
             <p class="course-data-status" id="courseDataStatus">Ladataan kenttädataa…</p>
-            <p class="selected-course-info" id="selectedCourseInfo">Valitse kenttä, pelaajaryhmä ja tii.</p>
+            <p class="selected-course-info" id="selectedCourseInfo">Valitse kenttä ja pelaajakohtaiset tiit.</p>
 
             <div class="player-round-settings" id="playerRoundSettings" aria-label="Pelaajakohtaiset asetukset">
                 <h3>Pelaajakohtaiset tiedot</h3>
@@ -369,7 +359,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=package-3-player-settings" defer></script>
+    <script src="app.js?v=package-3-1-player-settings" defer></script>
 
 </body>
 </html>

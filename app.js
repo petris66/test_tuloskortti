@@ -217,7 +217,7 @@
             const firstRow = rows[0];
 
             if (!selectedCourseId || !selectedTee || !selectedGender || rows.length === 0) {
-                selectedCourseInfo.textContent = "Valitse kenttä, pelaajaryhmä ja tii.";
+                selectedCourseInfo.textContent = "Valitse kenttä ja pelaajakohtaiset tiit.";
                 return;
             }
 
@@ -238,13 +238,51 @@
             }
         }
 
+        function encodePlayerTee(gender, tee) {
+            return `${String(gender || "")}|||${String(tee || "")}`;
+        }
+
+        function decodePlayerTee(value) {
+            const [gender = "", tee = ""] = String(value || "").split("|||");
+            return { gender, tee };
+        }
+
         function getAvailablePlayerTees() {
-            return [...new Set(
-                getRowsForSelectedCourse()
-                    .filter(row => !selectedGender || row.gender === selectedGender)
-                    .map(row => row.tee)
-                    .filter(Boolean)
-            )].sort((a, b) => a.localeCompare(b, "fi", { numeric: true }));
+            const combinations = new Map();
+
+            getRowsForSelectedCourse().forEach(row => {
+                if (!row.gender || !row.tee) return;
+                const value = encodePlayerTee(row.gender, row.tee);
+                if (!combinations.has(value)) {
+                    combinations.set(value, {
+                        value,
+                        gender: row.gender,
+                        tee: row.tee,
+                        label: `${row.tee} · ${row.gender}`
+                    });
+                }
+            });
+
+            return [...combinations.values()].sort((a, b) =>
+                a.tee.localeCompare(b.tee, "fi", { numeric: true }) ||
+                a.gender.localeCompare(b.gender, "fi")
+            );
+        }
+
+        function applyPrimaryPlayerTeeToScorecard() {
+            const firstActiveSelection = playerTees
+                .slice(0, playerCount)
+                .find(Boolean);
+
+            if (!firstActiveSelection) return;
+
+            const { gender, tee } = decodePlayerTee(firstActiveSelection);
+            if (!gender || !tee) return;
+
+            selectedGender = gender;
+            selectedTee = tee;
+            genderSelect.value = selectedGender;
+            teeSelect.value = selectedTee;
         }
 
         function updatePlayerSettingNames() {
@@ -257,28 +295,39 @@
         }
 
         function populatePlayerTeeOptions() {
-            const tees = getAvailablePlayerTees();
+            const teeOptions = getAvailablePlayerTees();
+            const validValues = teeOptions.map(option => option.value);
+            const defaultValue = encodePlayerTee(selectedGender, selectedTee);
 
             playerTeeSelects.forEach((select, index) => {
                 if (!select) return;
 
-                const previous = playerTees[index] || select.value || selectedTee;
+                let previous = playerTees[index] || select.value || defaultValue;
+
+                // Vanhan version pelkkä tiin nimi muunnetaan yhdistelmäksi.
+                if (previous && !String(previous).includes("|||")) {
+                    const legacyMatch = teeOptions.find(option => option.tee === previous);
+                    previous = legacyMatch?.value || "";
+                }
+
                 select.innerHTML = '<option value="">Valitse tii</option>';
 
-                tees.forEach(tee => {
+                teeOptions.forEach(teeOption => {
                     const option = document.createElement("option");
-                    option.value = tee;
-                    option.textContent = tee;
+                    option.value = teeOption.value;
+                    option.textContent = teeOption.label;
                     select.appendChild(option);
                 });
 
-                const nextValue = tees.includes(previous)
+                const nextValue = validValues.includes(previous)
                     ? previous
-                    : (tees.includes(selectedTee) ? selectedTee : (tees[0] || ""));
+                    : (validValues.includes(defaultValue) ? defaultValue : (validValues[0] || ""));
 
                 playerTees[index] = nextValue;
                 select.value = nextValue;
             });
+
+            applyPrimaryPlayerTeeToScorecard();
         }
 
         function syncPlayerRoundSettingsFromInputs() {
@@ -2653,7 +2702,10 @@
         document.querySelectorAll("#playerCountButtons button").forEach(button => {
             button.addEventListener("click", () => {
                 setPlayerCount(Number(button.dataset.count));
+                applyPrimaryPlayerTeeToScorecard();
                 updateRoundLayout();
+                updateSelectedCourseInfo();
+                saveState();
             });
         });
 
@@ -2687,6 +2739,18 @@
 
             select.addEventListener("change", () => {
                 playerTees[index] = select.value;
+
+                // Tuloskortin Par/HCP-näkymä seuraa ensimmäisen aktiivisen
+                // pelaajan tii-/ryhmävalintaa. Muiden pelaajien valinnat säilyvät erillisinä.
+                if (index === 0 || !playerTees[0]) {
+                    applyPrimaryPlayerTeeToScorecard();
+                    buildScoreTable();
+                    setPlayerCount(playerCount);
+                    calculateScores();
+                    updateRoundLayout();
+                    updateSelectedCourseInfo();
+                }
+
                 saveState();
             });
         });
