@@ -425,7 +425,25 @@
                     marker.innerHTML = strokes > 0
                         ? Array.from(
                             { length: strokes },
-                            () => '<span class="handicap-golf-ball" aria-hidden="true"></span>'
+                            () => `
+                                <svg
+                                    class="handicap-golf-ball-svg"
+                                    viewBox="0 0 20 20"
+                                    width="16"
+                                    height="16"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                >
+                                    <circle cx="10" cy="10" r="8.5" fill="#ffffff" stroke="#173f18" stroke-width="1.5"/>
+                                    <circle cx="7" cy="6.5" r="0.7" fill="#c7d0c5"/>
+                                    <circle cx="11.5" cy="5.5" r="0.65" fill="#c7d0c5"/>
+                                    <circle cx="14" cy="8.5" r="0.7" fill="#c7d0c5"/>
+                                    <circle cx="6" cy="11" r="0.65" fill="#c7d0c5"/>
+                                    <circle cx="10.5" cy="10" r="0.7" fill="#c7d0c5"/>
+                                    <circle cx="13" cy="13" r="0.65" fill="#c7d0c5"/>
+                                    <circle cx="8" cy="14" r="0.7" fill="#c7d0c5"/>
+                                </svg>
+                            `
                         ).join("")
                         : "";
                     marker.setAttribute(

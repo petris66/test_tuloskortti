@@ -1,4 +1,4 @@
 Golf Voice Scorecard AI
-Paketti 5.1.1
-Tasoituslyöntimerkit muutettu selkeiksi golfpalloiksi (lapsilisät).
+Paketti 5.1.2
+Tasoituslyöntimerkit muutettu 16 px SVG-golfpalloiksi iPhone-näkyvyyttä varten.
 Muutettu vain app.js ja style.css.
