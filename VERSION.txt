@@ -1,4 +1,8 @@
 Golf Voice Scorecard AI
-Paketti 5.1.2
-Tasoituslyöntimerkit muutettu 16 px SVG-golfpalloiksi iPhone-näkyvyyttä varten.
-Muutettu vain app.js ja style.css.
+Paketti 5.2 / v0.3.4
+Lisätty valinnainen Stableford-pistekortti.
+- Reikäkohtaiset pisteet
+- Etuysi, takaysi ja yhteensä
+- Näytä / piilota -painike
+- Hillitty pistekohtainen väritys
+- Automaattinen päivitys tuloksista, HCP:stä ja tiistä

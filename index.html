@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=package-5-1-course-handicap">
+    <link rel="stylesheet" href="style.css?v=package-5-2-stableford">
 
 </head>
 
@@ -233,6 +233,39 @@
             </div>
         </section>
 
+        <div class="stableford-toggle-wrap">
+            <button
+                type="button"
+                class="action-button stableford-toggle-button"
+                id="stablefordToggleButton"
+                onclick="toggleStablefordCard()"
+            >
+                Näytä Stableford-pisteet
+            </button>
+        </div>
+
+        <section
+            class="card scorecard-card stableford-card"
+            id="stablefordCard"
+            aria-hidden="true"
+        >
+            <h2 class="section-title">STABLEFORD-PISTEET</h2>
+            <p class="section-help">
+                Reikäkohtaiset pisteet, etuysi, takaysi ja yhteensä.
+            </p>
+            <div class="table-wrap">
+                <table class="stableford-table">
+                    <thead>
+                        <tr id="stablefordHeaderRow"></tr>
+                    </thead>
+                    <tbody id="stablefordTableBody"></tbody>
+                    <tfoot>
+                        <tr class="total" id="stablefordTotalRow"></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
         <div class="actions">
             <button type="button" class="action-button" onclick="resetRound()">
                 Uusi kierros
@@ -363,7 +396,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=package-5-1-course-handicap" defer></script>
+    <script src="app.js?v=package-5-2-stableford" defer></script>
 
 </body>
 </html>

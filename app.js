@@ -64,6 +64,11 @@
         const playerSettingNames = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerSettingName${index + 1}`)
         );
+        const stablefordCard = document.getElementById("stablefordCard");
+        const stablefordToggleButton = document.getElementById("stablefordToggleButton");
+        const stablefordTableBody = document.getElementById("stablefordTableBody");
+        const stablefordHeaderRow = document.getElementById("stablefordHeaderRow");
+        const stablefordTotalRow = document.getElementById("stablefordTotalRow");
 
         function getSavedCourseSelection() {
             try {
@@ -452,6 +457,8 @@
                     );
                 }
             }
+
+            updateStablefordScorecard();
         }
 
         function syncPlayerRoundSettingsFromInputs() {
@@ -593,6 +600,7 @@
 
             calculateScores();
             updatePlayerCourseHandicapsAndStrokeMarkers();
+            updateStablefordScorecard();
             saveState();
         }
 
@@ -698,6 +706,236 @@
 
                 document.getElementById(`sum${player}`).textContent =
                     totalDnf ? "DNF" : front.total + back.total;
+            }
+
+            updateStablefordScorecard();
+        }
+
+        function getStablefordPoints(playerIndex, hole) {
+            const scoreInput = document.querySelector(
+                `.p${playerIndex + 1}[data-hole="${hole}"]`
+            );
+            const grossScore = normalizeScoreValue(scoreInput?.value);
+
+            if (grossScore === "") {
+                return null;
+            }
+
+            if (grossScore === "-") {
+                return 0;
+            }
+
+            const rows = getPlayerSelectedCourseRows(playerIndex);
+            const holeData = rows.find(row => Number(row.hole) === hole);
+            const courseHandicap = calculatePlayerCourseHandicap(playerIndex);
+
+            if (!holeData || courseHandicap === null) {
+                return null;
+            }
+
+            const par = Number(holeData.par);
+            const holeHcp = Number(holeData.hcp);
+
+            if (!Number.isFinite(par) || !Number.isInteger(holeHcp)) {
+                return null;
+            }
+
+            const handicapStrokes = getHandicapStrokesForHole(
+                courseHandicap,
+                holeHcp
+            );
+            const netScore = grossScore - handicapStrokes;
+
+            return Math.max(0, 2 + par - netScore);
+        }
+
+        function getStablefordTotal(playerIndex, firstHole, lastHole) {
+            let total = 0;
+
+            for (let hole = firstHole; hole <= lastHole; hole++) {
+                const points = getStablefordPoints(playerIndex, hole);
+
+                if (typeof points === "number") {
+                    total += points;
+                }
+            }
+
+            return total;
+        }
+
+        function getStablefordPointClass(points) {
+            if (points === null) return "";
+            if (points <= 0) return "stableford-points-0";
+            if (points === 1) return "stableford-points-1";
+            if (points === 2) return "stableford-points-2";
+            if (points === 3) return "stableford-points-3";
+            return "stableford-points-4plus";
+        }
+
+        function buildStablefordScorecard() {
+            if (!stablefordTableBody || !stablefordHeaderRow || !stablefordTotalRow) {
+                return;
+            }
+
+            stablefordHeaderRow.innerHTML = `
+                <th class="hole-cell">Reikä</th>
+                <th class="course-stat-cell">Par</th>
+                ${Array.from({ length: MAX_PLAYERS }, (_, index) => `
+                    <th class="player-column" data-player="${index + 1}">
+                        <span
+                            class="stableford-player-name"
+                            data-stableford-name="${index + 1}"
+                        >
+                            P${index + 1}
+                        </span>
+                    </th>
+                `).join("")}
+            `;
+
+            stablefordTableBody.innerHTML = "";
+
+            for (let hole = 1; hole <= 18; hole++) {
+                const row = document.createElement("tr");
+                row.dataset.stablefordHoleRow = hole;
+
+                row.innerHTML = `
+                    <td class="hole-cell">${hole}</td>
+                    <td class="course-stat-cell stableford-par"
+                        data-stableford-par="${hole}">–</td>
+                    ${Array.from({ length: MAX_PLAYERS }, (_, index) => `
+                        <td
+                            class="player-column stableford-point-cell"
+                            data-player="${index + 1}"
+                            data-stableford-player="${index + 1}"
+                            data-stableford-hole="${hole}"
+                        ></td>
+                    `).join("")}
+                `;
+
+                stablefordTableBody.appendChild(row);
+
+                if (hole === 9 || hole === 18) {
+                    const firstHole = hole === 9 ? 1 : 10;
+                    const label = hole === 9 ? "Etuysi" : "Takaysi";
+                    const subtotal = document.createElement("tr");
+                    subtotal.className = "subtotal stableford-subtotal";
+                    subtotal.innerHTML = `
+                        <td>${label}</td>
+                        <td></td>
+                        ${Array.from({ length: MAX_PLAYERS }, (_, index) => `
+                            <td
+                                class="player-column"
+                                data-player="${index + 1}"
+                                data-stableford-subtotal-player="${index + 1}"
+                                data-stableford-first-hole="${firstHole}"
+                                data-stableford-last-hole="${hole}"
+                            >0</td>
+                        `).join("")}
+                    `;
+                    stablefordTableBody.appendChild(subtotal);
+                }
+            }
+
+            stablefordTotalRow.innerHTML = `
+                <td>Yhteensä</td>
+                <td></td>
+                ${Array.from({ length: MAX_PLAYERS }, (_, index) => `
+                    <td
+                        class="player-column"
+                        data-player="${index + 1}"
+                        data-stableford-total-player="${index + 1}"
+                    >0</td>
+                `).join("")}
+            `;
+        }
+
+        function updateStablefordPlayerNames() {
+            document.querySelectorAll("[data-stableford-name]").forEach(element => {
+                const player = Number(element.dataset.stablefordName);
+                const name = document.getElementById(`name${player}`)?.value.trim();
+                element.textContent = name || `P${player}`;
+            });
+        }
+
+        function updateStablefordScorecard() {
+            if (!stablefordTableBody) {
+                return;
+            }
+
+            updateStablefordPlayerNames();
+
+            for (let hole = 1; hole <= 18; hole++) {
+                const primaryHoleData = getHoleData(hole);
+                const parCell = document.querySelector(
+                    `[data-stableford-par="${hole}"]`
+                );
+
+                if (parCell) {
+                    parCell.textContent = primaryHoleData?.par ?? "–";
+                }
+
+                for (let playerIndex = 0; playerIndex < MAX_PLAYERS; playerIndex++) {
+                    const cell = document.querySelector(
+                        `[data-stableford-player="${playerIndex + 1}"]` +
+                        `[data-stableford-hole="${hole}"]`
+                    );
+
+                    if (!cell) continue;
+
+                    const points = getStablefordPoints(playerIndex, hole);
+                    cell.textContent = points === null ? "" : String(points);
+                    cell.classList.remove(
+                        "stableford-points-0",
+                        "stableford-points-1",
+                        "stableford-points-2",
+                        "stableford-points-3",
+                        "stableford-points-4plus"
+                    );
+
+                    const pointClass = getStablefordPointClass(points);
+                    if (pointClass) {
+                        cell.classList.add(pointClass);
+                    }
+                }
+            }
+
+            document.querySelectorAll("[data-stableford-subtotal-player]").forEach(cell => {
+                const playerIndex =
+                    Number(cell.dataset.stablefordSubtotalPlayer) - 1;
+                const firstHole = Number(cell.dataset.stablefordFirstHole);
+                const lastHole = Number(cell.dataset.stablefordLastHole);
+
+                cell.textContent = getStablefordTotal(
+                    playerIndex,
+                    firstHole,
+                    lastHole
+                );
+            });
+
+            document.querySelectorAll("[data-stableford-total-player]").forEach(cell => {
+                const playerIndex =
+                    Number(cell.dataset.stablefordTotalPlayer) - 1;
+                cell.textContent = getStablefordTotal(playerIndex, 1, 18);
+            });
+        }
+
+        function toggleStablefordCard() {
+            if (!stablefordCard || !stablefordToggleButton) {
+                return;
+            }
+
+            const isVisible = stablefordCard.classList.toggle("visible");
+            stablefordCard.setAttribute("aria-hidden", String(!isVisible));
+            stablefordToggleButton.textContent = isVisible
+                ? "Piilota Stableford-pisteet"
+                : "Näytä Stableford-pisteet";
+
+            if (isVisible) {
+                updateStablefordScorecard();
+                stablefordCard.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
             }
         }
 
@@ -2854,6 +3092,7 @@
 
             input.addEventListener("input", () => {
                 updatePlayerSettingNames();
+                updateStablefordPlayerNames();
                 saveState();
             });
         });
@@ -2953,6 +3192,7 @@
         async function initializeApp() {
             await loadCourseData();
             buildScoreTable();
+            buildStablefordScorecard();
             loadState();
             restorePlayerRoundSettings();
             updateSelectedCourseInfo();

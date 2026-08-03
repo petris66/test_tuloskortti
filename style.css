@@ -1324,3 +1324,98 @@ body {
     height: 15px;
     flex-basis: 15px;
 }
+
+
+/* --- Paketti 5.2: valinnainen Stableford-pistekortti --- */
+.stableford-toggle-wrap {
+    display: grid;
+    margin: -4px 0 16px;
+}
+
+.stableford-toggle-button {
+    width: 100%;
+    color: white;
+    background: linear-gradient(145deg, #2c7e28, #195119);
+    border-color: #195119;
+}
+
+.stableford-card {
+    display: none;
+}
+
+.stableford-card.visible {
+    display: block;
+}
+
+.stableford-player-name {
+    display: block;
+    overflow: hidden;
+    padding: 6px 2px;
+    color: var(--forest);
+    font-size: 13px;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stableford-point-cell {
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.stableford-points-0 {
+    color: #7c2424;
+    background: #fde7e7;
+}
+
+.stableford-points-1 {
+    color: #6f5410;
+    background: #fff4cc;
+}
+
+.stableford-points-2 {
+    color: var(--forest);
+    background: #f8fbf6;
+}
+
+.stableford-points-3 {
+    color: #185c1b;
+    background: #e1f3dc;
+}
+
+.stableford-points-4plus {
+    color: white;
+    background: #3f8740;
+}
+
+.stableford-subtotal td {
+    font-weight: 900;
+}
+
+.round-active .stableford-card {
+    padding: 10px 7px;
+    border-radius: 18px;
+}
+
+.round-active .stableford-player-name {
+    padding: 2px 1px;
+    font-size: 11px;
+}
+
+.round-active .stableford-point-cell {
+    font-size: 15px;
+}
+
+@media (max-width: 500px) {
+    .stableford-toggle-wrap {
+        margin-bottom: 8px;
+    }
+
+    .stableford-player-name {
+        font-size: clamp(9px, 2.8vw, 12px);
+    }
+
+    .stableford-point-cell {
+        font-size: 16px;
+    }
+}
