@@ -1,8 +1,4 @@
-Version 5.1
-Package 5.1 course handicap and stroke markers
-
-- Calculates each player course handicap from exact HCP, selected tee, Slope, CR and Par
-- Shows each player course handicap in round settings
-- Shows handicap strokes with dots in player score cells
-- One dot = one stroke, two dots = two strokes
-- Existing voice scoring, score calculation and round flow retained
+Golf Voice Scorecard AI
+Paketti 5.1.1
+Tasoituslyöntimerkit muutettu selkeiksi golfpalloiksi (lapsilisät).
+Muutettu vain app.js ja style.css.

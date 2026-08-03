@@ -1291,19 +1291,37 @@ body {
 
 .handicap-stroke-marker {
     position: absolute;
-    top: 1px;
+    top: 2px;
     right: 3px;
     z-index: 2;
-    color: var(--forest-2);
-    font-size: 9px;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: -1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
     pointer-events: none;
 }
 
+.handicap-golf-ball {
+    display: block;
+    width: 10px;
+    height: 10px;
+    flex: 0 0 10px;
+    border: 1.5px solid var(--forest);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 30%, #ffffff 0 20%, #f3f5f2 52%, #d9dfd7 100%);
+    box-shadow:
+        0 1px 1px rgba(23, 63, 24, 0.28),
+        inset -1px -1px 1px rgba(23, 63, 24, 0.18);
+}
+
 .round-active .handicap-stroke-marker {
-    top: 1px;
+    top: 2px;
     right: 2px;
-    font-size: 8px;
+    gap: 2px;
+}
+
+.round-active .handicap-golf-ball {
+    width: 9px;
+    height: 9px;
+    flex-basis: 9px;
 }

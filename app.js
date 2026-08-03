@@ -422,7 +422,12 @@
                             holeHcpByHole.get(hole)
                         );
 
-                    marker.textContent = strokes > 0 ? "•".repeat(strokes) : "";
+                    marker.innerHTML = strokes > 0
+                        ? Array.from(
+                            { length: strokes },
+                            () => '<span class="handicap-golf-ball" aria-hidden="true"></span>'
+                        ).join("")
+                        : "";
                     marker.setAttribute(
                         "aria-label",
                         strokes > 0 ? `${strokes} tasoituslyöntiä` : ""
