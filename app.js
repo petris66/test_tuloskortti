@@ -1501,11 +1501,17 @@
                 saveRoundActionButton.hidden = !roundComplete;
             }
 
+            const configuredStartHole = Number(startHoleInput?.value);
+            const startHoleConfirmed =
+                configuredStartHole >= 1 && configuredStartHole <= 18;
+            const historyAvailable =
+                roundComplete || (!roundSetupConfirmed && !startHoleConfirmed);
+
             if (historyActionButton) {
-                historyActionButton.hidden = !roundComplete;
+                historyActionButton.hidden = !historyAvailable;
             }
 
-            if (!roundComplete && historyCard) {
+            if (!historyAvailable && historyCard) {
                 historyCard.classList.remove("visible");
             }
         }
@@ -2618,6 +2624,7 @@
                     startHole = 1;
                     nextHole = 1;
                     updateNextHole();
+                    updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
                     return;
@@ -2628,6 +2635,7 @@
                     startHole = value;
                     nextHole = value;
                     updateNextHole();
+                    updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
                 }
