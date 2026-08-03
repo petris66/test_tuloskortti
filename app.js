@@ -1007,7 +1007,7 @@
             nineToggleButton.hidden = beforeRound;
             finishRoundButton.hidden = !activeRound;
             saveRoundButton.hidden = !completedRound;
-            newRoundButton.hidden = !completedRound;
+            newRoundButton.hidden = beforeRound;
             historyButton.hidden = activeRound;
 
             if (activeRound && historyCard.classList.contains("visible")) {
