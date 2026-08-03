@@ -1,8 +1,7 @@
 Golf Voice Scorecard AI
-Paketti 5.2.1 / v0.3.4 readability update
-- Piilotettu Kuulin/Tallennettu-laatikko aktiivisella kierroksella
-- Seuraava reikä, Pelitilanne ja Viiva jäävät näkyviin
-- Suurennettu Reikä-, Par- ja HCP-lukuja
-- Lisätty selkeämpi vasemman reunan tausta ja hillitty vuororivitys
-- Stableford-korttiin sama luettavuustyyli
-- Ei muutoksia puhekirjaukseen, HCP-laskentaan tai Stableford-laskentaan
+Paketti 5.2.2
+- Tarkka HCP suuremmalla fontilla
+- Kentän HCP suurempana ja korostettuna
+- Pelaajakohtainen tii värillisenä tunnisteena
+- Pelaajaryhmät lyhennetty muotoon M / N
+- Ei muutoksia laskentaan, puhekirjaukseen tai Stablefordiin

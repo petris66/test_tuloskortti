@@ -1502,3 +1502,81 @@ body {
         font-size: 14px;
     }
 }
+
+
+/* --- Paketti 5.2.2: pelaajakohtaisten tietojen luettavuus --- */
+.player-round-setting input[type="number"] {
+    min-height: 44px;
+    font-size: 19px;
+    font-weight: 900;
+    text-align: center;
+}
+
+.player-tee-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-width: 112px;
+    padding: 6px 11px;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(23, 63, 24, .10);
+}
+
+.player-tee-badge.tee-white {
+    color: #173019;
+    border-color: #9aa69a;
+    background: #ffffff;
+}
+
+.player-tee-badge.tee-yellow {
+    color: #4d3a00;
+    border-color: #c89d00;
+    background: #ffd83d;
+}
+
+.player-tee-badge.tee-red {
+    color: #ffffff;
+    border-color: #8f1e1e;
+    background: #d63b3b;
+}
+
+.player-tee-badge.tee-blue {
+    color: #ffffff;
+    border-color: #174f85;
+    background: #2f78b7;
+}
+
+.player-tee-badge.tee-unknown {
+    color: #557254;
+    border-color: #b8cdb3;
+    background: #eef4eb;
+}
+
+.player-course-hcp {
+    padding: 7px 10px;
+    border: 1px solid #b8d1b2;
+    border-radius: 10px;
+    color: #123814;
+    background: #e7f2e3;
+    font-size: 18px;
+    font-weight: 900;
+    text-align: center;
+}
+
+@media (max-width: 500px) {
+    .player-round-setting input[type="number"] {
+        font-size: 20px;
+    }
+
+    .player-tee-badge {
+        font-size: 15px;
+    }
+
+    .player-course-hcp {
+        font-size: 19px;
+    }
+}

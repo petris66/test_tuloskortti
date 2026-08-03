@@ -64,6 +64,9 @@
         const playerSettingNames = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerSettingName${index + 1}`)
         );
+        const playerTeeBadges = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerTeeBadge${index + 1}`)
+        );
         const stablefordCard = document.getElementById("stablefordCard");
         const stablefordToggleButton = document.getElementById("stablefordToggleButton");
         const stablefordTableBody = document.getElementById("stablefordTableBody");
@@ -266,7 +269,7 @@
                         value,
                         gender: row.gender,
                         tee: row.tee,
-                        label: `${row.tee} · ${row.gender}`
+                        label: `${row.tee} · ${row.gender === "Miehet" ? "M" : row.gender === "Naiset" ? "N" : row.gender}`
                     });
                 }
             });
@@ -300,6 +303,44 @@
                     playerSettingNames[player - 1].textContent = name || `P${player}`;
                 }
             }
+        }
+
+        function getTeeColorClass(tee) {
+            const normalized = String(tee || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+            if (normalized.includes("valk")) return "tee-white";
+            if (normalized.includes("kelt")) return "tee-yellow";
+            if (normalized.includes("pun")) return "tee-red";
+            if (normalized.includes("sin")) return "tee-blue";
+            return "tee-unknown";
+        }
+
+        function updatePlayerTeeBadges() {
+            playerTeeBadges.forEach((badge, index) => {
+                if (!badge) return;
+
+                const { gender, tee } = decodePlayerTee(playerTees[index]);
+                const genderShort = gender === "Miehet"
+                    ? "M"
+                    : gender === "Naiset"
+                        ? "N"
+                        : gender;
+
+                badge.classList.remove(
+                    "tee-white",
+                    "tee-yellow",
+                    "tee-red",
+                    "tee-blue",
+                    "tee-unknown"
+                );
+                badge.classList.add(getTeeColorClass(tee));
+                badge.textContent = tee
+                    ? `${tee} · ${genderShort || "–"}`
+                    : "Tii: –";
+            });
         }
 
         function populatePlayerTeeOptions() {
@@ -336,6 +377,7 @@
             });
 
             applyPrimaryPlayerTeeToScorecard();
+            updatePlayerTeeBadges();
         }
 
         function parseExactHandicap(value) {
@@ -3102,6 +3144,7 @@
 
             input.addEventListener("input", () => {
                 playerHandicaps[index] = input.value.trim();
+                updatePlayerTeeBadges();
                 updatePlayerCourseHandicapsAndStrokeMarkers();
                 saveState();
             });
