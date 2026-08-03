@@ -202,15 +202,36 @@
                 Uusi kierros
             </button>
 
-            <button type="button" class="action-button" onclick="saveCompletedRound()">
-                Tallenna kierros
+            <button
+                type="button"
+                class="action-button"
+                id="nineViewButton"
+                onclick="toggleNineView()"
+            >
+                Näytä takaysi
             </button>
 
             <button type="button" class="action-button" onclick="finishRound()">
                 Päätä kierros
             </button>
 
-            <button type="button" class="action-button" onclick="toggleHistory()">
+            <button
+                type="button"
+                class="action-button"
+                id="saveRoundActionButton"
+                onclick="saveCompletedRound()"
+                hidden
+            >
+                Tallenna kierros
+            </button>
+
+            <button
+                type="button"
+                class="action-button"
+                id="historyActionButton"
+                onclick="toggleHistory()"
+                hidden
+            >
                 📚 Kierroshistoria
             </button>
         </div>

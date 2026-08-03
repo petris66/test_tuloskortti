@@ -18,6 +18,7 @@
         let selectedCourseId = "";
         let selectedTee = "";
         let selectedGender = "";
+        let manualNineView = null;
 
         const tableBody = document.getElementById("tableBody");
         const voiceStatus = document.getElementById("voiceStatus");
@@ -46,6 +47,9 @@
         const genderSelect = document.getElementById("genderSelect");
         const courseDataStatus = document.getElementById("courseDataStatus");
         const selectedCourseInfo = document.getElementById("selectedCourseInfo");
+        const nineViewButton = document.getElementById("nineViewButton");
+        const saveRoundActionButton = document.getElementById("saveRoundActionButton");
+        const historyActionButton = document.getElementById("historyActionButton");
 
         function getSavedCourseSelection() {
             try {
@@ -1258,12 +1262,18 @@
 
         function updateRoundLayout() {
             // Ennen ensimmäistä kirjausta näkymä seuraa suoraan asetettua aloitusreikää.
-            // Kierroksen aikana näkymä seuraa seuraavaa kirjattavaa reikää.
+            // Kierroksen aikana näkymä seuraa seuraavaa kirjattavaa reikää, ellei
+            // käyttäjä ole vaihtanut näkymää Etuysi / Takaysi -painikkeella.
             const setupHole = Number(startHoleInput?.value);
             const visibleHole = !roundSetupConfirmed && setupHole >= 1 && setupHole <= 18
                 ? setupHole
                 : nextHole;
-            const showBackNine = visibleHole >= 10 || roundComplete;
+            const automaticBackNine = visibleHole >= 10 || roundComplete;
+            const showBackNine = manualNineView === "back"
+                ? true
+                : manualNineView === "front"
+                    ? false
+                    : automaticBackNine;
 
             document.body.classList.toggle("round-active", roundSetupConfirmed || roundComplete);
             document.body.classList.toggle("show-back-nine", showBackNine);
@@ -1284,6 +1294,18 @@
 
                 row.classList.toggle("nine-hidden", !shouldShow);
             });
+
+            if (nineViewButton) {
+                nineViewButton.textContent = showBackNine
+                    ? "Näytä etuysi"
+                    : "Näytä takaysi";
+            }
+        }
+
+        function toggleNineView() {
+            const showingBackNine = document.body.classList.contains("show-back-nine");
+            manualNineView = showingBackNine ? "front" : "back";
+            updateRoundLayout();
         }
 
         function escapeHtml(text) {
@@ -1474,6 +1496,18 @@
                 : "🎤 Anna tulokset puheella";
 
             roundCompleteActions.classList.toggle("visible", roundComplete);
+
+            if (saveRoundActionButton) {
+                saveRoundActionButton.hidden = !roundComplete;
+            }
+
+            if (historyActionButton) {
+                historyActionButton.hidden = !roundComplete;
+            }
+
+            if (!roundComplete && historyCard) {
+                historyCard.classList.remove("visible");
+            }
         }
 
         function finishRound() {
@@ -2506,6 +2540,7 @@
             frontNineAnnounced = false;
             selectedScoreInput = null;
             roundSetupConfirmed = false;
+            manualNineView = null;
             startHole = 1;
             if (startHoleInput) startHoleInput.value = "";
             document.querySelectorAll(".selected-score").forEach(input => {
