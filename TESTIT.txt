@@ -1,8 +1,8 @@
-Feature 1.4.2 testit
+FEATURE 1.4.3 – Aloitusreiän ysi näkyviin heti
 
-1. Nimeen perustuva puhekirjaus toimii eri järjestyksessä.
-2. Pelkät luvut kirjautuvat edelleen pelaajajärjestyksessä.
-3. Kesken kierroksen Näytä takaysi / Näytä etuysi vaihtaa tuloskortin ysiä.
-4. Toisen ysin tuloksia voi korjata käsin.
-5. Uusi puhekirjaus palauttaa näkymän automaattisesti pelattavalle ysille.
-6. Päätetyn kierroksen tarkistuksessa näkyvät kaikki 18 reikää.
+Testaa:
+1. Valitse aloitusreikä 1–9: tuloskortti näyttää heti etuysin.
+2. Valitse aloitusreikä 10–18: tuloskortti näyttää heti takaysin.
+3. Ensimmäistä tulosta ei tarvitse kirjata ennen näkymän vaihtumista.
+4. Puhekirjaus nimellä ja pelkillä luvuilla toimii edelleen.
+5. Kesken kierroksen Näytä etuysi / Näytä takaysi toimii edelleen.

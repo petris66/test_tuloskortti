@@ -2415,7 +2415,9 @@
                 if (startHoleInput.value === "") {
                     startHole = 1;
                     nextHole = 1;
+                    scorecardNineOverride = null;
                     updateNextHole();
+                    updateRoundLayout();
                     saveState();
                     return;
                 }
@@ -2424,7 +2426,9 @@
                 if (value >= 1 && value <= 18) {
                     startHole = value;
                     nextHole = value;
+                    scorecardNineOverride = null;
                     updateNextHole();
+                    updateRoundLayout();
                     saveState();
                 }
             });
