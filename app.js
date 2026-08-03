@@ -2579,6 +2579,7 @@
                     startHole = 1;
                     nextHole = 1;
                     updateNextHole();
+                    updateRoundLayout();
                     saveState();
                     return;
                 }
@@ -2588,6 +2589,7 @@
                     startHole = value;
                     nextHole = value;
                     updateNextHole();
+                    updateRoundLayout();
                     saveState();
                 }
             });
