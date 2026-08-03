@@ -1196,3 +1196,71 @@ body {
         font-size: 11px;
     }
 }
+
+/* --- Paketti 3: pelaajakohtainen tarkka HCP ja tii --- */
+.player-round-settings {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #d5e2d1;
+}
+
+.player-round-settings h3 {
+    margin: 0 0 9px;
+    color: var(--forest-2);
+    font-size: 13px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.player-round-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.player-round-setting {
+    display: grid;
+    grid-template-columns: minmax(54px, auto) minmax(0, .8fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 7px;
+    padding: 9px;
+    border: 1px solid #c6d9c1;
+    border-radius: 12px;
+    background: #f7fbf4;
+}
+
+.player-round-setting > strong {
+    align-self: center;
+    overflow: hidden;
+    color: var(--forest);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.player-round-setting label {
+    display: grid;
+    gap: 4px;
+    color: #557254;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.player-round-setting input,
+.player-round-setting select {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    padding: 7px 6px;
+    border: 1px solid #b8cdb3;
+    border-radius: 9px;
+    color: var(--forest);
+    background: white;
+    font: inherit;
+}
+
+@media (max-width: 500px) {
+    .player-round-settings-grid {
+        grid-template-columns: 1fr;
+    }
+}

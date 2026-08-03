@@ -19,6 +19,8 @@
         let selectedTee = "";
         let selectedGender = "";
         let manualNineView = null;
+        let playerHandicaps = Array(MAX_PLAYERS).fill("");
+        let playerTees = Array(MAX_PLAYERS).fill("");
 
         const tableBody = document.getElementById("tableBody");
         const voiceStatus = document.getElementById("voiceStatus");
@@ -50,6 +52,15 @@
         const nineViewButton = document.getElementById("nineViewButton");
         const saveRoundActionButton = document.getElementById("saveRoundActionButton");
         const historyActionButton = document.getElementById("historyActionButton");
+        const playerHcpInputs = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerHcp${index + 1}`)
+        );
+        const playerTeeSelects = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerTee${index + 1}`)
+        );
+        const playerSettingNames = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerSettingName${index + 1}`)
+        );
 
         function getSavedCourseSelection() {
             try {
@@ -227,12 +238,69 @@
             }
         }
 
+        function getAvailablePlayerTees() {
+            return [...new Set(
+                getRowsForSelectedCourse()
+                    .filter(row => !selectedGender || row.gender === selectedGender)
+                    .map(row => row.tee)
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, "fi", { numeric: true }));
+        }
+
+        function updatePlayerSettingNames() {
+            for (let player = 1; player <= MAX_PLAYERS; player++) {
+                const name = document.getElementById(`name${player}`)?.value.trim();
+                if (playerSettingNames[player - 1]) {
+                    playerSettingNames[player - 1].textContent = name || `P${player}`;
+                }
+            }
+        }
+
+        function populatePlayerTeeOptions() {
+            const tees = getAvailablePlayerTees();
+
+            playerTeeSelects.forEach((select, index) => {
+                if (!select) return;
+
+                const previous = playerTees[index] || select.value || selectedTee;
+                select.innerHTML = '<option value="">Valitse tii</option>';
+
+                tees.forEach(tee => {
+                    const option = document.createElement("option");
+                    option.value = tee;
+                    option.textContent = tee;
+                    select.appendChild(option);
+                });
+
+                const nextValue = tees.includes(previous)
+                    ? previous
+                    : (tees.includes(selectedTee) ? selectedTee : (tees[0] || ""));
+
+                playerTees[index] = nextValue;
+                select.value = nextValue;
+            });
+        }
+
+        function syncPlayerRoundSettingsFromInputs() {
+            playerHandicaps = playerHcpInputs.map(input => input?.value.trim() || "");
+            playerTees = playerTeeSelects.map(select => select?.value || "");
+        }
+
+        function restorePlayerRoundSettings() {
+            playerHcpInputs.forEach((input, index) => {
+                if (input) input.value = playerHandicaps[index] || "";
+            });
+            populatePlayerTeeOptions();
+            updatePlayerSettingNames();
+        }
+
         function refreshScoreTableForCourse() {
             buildScoreTable();
             setPlayerCount(playerCount);
             calculateScores();
             updateRoundLayout();
             updateSelectedCourseInfo();
+            populatePlayerTeeOptions();
             saveState();
         }
 
@@ -1318,6 +1386,8 @@
         }
 
         function saveState() {
+            syncPlayerRoundSettingsFromInputs();
+
             const state = {
                 playerCount,
                 roundSetupConfirmed,
@@ -1329,6 +1399,8 @@
                 courseId: selectedCourseId,
                 tee: selectedTee,
                 gender: selectedGender,
+                playerHandicaps: [...playerHandicaps],
+                playerTees: [...playerTees],
                 names: [],
                 scores: {}
             };
@@ -1376,6 +1448,12 @@
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
                 announceStandings = Boolean(state.announceStandings);
                 announceStandingsInput.checked = announceStandings;
+                playerHandicaps = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+                    String(state.playerHandicaps?.[index] ?? "")
+                );
+                playerTees = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+                    String(state.playerTees?.[index] ?? "")
+                );
 
                 for (let player = 1; player <= MAX_PLAYERS; player++) {
                     const name = state.names?.[player - 1];
@@ -1395,6 +1473,7 @@
                     });
                 }
 
+                restorePlayerRoundSettings();
                 setPlayerCount(playerCount);
                 updateNextHole();
                 calculateScores();
@@ -2588,7 +2667,28 @@
                 }
             });
 
-            input.addEventListener("input", saveState);
+            input.addEventListener("input", () => {
+                updatePlayerSettingNames();
+                saveState();
+            });
+        });
+
+        playerHcpInputs.forEach((input, index) => {
+            if (!input) return;
+
+            input.addEventListener("input", () => {
+                playerHandicaps[index] = input.value.trim();
+                saveState();
+            });
+        });
+
+        playerTeeSelects.forEach((select, index) => {
+            if (!select) return;
+
+            select.addEventListener("change", () => {
+                playerTees[index] = select.value;
+                saveState();
+            });
         });
 
         courseSelect.addEventListener("change", () => {
@@ -2655,6 +2755,7 @@
             await loadCourseData();
             buildScoreTable();
             loadState();
+            restorePlayerRoundSettings();
             updateSelectedCourseInfo();
             updateRoundCompleteState();
             updateRoundLayout();

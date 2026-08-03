@@ -1,9 +1,7 @@
 Version 3.0
-Package 3 rebuilt from restored Package 2.5 base
+Package 3 – Player settings
 
-- New Round remains available during an active incomplete round
-- New Round requires confirmation before clearing the current scores
-- Voice score entry logic unchanged
-- Score calculation unchanged
-- Front-nine/back-nine logic unchanged
-- Existing style.css retained and not included in this package
+- Added exact handicap input for each active player
+- Added individual tee selection for each active player
+- Player handicap and tee selections are saved and restored
+- Existing course data, voice scoring, score calculation and round flow retained
