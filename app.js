@@ -626,7 +626,140 @@
             return mappedTokens;
         }
 
+        function normalizePlayerNameForVoice(value) {
+            return String(value || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9åäö]+/g, " ")
+                .trim();
+        }
+
+        function parseNamedVoiceResults(spokenText) {
+            const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
+            const words = normalizedSpeech.split(/\s+/).filter(Boolean);
+            const playerMatches = [];
+
+            for (let player = 1; player <= playerCount; player++) {
+                const inputName = document.getElementById(`name${player}`).value.trim();
+
+                if (!inputName) {
+                    continue;
+                }
+
+                const normalizedName = normalizePlayerNameForVoice(inputName);
+                const nameWords = normalizedName.split(/\s+/).filter(Boolean);
+
+                if (nameWords.length === 0) {
+                    continue;
+                }
+
+                for (let index = 0; index <= words.length - nameWords.length; index++) {
+                    const matches = nameWords.every((word, offset) =>
+                        words[index + offset] === word
+                    );
+
+                    if (!matches) {
+                        continue;
+                    }
+
+                    const scoreWord = words[index + nameWords.length];
+                    let score = null;
+
+                    if (isDashWord(scoreWord)) {
+                        score = "-";
+                    } else {
+                        score = wordToNumber(scoreWord);
+                    }
+
+                    if (score === "-" || (typeof score === "number" && score >= 1 && score <= 20)) {
+                        playerMatches.push({
+                            player,
+                            score,
+                            index
+                        });
+                        break;
+                    }
+                }
+            }
+
+            if (playerMatches.length === 0) {
+                return null;
+            }
+
+            const uniquePlayers = new Map();
+            playerMatches
+                .sort((a, b) => a.index - b.index)
+                .forEach(match => uniquePlayers.set(match.player, match.score));
+
+            if (uniquePlayers.size < playerCount) {
+                throw new Error("Tuloksia puuttuu.");
+            }
+
+            let hole = nextHole;
+            const holeMatch = normalizedSpeech.match(/(?:reika|reikä)\s+(\d{1,2}|[a-zåäö]+)/);
+
+            if (holeMatch) {
+                const parsedHole = wordToNumber(holeMatch[1]);
+
+                if (typeof parsedHole !== "number" || parsedHole < 1 || parsedHole > 18) {
+                    throw new Error("Reiän numeron pitää olla 1–18.");
+                }
+
+                hole = parsedHole;
+            }
+
+            return {
+                hole,
+                scoresByPlayer: uniquePlayers
+            };
+        }
+
+        function saveParsedScores(hole, scoresByPlayer) {
+            const addedScores = [];
+
+            for (let player = 1; player <= playerCount; player++) {
+                const score = scoresByPlayer.get(player);
+                const input = document.querySelector(
+                    `.p${player}[data-hole="${hole}"]`
+                );
+
+                if (!input) {
+                    continue;
+                }
+
+                input.value = score === "-" ? "-" : String(score);
+
+                const playerName =
+                    document.getElementById(`name${player}`).value.trim() ||
+                    `P${player}`;
+
+                addedScores.push(
+                    `${playerName}: ${score === "-" ? "viiva" : score}`
+                );
+            }
+
+            calculateScores();
+            nextHole = hole < 18 ? hole + 1 : 1;
+            roundSetupConfirmed = true;
+            updateNextHole();
+            updateRoundCompleteState();
+            updateRoundLayout();
+            saveState();
+
+            return { hole, addedScores };
+        }
+
         function parseVoiceResults(spokenText) {
+            const namedResult = parseNamedVoiceResults(spokenText);
+
+            if (namedResult) {
+                return saveParsedScores(
+                    namedResult.hole,
+                    namedResult.scoresByPlayer
+                );
+            }
+
             const tokens = extractVoiceTokens(spokenText);
 
             if (tokens.length === 0) {
@@ -673,49 +806,13 @@
                 }
             });
 
-            const addedScores = [];
+            const scoresByPlayer = new Map();
 
             scores.forEach((score, index) => {
-                const player = index + 1;
-                const input = document.querySelector(
-                    `.p${player}[data-hole="${hole}"]`
-                );
-
-                if (!input) {
-                    return;
-                }
-
-                input.value = score === "-" ? "-" : String(score);
-
-                const playerName =
-                    document.getElementById(`name${player}`).value.trim() ||
-                    `P${player}`;
-
-                addedScores.push(
-                    `${playerName}: ${score === "-" ? "viiva" : score}`
-                );
+                scoresByPlayer.set(index + 1, score);
             });
 
-            calculateScores();
-
-            if (hole < 18) {
-                nextHole = hole + 1;
-            } else {
-                nextHole = 1;
-            }
-
-            // Ensimmäinen onnistunut tulos käynnistää varsinaisen kierrosnäkymän.
-            roundSetupConfirmed = true;
-
-            updateNextHole();
-            updateRoundCompleteState();
-            updateRoundLayout();
-            saveState();
-
-            return {
-                hole,
-                addedScores
-            };
+            return saveParsedScores(hole, scoresByPlayer);
         }
 
 
