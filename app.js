@@ -19,6 +19,7 @@
         let courses = [];
         let selectedCourseId = "";
         let selectedTeeId = "";
+        let playerTeeIds = Array(MAX_PLAYERS).fill("");
         let selectedPars = Array(18).fill(4);
         let selectedStrokeIndexes = Array.from({ length: 18 }, (_, index) => index + 1);
         let playerHandicaps = Array(MAX_PLAYERS).fill("");
@@ -29,8 +30,7 @@
         const nextHoleElement = document.getElementById("nextHole");
         const startHoleInput = document.getElementById("startHoleInput");
         const courseSelect = document.getElementById("courseSelect");
-        const teeSelect = document.getElementById("teeSelect");
-        const courseDataStatus = document.getElementById("courseDataStatus");
+                const courseDataStatus = document.getElementById("courseDataStatus");
         const compactNextHoleElement =
             document.getElementById("compactNextHole");
         const roundCompleteModal = document.getElementById("roundCompleteModal");
@@ -150,7 +150,7 @@
                 column.classList.toggle("hidden-player", player > playerCount);
             });
 
-            document.querySelectorAll(".player-handicap-row").forEach(row => {
+            document.querySelectorAll(".player-setting-row").forEach(row => {
                 const player = Number(row.dataset.player);
                 row.classList.toggle("hidden-player", player > playerCount);
             });
@@ -281,9 +281,9 @@
                     courses.map(course => `<option value="${escapeHtml(course.id)}">${escapeHtml(course.name)}</option>`).join("");
                 if (selectedCourseId && courses.some(course => course.id === selectedCourseId)) {
                     courseSelect.value = selectedCourseId;
-                    renderTeeOptions();
-                    applySelectedTee();
                 }
+                renderTeeOptions();
+                applySelectedTee();
             } catch (error) {
                 console.error("Kenttädatan lataus epäonnistui:", error);
                 courseDataStatus.textContent = "Kenttädatan lataus epäonnistui.";
@@ -294,39 +294,60 @@
             return courses.find(course => course.id === selectedCourseId) || null;
         }
 
-        function getSelectedTee() {
-            return getSelectedCourse()?.tees.find(tee => tee.id === selectedTeeId) || null;
+        function getSelectedTee(player = 1) {
+            const teeId = playerTeeIds[player - 1] || selectedTeeId;
+            return getSelectedCourse()?.tees.find(tee => tee.id === teeId) || null;
         }
 
         function renderTeeOptions() {
             const course = getSelectedCourse();
-            if (!course) {
-                teeSelect.disabled = true;
-                teeSelect.innerHTML = '<option value="">Valitse ensin kenttä</option>';
-                return;
+
+            for (let player = 1; player <= MAX_PLAYERS; player++) {
+                const select = document.getElementById(`tee${player}`);
+                if (!select) continue;
+
+                if (!course) {
+                    select.disabled = true;
+                    select.innerHTML = '<option value="">Valitse kenttä</option>';
+                    playerTeeIds[player - 1] = "";
+                    continue;
+                }
+
+                select.disabled = false;
+                select.innerHTML = course.tees.map(tee =>
+                    `<option value="${escapeHtml(tee.id)}">${escapeHtml(tee.name)}</option>`
+                ).join("");
+
+                if (!course.tees.some(tee => tee.id === playerTeeIds[player - 1])) {
+                    playerTeeIds[player - 1] = course.tees[0]?.id || "";
+                }
+                select.value = playerTeeIds[player - 1];
             }
-            teeSelect.disabled = false;
-            teeSelect.innerHTML = course.tees.map(tee =>
-                `<option value="${escapeHtml(tee.id)}">${escapeHtml(tee.name)}</option>`
-            ).join("");
-            if (!course.tees.some(tee => tee.id === selectedTeeId)) {
-                selectedTeeId = course.tees[0]?.id || "";
-            }
-            teeSelect.value = selectedTeeId;
+
+            selectedTeeId = playerTeeIds[0] || "";
         }
 
         function applySelectedTee() {
-            const tee = getSelectedTee();
+            const tee = getSelectedTee(1);
+            selectedTeeId = playerTeeIds[0] || "";
             selectedPars = Array.isArray(tee?.pars) && tee.pars.length === 18
                 ? tee.pars.map(Number)
                 : Array(18).fill(4);
             selectedStrokeIndexes = Array.isArray(tee?.strokeIndexes) && tee.strokeIndexes.length === 18
                 ? tee.strokeIndexes.map(Number)
                 : Array.from({ length: 18 }, (_, index) => index + 1);
-            const ready = Number.isFinite(Number(tee?.courseRating)) && Number.isFinite(Number(tee?.slopeRating));
-            courseDataStatus.textContent = ready
-                ? `CR ${tee.courseRating} · Slope ${tee.slopeRating} · tasoituslaskenta valmis`
-                : "Parit käytössä. CR-, slope- ja reikäindeksit voidaan lisätä tähän tiihin myöhemmin.";
+
+            const activeTees = Array.from({ length: playerCount }, (_, index) => getSelectedTee(index + 1));
+            const readyCount = activeTees.filter(teeItem =>
+                Number.isFinite(Number(teeItem?.courseRating)) &&
+                Number.isFinite(Number(teeItem?.slopeRating)) &&
+                Array.isArray(teeItem?.strokeIndexes) && teeItem.strokeIndexes.length === 18
+            ).length;
+
+            courseDataStatus.textContent = readyCount === playerCount && playerCount > 0
+                ? "Kaikkien pelaajien tiitiedot sisältävät CR-, slope- ja reikäindeksit."
+                : "Parit käytössä. Pelaajille voi valita oman tiin; CR-, slope- ja reikäindeksit voidaan lisätä myöhemmin.";
+
             document.querySelectorAll("[data-par-hole]").forEach(cell => {
                 const hole = Number(cell.dataset.parHole);
                 cell.textContent = selectedPars[hole - 1] || "–";
@@ -336,7 +357,7 @@
             saveState();
         }
 
-        function calculateCourseHandicap(handicapIndex, tee = getSelectedTee()) {
+        function calculateCourseHandicap(handicapIndex, tee = getSelectedTee(1)) {
             const hi = Number(handicapIndex);
             const slope = Number(tee?.slopeRating);
             const rating = Number(tee?.courseRating);
@@ -1336,6 +1357,7 @@
                 announceStandings,
                 selectedCourseId,
                 selectedTeeId,
+                playerTeeIds: [...playerTeeIds],
                 playerHandicaps: [...playerHandicaps],
                 names: [],
                 scores: {}
@@ -1386,6 +1408,9 @@
                 announceStandingsInput.checked = announceStandings;
                 selectedCourseId = String(state.selectedCourseId || "");
                 selectedTeeId = String(state.selectedTeeId || "");
+                playerTeeIds = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+                    String(state.playerTeeIds?.[index] || (index === 0 ? selectedTeeId : ""))
+                );
                 playerHandicaps = Array.from({ length: MAX_PLAYERS }, (_, index) =>
                     normalizeHandicap(state.playerHandicaps?.[index])
                 );
@@ -1399,6 +1424,8 @@
 
                         nameInput.value =
                             /^P[1-4]$/i.test(name.trim()) ? "" : name;
+                        const setupNameInput = document.getElementById(`setupName${player}`);
+                        if (setupNameInput) setupNameInput.value = nameInput.value;
                     }
 
                     const handicapInput = document.getElementById(`handicap${player}`);
@@ -1566,10 +1593,14 @@
                 savedAt: new Date().toISOString(),
                 course: getSelectedCourse()?.name || courseNameInput.value.trim() || "Kenttä nimeämättä",
                 courseId: selectedCourseId,
-                tee: getSelectedTee()?.name || "",
+                tee: getSelectedTee(1)?.name || "",
                 teeId: selectedTeeId,
-                courseRating: getSelectedTee()?.courseRating ?? null,
-                slopeRating: getSelectedTee()?.slopeRating ?? null,
+                tees: Array.from({ length: playerCount }, (_, index) => getSelectedTee(index + 1)?.name || ""),
+                teeIds: playerTeeIds.slice(0, playerCount),
+                courseRatings: Array.from({ length: playerCount }, (_, index) => getSelectedTee(index + 1)?.courseRating ?? null),
+                slopeRatings: Array.from({ length: playerCount }, (_, index) => getSelectedTee(index + 1)?.slopeRating ?? null),
+                courseRating: getSelectedTee(1)?.courseRating ?? null,
+                slopeRating: getSelectedTee(1)?.slopeRating ?? null,
                 pars: [...selectedPars],
                 strokeIndexes: [...selectedStrokeIndexes],
                 handicaps: [...playerHandicaps],
@@ -2597,9 +2628,16 @@
                 }
             });
 
-            input.addEventListener("input", saveState);
+            input.addEventListener("input", () => {
+                const player = Number(input.id.replace("name", ""));
+                const setupNameInput = document.getElementById(`setupName${player}`);
+                if (setupNameInput) setupNameInput.value = input.value;
+                saveState();
+            });
             input.addEventListener("change", () => {
                 const player = Number(input.id.replace("name", ""));
+                const setupNameInput = document.getElementById(`setupName${player}`);
+                if (setupNameInput) setupNameInput.value = input.value.trim();
                 fillHandicapFromProfile(player);
                 savePlayerProfiles();
                 saveState();
@@ -2643,16 +2681,42 @@
         courseSelect.addEventListener("change", () => {
             selectedCourseId = courseSelect.value;
             selectedTeeId = "";
+            playerTeeIds = Array(MAX_PLAYERS).fill("");
             renderTeeOptions();
             applySelectedTee();
             const course = getSelectedCourse();
             if (course && courseNameInput) courseNameInput.value = course.name;
         });
 
-        teeSelect.addEventListener("change", () => {
-            selectedTeeId = teeSelect.value;
-            applySelectedTee();
-        });
+        for (let player = 1; player <= MAX_PLAYERS; player++) {
+            const teeInput = document.getElementById(`tee${player}`);
+            teeInput.addEventListener("change", () => {
+                playerTeeIds[player - 1] = teeInput.value;
+                if (player === 1) selectedTeeId = teeInput.value;
+                applySelectedTee();
+            });
+        }
+
+        for (let player = 1; player <= MAX_PLAYERS; player++) {
+            const setupNameInput = document.getElementById(`setupName${player}`);
+            const tableNameInput = document.getElementById(`name${player}`);
+
+            setupNameInput.addEventListener("input", () => {
+                tableNameInput.value = setupNameInput.value;
+                saveState();
+            });
+
+            setupNameInput.addEventListener("change", () => {
+                tableNameInput.value = setupNameInput.value.trim();
+                fillHandicapFromProfile(player);
+                savePlayerProfiles();
+                saveState();
+            });
+
+            tableNameInput.addEventListener("input", () => {
+                setupNameInput.value = tableNameInput.value;
+            });
+        }
 
         for (let player = 1; player <= MAX_PLAYERS; player++) {
             const input = document.getElementById(`handicap${player}`);

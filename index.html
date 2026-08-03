@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=feature1_7_0">
+    <link rel="stylesheet" href="style.css?v=feature1_7_1">
 
 </head>
 
@@ -32,20 +32,12 @@
 
         <section class="card setup-card" id="setupCard">
             <h2 class="section-title">KIERROKSEN ASETUKSET</h2>
-            <div class="round-settings-grid">
-                <label>
-                    Kenttä
-                    <select id="courseSelect">
-                        <option value="">Valitse kenttä</option>
-                    </select>
-                </label>
-                <label>
-                    Tii
-                    <select id="teeSelect" disabled>
-                        <option value="">Valitse ensin kenttä</option>
-                    </select>
-                </label>
-            </div>
+            <label class="course-select-row">
+                <span>Kenttä</span>
+                <select id="courseSelect">
+                    <option value="">Valitse kenttä</option>
+                </select>
+            </label>
             <div id="courseDataStatus" class="course-data-status">Kenttädataa ei ole vielä valittu.</div>
 
             <p class="section-help settings-spacing">Valitse kierroksella pelaavien määrä.</p>
@@ -57,23 +49,30 @@
                 <button type="button" data-count="4">4</button>
             </div>
 
-            <div class="handicap-settings" id="handicapSettings">
-                <label class="player-handicap-row" data-player="1">
-                    <span>Pelaaja 1 – tarkka tasoitus</span>
-                    <input id="handicap1" type="text" inputmode="decimal" placeholder="esim. 12,4" maxlength="5">
-                </label>
-                <label class="player-handicap-row" data-player="2">
-                    <span>Pelaaja 2 – tarkka tasoitus</span>
-                    <input id="handicap2" type="text" inputmode="decimal" placeholder="esim. 8,7" maxlength="5">
-                </label>
-                <label class="player-handicap-row" data-player="3">
-                    <span>Pelaaja 3 – tarkka tasoitus</span>
-                    <input id="handicap3" type="text" inputmode="decimal" placeholder="esim. 17,8" maxlength="5">
-                </label>
-                <label class="player-handicap-row" data-player="4">
-                    <span>Pelaaja 4 – tarkka tasoitus</span>
-                    <input id="handicap4" type="text" inputmode="decimal" placeholder="esim. 24,1" maxlength="5">
-                </label>
+            <div class="player-setup-header" aria-hidden="true">
+                <span>Pelaaja</span><span>Tasoitus</span><span>Tii</span>
+            </div>
+            <div class="player-settings" id="playerSettings">
+                <div class="player-setting-row" data-player="1">
+                    <input id="setupName1" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 1" maxlength="12" aria-label="Pelaajan 1 nimi">
+                    <input id="handicap1" class="setup-handicap" type="text" inputmode="decimal" placeholder="12,4" maxlength="5" aria-label="Pelaajan 1 tarkka tasoitus">
+                    <select id="tee1" class="setup-tee" disabled aria-label="Pelaajan 1 tii"><option value="">Valitse kenttä</option></select>
+                </div>
+                <div class="player-setting-row" data-player="2">
+                    <input id="setupName2" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 2" maxlength="12" aria-label="Pelaajan 2 nimi">
+                    <input id="handicap2" class="setup-handicap" type="text" inputmode="decimal" placeholder="8,7" maxlength="5" aria-label="Pelaajan 2 tarkka tasoitus">
+                    <select id="tee2" class="setup-tee" disabled aria-label="Pelaajan 2 tii"><option value="">Valitse kenttä</option></select>
+                </div>
+                <div class="player-setting-row" data-player="3">
+                    <input id="setupName3" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 3" maxlength="12" aria-label="Pelaajan 3 nimi">
+                    <input id="handicap3" class="setup-handicap" type="text" inputmode="decimal" placeholder="17,8" maxlength="5" aria-label="Pelaajan 3 tarkka tasoitus">
+                    <select id="tee3" class="setup-tee" disabled aria-label="Pelaajan 3 tii"><option value="">Valitse kenttä</option></select>
+                </div>
+                <div class="player-setting-row" data-player="4">
+                    <input id="setupName4" class="setup-player-name" type="text" list="savedPlayers" placeholder="Pelaaja 4" maxlength="12" aria-label="Pelaajan 4 nimi">
+                    <input id="handicap4" class="setup-handicap" type="text" inputmode="decimal" placeholder="24,1" maxlength="5" aria-label="Pelaajan 4 tarkka tasoitus">
+                    <select id="tee4" class="setup-tee" disabled aria-label="Pelaajan 4 tii"><option value="">Valitse kenttä</option></select>
+                </div>
             </div>
             <datalist id="savedPlayers"></datalist>
             <p class="section-help">Pelaajien nimet ja tasoitukset muistetaan tällä laitteella.</p>
@@ -332,7 +331,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=feature1_7_0" defer></script>
+    <script src="app.js?v=feature1_7_1" defer></script>
 
 </body>
 </html>
