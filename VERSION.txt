@@ -1,8 +1,8 @@
 Golf Voice Scorecard AI
-Paketti 5.2 / v0.3.4
-Lisätty valinnainen Stableford-pistekortti.
-- Reikäkohtaiset pisteet
-- Etuysi, takaysi ja yhteensä
-- Näytä / piilota -painike
-- Hillitty pistekohtainen väritys
-- Automaattinen päivitys tuloksista, HCP:stä ja tiistä
+Paketti 5.2.1 / v0.3.4 readability update
+- Piilotettu Kuulin/Tallennettu-laatikko aktiivisella kierroksella
+- Seuraava reikä, Pelitilanne ja Viiva jäävät näkyviin
+- Suurennettu Reikä-, Par- ja HCP-lukuja
+- Lisätty selkeämpi vasemman reunan tausta ja hillitty vuororivitys
+- Stableford-korttiin sama luettavuustyyli
+- Ei muutoksia puhekirjaukseen, HCP-laskentaan tai Stableford-laskentaan

@@ -1419,3 +1419,86 @@ body {
         font-size: 16px;
     }
 }
+
+
+/* --- Paketti 5.2.1: parempi luettavuus aktiivisella kierroksella --- */
+
+/* Puheentunnistuksen pitkä tekstikuittaus pois kenttänäkymästä.
+   Seuraava reikä, Pelitilanne ja Viiva-painike jäävät näkyviin. */
+.round-active #voiceStatus {
+    display: none;
+}
+
+.round-active .voice-quick-controls {
+    margin-top: 9px;
+}
+
+/* Hieman enemmän tilaa ysin tuloskortille ja selkeämmät perustiedot. */
+.round-active th,
+.round-active td {
+    height: 38px;
+}
+
+/* Reikä-, Par- ja HCP-sarakkeet erottuvat selkeästi. */
+.round-active [data-hole-row] > .hole-cell,
+.round-active [data-hole-row] > .course-stat-cell {
+    color: #123814;
+    background: #dfeadb;
+    font-weight: 900;
+}
+
+.round-active [data-hole-row] > .hole-cell {
+    font-size: 16px;
+}
+
+.round-active [data-hole-row] > .course-stat-cell {
+    font-size: 15px;
+}
+
+/* Otsikkorivin vasen osa käyttää samaa visuaalista ryhmittelyä. */
+.round-active thead .hole-cell,
+.round-active thead .course-stat-cell {
+    color: #123814;
+    background: #d3e3ce;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+/* Hillitty vuororivitys auttaa seuraamaan oikeaa reikäriviä. */
+.round-active [data-hole-row]:nth-child(even) td:not(.hole-cell):not(.course-stat-cell) {
+    background-color: #f4f8f2;
+}
+
+/* Lyöntitulosten koko pidetään ennallaan, mutta pystykeskitys varmistetaan. */
+.round-active .score-input {
+    line-height: 1;
+}
+
+/* Stableford-kortissa sama selkeä vasen reuna. */
+.round-active [data-stableford-hole-row] > .hole-cell,
+.round-active [data-stableford-hole-row] > .course-stat-cell {
+    color: #123814;
+    background: #dfeadb;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.round-active .stableford-table thead .hole-cell,
+.round-active .stableford-table thead .course-stat-cell {
+    color: #123814;
+    background: #d3e3ce;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+@media (max-width: 390px) {
+    .round-active [data-hole-row] > .hole-cell {
+        font-size: 15px;
+    }
+
+    .round-active [data-hole-row] > .course-stat-cell,
+    .round-active [data-stableford-hole-row] > .hole-cell,
+    .round-active [data-stableford-hole-row] > .course-stat-cell {
+        font-size: 14px;
+    }
+}
