@@ -1,6 +1,6 @@
 Golf Voice Scorecard AI
-Paketti 5.4.3
-- Tasoituksellisen lyöntipelin tilanne lasketaan valitusta aloitusreiästä eteenpäin
-- Laskenta etenee pelijärjestyksessä ja pysähtyy ensimmäiseen tyhjään reikään
-- Viiva lopettaa tasoitustilanteen laskennan ja näyttää DNF
-- Ei muutoksia Stableford- tai puhelogiikkaan
+Paketti 5.4.4
+- Lisätty reikäkohtainen tulosten korjaus ilman pelaajien nimiä
+- Esimerkiksi: reikä 2 3 5 4
+- Tukee myös viivaa ja golftermejä pelaajajärjestyksessä
+- Nykyinen nimillä tehtävä korjaus säilyy ennallaan

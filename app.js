@@ -1537,6 +1537,71 @@
             return { hole, scoresByPlayer };
         }
 
+        function parseExplicitHoleOrderedResults(spokenText) {
+            const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
+            const words = normalizedSpeech.split(/\s+/).filter(Boolean);
+            const holeWordIndex = words.findIndex(
+                word => word === "reika" || word === "reikä"
+            );
+
+            if (holeWordIndex === -1) {
+                return null;
+            }
+
+            const holeToken = words[holeWordIndex + 1];
+            const hole = wordToNumber(holeToken);
+
+            if (
+                typeof hole !== "number" ||
+                hole < 1 ||
+                hole > 18
+            ) {
+                throw new Error("Reiän numeron pitää olla 1–18.");
+            }
+
+            const scoreWords = words.slice(holeWordIndex + 2);
+            const scoresByPlayer = new Map();
+            let wordIndex = 0;
+
+            for (let playerIndex = 0; playerIndex < playerCount; playerIndex++) {
+                while (wordIndex < scoreWords.length) {
+                    const parsed = parseVoiceScoreAt(
+                        scoreWords,
+                        wordIndex,
+                        hole,
+                        playerIndex
+                    );
+
+                    if (parsed) {
+                        scoresByPlayer.set(playerIndex + 1, parsed.score);
+                        wordIndex += parsed.consumed;
+                        break;
+                    }
+
+                    wordIndex += 1;
+                }
+            }
+
+            if (scoresByPlayer.size < playerCount) {
+                throw new Error("Tuloksia puuttuu.");
+            }
+
+            for (; wordIndex < scoreWords.length; wordIndex++) {
+                const extra = parseVoiceScoreAt(
+                    scoreWords,
+                    wordIndex,
+                    hole,
+                    Math.max(0, playerCount - 1)
+                );
+
+                if (extra) {
+                    throw new Error("Liikaa tuloksia.");
+                }
+            }
+
+            return { hole, scoresByPlayer };
+        }
+
         function parseNamedVoiceResults(spokenText) {
             const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
             const words = normalizedSpeech.split(/\s+/).filter(Boolean);
@@ -1649,6 +1714,16 @@
         }
 
         function parseVoiceResults(spokenText) {
+            const explicitHoleResult =
+                parseExplicitHoleOrderedResults(spokenText);
+
+            if (explicitHoleResult) {
+                return saveParsedScores(
+                    explicitHoleResult.hole,
+                    explicitHoleResult.scoresByPlayer
+                );
+            }
+
             const namedResult = parseNamedVoiceResults(spokenText);
 
             if (namedResult) {
