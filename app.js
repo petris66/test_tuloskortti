@@ -1291,7 +1291,7 @@
                 parsedHole < 1 ||
                 parsedHole > 18
             ) {
-                throw new Error("Reiän numeron pitää olla 1–18.");
+                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
             }
 
             return parsedHole;
@@ -1537,6 +1537,109 @@
             return { hole, scoresByPlayer };
         }
 
+        function parseExplicitHoleOrderedResults(spokenText) {
+            const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
+
+            const match = normalizedSpeech.match(
+                /(?:^|\s)reika\s*(\d+)(?:\s+|$)(.*)$/i
+            );
+
+            if (!match) {
+                return null;
+            }
+
+            let holeDigits = String(match[1] || "");
+            let scoreText = String(match[2] || "").trim();
+
+            // Jos Safari yhdistää reiän ja tulokset:
+            // "reikä 4444" -> reikä 4 ja tulokset 444.
+            if (
+                !scoreText &&
+                holeDigits.length > playerCount
+            ) {
+                const oneDigitHole = Number(holeDigits.slice(0, 1));
+                const twoDigitHole = Number(holeDigits.slice(0, 2));
+
+                if (
+                    holeDigits.length === playerCount + 1 &&
+                    oneDigitHole >= 1 &&
+                    oneDigitHole <= 9
+                ) {
+                    scoreText = holeDigits.slice(1);
+                    holeDigits = holeDigits.slice(0, 1);
+                } else if (
+                    holeDigits.length === playerCount + 2 &&
+                    twoDigitHole >= 10 &&
+                    twoDigitHole <= 18
+                ) {
+                    scoreText = holeDigits.slice(2);
+                    holeDigits = holeDigits.slice(0, 2);
+                }
+            }
+
+            const hole = Number(holeDigits);
+
+            if (hole < 1 || hole > 18) {
+                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
+            }
+
+            if (!scoreText) {
+                throw new Error("Tuloksia puuttuu.");
+            }
+
+            // Nimellinen korjaus jätetään nykyisen nimiparserin käsiteltäväksi.
+            const activeNames = Array.from(
+                { length: playerCount },
+                (_, index) => normalizePlayerNameForVoice(
+                    document.getElementById(`name${index + 1}`)?.value || ""
+                )
+            ).filter(Boolean);
+
+            if (
+                activeNames.some(name =>
+                    new RegExp(`(?:^|\\s)${name}(?:\\s|$)`).test(scoreText)
+                )
+            ) {
+                return null;
+            }
+
+            let scoreWords = scoreText.split(/\s+/).filter(Boolean);
+
+            // Tukee muotoa "reikä 2 555" kolmen pelaajan pelissä.
+            if (
+                scoreWords.length === 1 &&
+                /^\d+$/.test(scoreWords[0]) &&
+                scoreWords[0].length === playerCount
+            ) {
+                scoreWords = scoreWords[0].split("");
+            }
+
+            const scoresByPlayer = new Map();
+            let wordIndex = 0;
+
+            for (let playerIndex = 0; playerIndex < playerCount; playerIndex++) {
+                const parsed = parseVoiceScoreAt(
+                    scoreWords,
+                    wordIndex,
+                    hole,
+                    playerIndex
+                );
+
+                if (!parsed) {
+                    throw new Error("Tuloksia puuttuu.");
+                }
+
+                scoresByPlayer.set(playerIndex + 1, parsed.score);
+                wordIndex += parsed.consumed;
+            }
+
+            if (wordIndex !== scoreWords.length) {
+                throw new Error("Liikaa tuloksia.");
+            }
+
+            return { hole, scoresByPlayer };
+        }
+
         function parseNamedVoiceResults(spokenText) {
             const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
             const words = normalizedSpeech.split(/\s+/).filter(Boolean);
@@ -1613,6 +1716,25 @@
             };
         }
 
+        function findNextIncompleteHole() {
+            const playedHoleOrder = getPlayedHoleOrder();
+
+            for (const hole of playedHoleOrder) {
+                const holeComplete = Array.from(
+                    { length: playerCount },
+                    (_, index) => document.querySelector(
+                        `.p${index + 1}[data-hole="${hole}"]`
+                    )
+                ).every(input => normalizeScoreValue(input?.value) !== "");
+
+                if (!holeComplete) {
+                    return hole;
+                }
+            }
+
+            return startHole;
+        }
+
         function saveParsedScores(hole, scoresByPlayer) {
             const addedScores = [];
 
@@ -1638,7 +1760,7 @@
             }
 
             calculateScores();
-            nextHole = hole < 18 ? hole + 1 : 1;
+            nextHole = findNextIncompleteHole();
             roundSetupConfirmed = true;
             updateNextHole();
             updateRoundCompleteState();
@@ -1649,6 +1771,16 @@
         }
 
         function parseVoiceResults(spokenText) {
+            const explicitHoleResult =
+                parseExplicitHoleOrderedResults(spokenText);
+
+            if (explicitHoleResult) {
+                return saveParsedScores(
+                    explicitHoleResult.hole,
+                    explicitHoleResult.scoresByPlayer
+                );
+            }
+
             const namedResult = parseNamedVoiceResults(spokenText);
 
             if (namedResult) {
@@ -1668,7 +1800,18 @@
                 );
             }
 
-            const tokens = extractVoiceTokens(spokenText);
+            let tokens = extractVoiceTokens(spokenText);
+
+            if (
+                tokens.length === 1 &&
+                typeof tokens[0] === "number" &&
+                /^[1-9]+$/.test(String(tokens[0])) &&
+                String(tokens[0]).length === playerCount
+            ) {
+                tokens = String(tokens[0])
+                    .split("")
+                    .map(Number);
+            }
 
             if (tokens.length === 0) {
                 throw new Error("Tuloksia ei tunnistettu.");
@@ -1697,7 +1840,7 @@
             }
 
             if (hole < 1 || hole > 18) {
-                throw new Error("Reiän numeron pitää olla 1–18.");
+                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
             }
 
             if (scores.length !== playerCount) {
@@ -2470,6 +2613,24 @@
             });
         }
 
+
+        function calculateSavedStableford(scores) {
+            if (!Array.isArray(scores)) return { out: 0, in: 0, total: 0 };
+
+            const calc = (start, end) => scores
+                .slice(start, end)
+                .reduce((sum, value) => {
+                    const score = Number(value);
+                    return sum + (Number.isFinite(score) && score > 0 ? score : 0);
+                }, 0);
+
+            return {
+                out: calc(0, 9),
+                in: calc(9, 18),
+                total: calc(0, 18)
+            };
+        }
+
         function buildRoundSnapshot() {
             const snapshot = {
                 id: crypto.randomUUID
@@ -2486,7 +2647,8 @@
                 playerCount,
                 names: [],
                 scores: {},
-                totals: {}
+                totals: {},
+                stableford: {}
             };
 
             for (let player = 1; player <= playerCount; player++) {
@@ -2510,6 +2672,10 @@
 
                 snapshot.totals[player] =
                     totalText === "DNF" ? "DNF" : Number(totalText) || 0;
+
+                snapshot.stableford[player] = calculateSavedStableford(
+                    snapshot.scores[player]
+                );
             }
 
             return snapshot;
@@ -2954,7 +3120,7 @@
                 76,
                 summaryTop,
                 width - 152,
-                190,
+                300,
                 24,
                 mint
             );
@@ -2999,6 +3165,9 @@
                 const front = calculateSharedNine(scores, 0, 9);
                 const back = calculateSharedNine(scores, 9, 18);
                 const total = round.totals[player];
+                const stableford = round.stableford?.[player];
+                const parTotal = Array.from({length:18}, (_,i)=>round.par?.[i] || 0).reduce((a,b)=>a+b,0);
+                const strokeDiff = Number.isFinite(Number(total)) && parTotal ? Number(total)-Number(parTotal) : null;
 
                 context.fillStyle = ink;
                 context.font = "700 21px Arial";
@@ -3024,6 +3193,13 @@
                         y
                     );
                 });
+
+                context.textAlign = "left";
+                context.font = "600 17px Arial";
+                context.fillStyle = "#506252";
+                const diffText = strokeDiff === null ? "" : `Lyöntipeli ${strokeDiff > 0 ? "+" : ""}${strokeDiff}`;
+                const stableText = stableford ? `Pistebogey ${stableford.total} p` : "";
+                context.fillText(`${diffText}${diffText && stableText ? " · " : ""}${stableText}`, summaryX[0], y + 24);
             });
 
             const tableTop = summaryTop + 218;
@@ -3254,13 +3430,26 @@
         }
 
         function buildShareText(round) {
-            return [
+            const lines = [
                 "Golf Voice Scorecard AI",
                 "Petri Suokas · AI Golf Apps",
                 `${round.course || "Kenttä nimeämättä"} – ${formatDate(round.date)}`,
-                round.gameFormat || "Lyöntipeli",
-                "Tuloskortti liitteenä."
-            ].join("\n");
+                ""
+            ];
+
+            round.names.forEach((name, index) => {
+                const player = index + 1;
+                const stableford = round.stableford?.[player];
+                lines.push(`${name}`);
+                lines.push(`Lyöntipeli: ${round.totals[player]}`);
+                if (stableford) {
+                    lines.push(`Pistebogey: ${stableford.total} p (OUT ${stableford.out} / IN ${stableford.in})`);
+                }
+                lines.push("");
+            });
+
+            lines.push("Tuloskortti liitteenä.");
+            return lines.join("\n");
         }
 
         async function shareRound(roundId) {
