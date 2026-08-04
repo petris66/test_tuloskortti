@@ -1202,6 +1202,7 @@
                 ["kotka", -2],
                 ["eagl", -2],
                 ["birdie", -1],
+                ["bird", -1],
                 ["birdy", -1],
                 ["birdi", -1],
                 ["pordi", -1],
@@ -1229,7 +1230,9 @@
                 ["parsa", 0],
                 ["bar", 0],
                 ["bogey", 1],
+                ["bogy", 1],
                 ["bogi", 1],
+                ["bogey", 1],
                 ["bogin", 1],
                 ["bogeyn", 1],
                 ["boge", 1],
@@ -1247,13 +1250,11 @@
                 ["tuplabogey", 2],
                 ["tuplabogi", 2],
                 ["tupla", 2],
-                ["cat", 2],
                 ["tripla bogey", 3],
                 ["tripla bogi", 3],
                 ["triplabogey", 3],
                 ["triplabogi", 3],
-                ["tripla", 3],
-                ["dog", 3]
+                ["tripla", 3]
             ]);
 
             if (termOffsets.has(joined)) {
