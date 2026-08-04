@@ -1,7 +1,5 @@
 Golf Voice Scorecard AI
-Paketti 5.3.3
-- Täydennetty golftermien puheentunnistusta
-- Birdie: pördi, bördi
-- Par: bar
-- Bogey: poki, bogy, bokey
-- Ei muutoksia Stableford-, HCP- tai kenttädatalogiikkaan
+Paketti 5.3.4
+- Expanded golf term speech recognition
+- Added additional Finnish speech recognition variants
+- No scoring logic changes
