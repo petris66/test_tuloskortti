@@ -463,9 +463,15 @@
                 const display = playerCourseHcpElements[playerIndex];
 
                 if (display) {
-                    display.textContent = courseHandicap === null
-                        ? "Kentän HCP: –"
-                        : `Kentän HCP: ${courseHandicap}`;
+                    display.innerHTML = `
+                        <span class="player-course-hcp-label">
+                            <span>Kentän</span>
+                            <span>HCP</span>
+                        </span>
+                        <strong class="player-course-hcp-value">
+                            ${courseHandicap === null ? "–" : courseHandicap}
+                        </strong>
+                    `;
                 }
 
                 const rows = getPlayerSelectedCourseRows(playerIndex);

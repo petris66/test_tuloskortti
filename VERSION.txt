@@ -1,7 +1,7 @@
-Version 0.5.4.11 fix5 – compact tee labels
+Version 0.5.4.11 fix6
 
-- Tee names shortened to two characters in player settings
-- Color tees: Keltainen → Ke, Punainen → Pu, Valkoinen → Va, Sininen → Si
-- Numeric tee labels with two digits remain unchanged
-- Full tee values and tee color logic remain unchanged
-- Based on working fix4 player settings layout
+- player settings remain on one row
+- compact tee labels preserved
+- course HCP label shown on two lines
+- course HCP value shown larger beside the label
+- no scoring, course data or tee selection logic changes

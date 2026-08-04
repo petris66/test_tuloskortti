@@ -1707,3 +1707,57 @@ body {
         font-size: 12px;
     }
 }
+
+
+/* v0.5.4.11 fix 6: two-line course HCP label with prominent value */
+.player-round-setting .player-course-hcp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    white-space: normal;
+    line-height: 1;
+}
+
+.player-course-hcp-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.player-course-hcp-value {
+    min-width: 24px;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
+}
+
+@media (max-width: 500px) {
+    .player-round-setting {
+        grid-template-columns: minmax(74px, 1.08fr) minmax(58px, .68fr) minmax(82px, .92fr) minmax(72px, .72fr);
+    }
+
+    .player-round-setting select {
+        min-width: 0;
+    }
+
+    .player-round-setting .player-course-hcp {
+        gap: 5px;
+        padding-left: 3px;
+        padding-right: 3px;
+    }
+
+    .player-course-hcp-label {
+        font-size: 10px;
+    }
+
+    .player-course-hcp-value {
+        min-width: 21px;
+        font-size: 21px;
+    }
+}
