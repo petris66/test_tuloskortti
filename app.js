@@ -3415,66 +3415,62 @@
             return canvas;
         }
 
+        
         async function createStablefordScorecardCanvas(round) {
             const canvas = document.createElement("canvas");
-            canvas.width = 1080;
-            canvas.height = 1760;
+            canvas.width = 1200;
+            canvas.height = 1500;
 
             const ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#fbfcf7";
+            ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "#173f18";
-            ctx.font = "900 46px Arial";
-            ctx.fillText("Golf Voice Scorecard AI", 70, 90);
+            ctx.font = "bold 42px Arial";
+            ctx.fillText("Golf Voice Scorecard AI", 60, 80);
 
-            ctx.font = "800 32px Arial";
-            ctx.fillText("STABLEFORD-PISTEBOGEY", 70, 145);
+            ctx.font = "bold 34px Arial";
+            ctx.fillText("STABLEFORD / PISTEBOGEY", 60, 140);
 
-            ctx.font = "700 22px Arial";
-            ctx.fillStyle = "#173019";
-            ctx.fillText(
-                `${round.course || "Kenttä"} · ${formatDate(round.date)}`,
-                70,
-                195
-            );
+            ctx.fillStyle = "#1f2a22";
+            ctx.font = "24px Arial";
 
-            let y = 270;
-            const activePlayers = round.names || [];
+            let y = 210;
+            ctx.fillText(`${round.course || "Golfkierros"}  ${round.date || ""}`, 60, y);
+            y += 55;
 
-            activePlayers.forEach((name, index) => {
-                const player = index + 1;
-                const stableford = round.stableford?.[player] || {};
-
-                ctx.font = "800 28px Arial";
-                ctx.fillText(name, 70, y);
-
-                ctx.font = "600 22px Arial";
-                ctx.fillText(
-                    `OUT ${stableford.out || 0}  IN ${stableford.in || 0}  YHT ${stableford.total || 0} p`,
-                    280,
-                    y
-                );
-                y += 55;
-
-                const scores = stableford.points || stableford.scores || [];
-                ctx.font = "18px Arial";
-                ctx.fillText(
-                    scores.length ? scores.join("  ") : "Reikäkohtaiset pisteet tallennettu korttiin",
-                    90,
-                    y
-                );
-                y += 70;
+            const players = round.players || round.names || [];
+            players.forEach((player, index) => {
+                const name = typeof player === "string"
+                    ? player
+                    : (player.name || `P${index + 1}`);
+                ctx.fillText(`${name}`, 60, y);
+                y += 35;
             });
 
-            ctx.font = "600 18px Arial";
-            ctx.fillStyle = "#607262";
-            ctx.fillText("AI Golf Apps · Petri Suokas", 70, 1680);
+            y += 20;
+            ctx.font = "bold 22px Arial";
+
+            // Stableford-pisteet haetaan nykyisestä tallennetusta kierrosdatasta
+            // ja näytetään korttimaisesti. Jos data puuttuu, näytetään otsikot.
+            ctx.fillText("Reikä      OUT      IN      YHT", 60, y);
+            y += 40;
+
+            const totals = round.stablefordTotals || round.stableford || {};
+            Object.keys(totals).forEach(key => {
+                ctx.font = "22px Arial";
+                ctx.fillText(
+                    `${key}: ${JSON.stringify(totals[key])}`,
+                    60,
+                    y
+                );
+                y += 32;
+            });
 
             return canvas;
         }
 
-        function canvasToBlob(canvas) {
+function canvasToBlob(canvas) {
             return new Promise((resolve, reject) => {
                 canvas.toBlob(blob => {
                     if (blob) {
@@ -3511,7 +3507,7 @@
             return lines.join("\n");
         }
 
-        async function shareRound(roundId) {
+        async async function shareRound(roundId) {
             const round = getRoundHistory().find(item => item.id === roundId);
 
             if (!round) {
@@ -3528,12 +3524,12 @@
             });
 
             try {
-                const canvas =
+                const strokeCanvas =
                     await createVerticalScorecardCanvas(round);
                 const stablefordCanvas =
                     await createStablefordScorecardCanvas(round);
 
-                const blob = await canvasToBlob(canvas);
+                const blob = await canvasToBlob(strokeCanvas);
                 const stablefordBlob = await canvasToBlob(stablefordCanvas);
                 const safeCourse = String(
                     round.course || "golfkierros"

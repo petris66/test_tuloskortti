@@ -1,2 +1,2 @@
 Version 0.5.4.12
-Stableford share card update
+Stableford share card - fixed
