@@ -1539,64 +1539,74 @@
 
         function parseExplicitHoleOrderedResults(spokenText) {
             const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
-            const words = normalizedSpeech.split(/\s+/).filter(Boolean);
-            const holeWordIndex = words.findIndex(
-                word => word === "reika" || word === "reikä"
+
+            const match = normalizedSpeech.match(
+                /(?:^|\s)reika\s*(\d{1,2})(?:\s+|$)(.*)$/i
             );
 
-            if (holeWordIndex === -1) {
+            if (!match) {
                 return null;
             }
 
-            const holeToken = words[holeWordIndex + 1];
-            const hole = wordToNumber(holeToken);
+            const hole = Number(match[1]);
+            const scoreText = String(match[2] || "").trim();
 
-            if (
-                typeof hole !== "number" ||
-                hole < 1 ||
-                hole > 18
-            ) {
+            if (hole < 1 || hole > 18) {
                 throw new Error("Reiän numeron pitää olla 1–18.");
             }
 
-            const scoreWords = words.slice(holeWordIndex + 2);
+            if (!scoreText) {
+                throw new Error("Tuloksia puuttuu.");
+            }
+
+            // Nimellinen korjaus jätetään nykyisen nimiparserin käsiteltäväksi.
+            const activeNames = Array.from(
+                { length: playerCount },
+                (_, index) => normalizePlayerNameForVoice(
+                    document.getElementById(`name${index + 1}`)?.value || ""
+                )
+            ).filter(Boolean);
+
+            if (
+                activeNames.some(name =>
+                    new RegExp(`(?:^|\\s)${name}(?:\\s|$)`).test(scoreText)
+                )
+            ) {
+                return null;
+            }
+
+            let scoreWords = scoreText.split(/\s+/).filter(Boolean);
+
+            // Tukee muotoa "reikä 2 555" kolmen pelaajan pelissä.
+            if (
+                scoreWords.length === 1 &&
+                /^\d+$/.test(scoreWords[0]) &&
+                scoreWords[0].length === playerCount
+            ) {
+                scoreWords = scoreWords[0].split("");
+            }
+
             const scoresByPlayer = new Map();
             let wordIndex = 0;
 
             for (let playerIndex = 0; playerIndex < playerCount; playerIndex++) {
-                while (wordIndex < scoreWords.length) {
-                    const parsed = parseVoiceScoreAt(
-                        scoreWords,
-                        wordIndex,
-                        hole,
-                        playerIndex
-                    );
-
-                    if (parsed) {
-                        scoresByPlayer.set(playerIndex + 1, parsed.score);
-                        wordIndex += parsed.consumed;
-                        break;
-                    }
-
-                    wordIndex += 1;
-                }
-            }
-
-            if (scoresByPlayer.size < playerCount) {
-                throw new Error("Tuloksia puuttuu.");
-            }
-
-            for (; wordIndex < scoreWords.length; wordIndex++) {
-                const extra = parseVoiceScoreAt(
+                const parsed = parseVoiceScoreAt(
                     scoreWords,
                     wordIndex,
                     hole,
-                    Math.max(0, playerCount - 1)
+                    playerIndex
                 );
 
-                if (extra) {
-                    throw new Error("Liikaa tuloksia.");
+                if (!parsed) {
+                    throw new Error("Tuloksia puuttuu.");
                 }
+
+                scoresByPlayer.set(playerIndex + 1, parsed.score);
+                wordIndex += parsed.consumed;
+            }
+
+            if (wordIndex !== scoreWords.length) {
+                throw new Error("Liikaa tuloksia.");
             }
 
             return { hole, scoresByPlayer };

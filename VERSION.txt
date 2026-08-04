@@ -1,6 +1,6 @@
 Golf Voice Scorecard AI
-Paketti 5.4.4
-- Lisätty reikäkohtainen tulosten korjaus ilman pelaajien nimiä
-- Esimerkiksi: reikä 2 3 5 4
-- Tukee myös viivaa ja golftermejä pelaajajärjestyksessä
-- Nykyinen nimillä tehtävä korjaus säilyy ennallaan
+Paketti 5.4.6
+- Reikäkorjaus ilman pelaajien nimiä
+- Tukee: reikä 2 5 5 5
+- Tukee: reikä2 555
+- Nimillä tehtävä korjaus säilyy ennallaan
