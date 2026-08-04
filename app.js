@@ -489,6 +489,7 @@
                 }
             }
 
+            updateHandicapStrokePlayStatus();
             updateStablefordScorecard();
         }
 
@@ -723,6 +724,113 @@
             return { total, dnf };
         }
 
+        function getPlayedHoleOrder() {
+            return Array.from(
+                { length: 18 },
+                (_, index) => ((startHole - 1 + index) % 18) + 1
+            );
+        }
+
+        function updateHandicapStrokePlayStatus() {
+            const playedHoleOrder = getPlayedHoleOrder();
+
+            for (let playerIndex = 0; playerIndex < MAX_PLAYERS; playerIndex++) {
+                const display = document.getElementById(
+                    `handicapStrokeplayStatus${playerIndex + 1}`
+                );
+
+                if (!display) continue;
+
+                const courseHandicap = calculatePlayerCourseHandicap(playerIndex);
+                const rows = getPlayerSelectedCourseRows(playerIndex);
+                const holeDataByHole = new Map(
+                    rows.map(row => [Number(row.hole), row])
+                );
+
+                let grossTotal = 0;
+                let targetTotal = 0;
+                let hasScores = false;
+                let dnf = false;
+
+                for (const hole of playedHoleOrder) {
+                    const scoreInput = document.querySelector(
+                        `.p${playerIndex + 1}[data-hole="${hole}"]`
+                    );
+                    const score = normalizeScoreValue(scoreInput?.value);
+
+                    // Kierroksen juokseva tilanne lasketaan vain yhtenäisesti
+                    // aloitusreiästä eteenpäin ensimmäiseen tyhjään reikään asti.
+                    if (score === "") {
+                        break;
+                    }
+
+                    hasScores = true;
+
+                    if (score === "-") {
+                        dnf = true;
+                        break;
+                    }
+
+                    const holeData = holeDataByHole.get(hole);
+                    const par = Number(holeData?.par);
+                    const holeHcp = Number(holeData?.hcp);
+
+                    if (
+                        courseHandicap === null ||
+                        !Number.isFinite(par) ||
+                        !Number.isInteger(holeHcp)
+                    ) {
+                        continue;
+                    }
+
+                    const receivedStrokes = getHandicapStrokesForHole(
+                        courseHandicap,
+                        holeHcp
+                    );
+
+                    grossTotal += score;
+                    targetTotal += par + receivedStrokes;
+                }
+
+                display.classList.remove(
+                    "handicap-status-under",
+                    "handicap-status-even",
+                    "handicap-status-over",
+                    "handicap-status-unavailable"
+                );
+
+                if (dnf) {
+                    display.textContent = "DNF";
+                    display.classList.add("handicap-status-unavailable");
+                    continue;
+                }
+
+                if (!hasScores) {
+                    display.textContent = "0";
+                    display.classList.add("handicap-status-even");
+                    continue;
+                }
+
+                if (courseHandicap === null || targetTotal === 0) {
+                    display.textContent = "–";
+                    display.classList.add("handicap-status-unavailable");
+                    continue;
+                }
+
+                const difference = grossTotal - targetTotal;
+                display.textContent =
+                    difference > 0 ? `+${difference}` : String(difference);
+
+                if (difference < 0) {
+                    display.classList.add("handicap-status-under");
+                } else if (difference > 0) {
+                    display.classList.add("handicap-status-over");
+                } else {
+                    display.classList.add("handicap-status-even");
+                }
+            }
+        }
+
         function calculateScores() {
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 const front = calculateNineResult(player, 1, 9);
@@ -739,6 +847,7 @@
                     totalDnf ? "DNF" : front.total + back.total;
             }
 
+            updateHandicapStrokePlayStatus();
             updateStablefordScorecard();
         }
 

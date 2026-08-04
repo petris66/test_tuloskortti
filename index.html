@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=package-5-4-0-frontpage">
+    <link rel="stylesheet" href="style.css?v=package-5-4-3-handicap-status">
 
 </head>
 
@@ -172,6 +172,11 @@
                         <th class="course-stat-cell">Par</th>
                         <th class="course-stat-cell">HCP</th>
                         <th class="player-column" data-player="1">
+                            <div
+                                class="handicap-strokeplay-status"
+                                id="handicapStrokeplayStatus1"
+                                aria-label="Pelaajan 1 tasoituksellinen lyöntipelitilanne"
+                            >0</div>
                             <input
                                 type="text"
                                 class="player-name"
@@ -183,6 +188,11 @@
                             >
                         </th>
                         <th class="player-column" data-player="2">
+                            <div
+                                class="handicap-strokeplay-status"
+                                id="handicapStrokeplayStatus2"
+                                aria-label="Pelaajan 2 tasoituksellinen lyöntipelitilanne"
+                            >0</div>
                             <input
                                 type="text"
                                 class="player-name"
@@ -194,6 +204,11 @@
                             >
                         </th>
                         <th class="player-column" data-player="3">
+                            <div
+                                class="handicap-strokeplay-status"
+                                id="handicapStrokeplayStatus3"
+                                aria-label="Pelaajan 3 tasoituksellinen lyöntipelitilanne"
+                            >0</div>
                             <input
                                 type="text"
                                 class="player-name"
@@ -205,6 +220,11 @@
                             >
                         </th>
                         <th class="player-column" data-player="4">
+                            <div
+                                class="handicap-strokeplay-status"
+                                id="handicapStrokeplayStatus4"
+                                aria-label="Pelaajan 4 tasoituksellinen lyöntipelitilanne"
+                            >0</div>
                             <input
                                 type="text"
                                 class="player-name"
@@ -397,7 +417,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=package-5-4-1-tee-color" defer></script>
+    <script src="app.js?v=package-5-4-3-handicap-status" defer></script>
 
 </body>
 </html>

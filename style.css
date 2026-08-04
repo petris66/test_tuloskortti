@@ -1574,3 +1574,46 @@ body {
         font-size: 19px;
     }
 }
+
+
+/* --- Paketti 5.4.2: tasoituksellisen lyöntipelin juokseva tilanne --- */
+.handicap-strokeplay-status {
+    min-height: 22px;
+    margin: 0 auto 3px;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.handicap-status-under {
+    color: #c62828;
+}
+
+.handicap-status-even {
+    color: #173f18;
+}
+
+.handicap-status-over {
+    color: #173f18;
+}
+
+.handicap-status-unavailable {
+    color: #6b746c;
+}
+
+.round-active .handicap-strokeplay-status {
+    min-height: 17px;
+    margin-bottom: 1px;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .handicap-strokeplay-status {
+        font-size: 14px;
+    }
+
+    .round-active .handicap-strokeplay-status {
+        font-size: 12px;
+    }
+}
