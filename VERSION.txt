@@ -1,4 +1,5 @@
 Golf Voice Scorecard AI
-Paketti 5.3.6 cat-dog parser test
-- cat = birdie
-- dog = bogey
+Paketti 5.3.6 cat-tupla-test
+- cat toimii tuplana (+2)
+- dog toimii triplana (+3)
+- vain diagnostiikkatesti
