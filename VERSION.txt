@@ -1,7 +1,7 @@
-Version 0.5.4.11 fix6
+Version 0.5.4.11 fix6 corrected
 
-- player settings remain on one row
-- compact tee labels preserved
-- course HCP label shown on two lines
-- course HCP value shown larger beside the label
+- tee field narrowed
+- course HCP label shown as Kentän / HCP on two lines
+- course HCP value shown larger on the right
+- player row remains on one line
 - no scoring, course data or tee selection logic changes

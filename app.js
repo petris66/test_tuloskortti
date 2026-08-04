@@ -468,9 +468,7 @@
                             <span>Kentän</span>
                             <span>HCP</span>
                         </span>
-                        <strong class="player-course-hcp-value">
-                            ${courseHandicap === null ? "–" : courseHandicap}
-                        </strong>
+                        <strong class="player-course-hcp-value">${courseHandicap === null ? "–" : courseHandicap}</strong>
                     `;
                 }
 

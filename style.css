@@ -1709,28 +1709,54 @@ body {
 }
 
 
-/* v0.5.4.11 fix 6: two-line course HCP label with prominent value */
+/* v0.5.4.11 fix6 corrected: compact tee and visible course HCP */
+.player-round-setting {
+    grid-template-columns:
+        minmax(86px, 1.15fr)
+        minmax(66px, .72fr)
+        minmax(78px, .80fr)
+        minmax(78px, .78fr);
+}
+
+.player-round-setting label:nth-of-type(3) {
+    min-width: 0;
+}
+
+.player-round-setting label:nth-of-type(3) select {
+    width: 100%;
+    min-width: 0;
+    padding-left: 4px;
+    padding-right: 22px;
+}
+
 .player-round-setting .player-course-hcp {
+    grid-column: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 6px;
+    min-width: 0;
+    min-height: 44px;
+    margin: 0;
+    padding: 4px 5px;
     white-space: normal;
-    line-height: 1;
 }
 
 .player-course-hcp-label {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
-    font-size: 11px;
+    justify-content: center;
+    gap: 1px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
+    white-space: nowrap;
 }
 
 .player-course-hcp-value {
-    min-width: 24px;
+    display: inline-block;
+    min-width: 22px;
     font-size: 22px;
     font-weight: 900;
     line-height: 1;
@@ -1739,25 +1765,34 @@ body {
 
 @media (max-width: 500px) {
     .player-round-setting {
-        grid-template-columns: minmax(74px, 1.08fr) minmax(58px, .68fr) minmax(82px, .92fr) minmax(72px, .72fr);
+        grid-template-columns:
+            minmax(72px, 1.08fr)
+            minmax(56px, .68fr)
+            minmax(68px, .72fr)
+            minmax(70px, .72fr);
+        gap: 4px;
+        padding: 7px 5px;
     }
 
-    .player-round-setting select {
-        min-width: 0;
+    .player-round-setting label:nth-of-type(3) select {
+        padding-left: 3px;
+        padding-right: 18px;
+        font-size: 13px !important;
     }
 
     .player-round-setting .player-course-hcp {
-        gap: 5px;
+        gap: 4px;
         padding-left: 3px;
         padding-right: 3px;
+        font-size: inherit;
     }
 
     .player-course-hcp-label {
-        font-size: 10px;
+        font-size: 9px;
     }
 
     .player-course-hcp-value {
-        min-width: 21px;
+        min-width: 20px;
         font-size: 21px;
     }
 }
