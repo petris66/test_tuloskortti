@@ -323,6 +323,7 @@
 
             updatePlayerTeeSelectColors();
             updatePlayerCourseHandicapsAndStrokeMarkers();
+            saveState();
         }
 
         function getTeeColorClass(tee) {

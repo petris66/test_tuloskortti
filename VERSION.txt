@@ -1,1 +1,6 @@
-Version 0.5.4.11 fix 3 - player name settings sync
+Version 0.5.4.11 fix 4
+
+- Removed Player 1-4 labels from player settings
+- Player name, exact HCP, tee and course HCP shown on one row
+- Changing player name clears previous exact HCP and tee selection
+- Scorecard name synchronization retained
