@@ -1291,7 +1291,7 @@
                 parsedHole < 1 ||
                 parsedHole > 18
             ) {
-                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
+                throw new Error("Reiän numeron pitää olla 1–18.");
             }
 
             return parsedHole;
@@ -1537,109 +1537,6 @@
             return { hole, scoresByPlayer };
         }
 
-        function parseExplicitHoleOrderedResults(spokenText) {
-            const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
-
-            const match = normalizedSpeech.match(
-                /(?:^|\s)reika\s*(\d+)(?:\s+|$)(.*)$/i
-            );
-
-            if (!match) {
-                return null;
-            }
-
-            let holeDigits = String(match[1] || "");
-            let scoreText = String(match[2] || "").trim();
-
-            // Jos Safari yhdistää reiän ja tulokset:
-            // "reikä 4444" -> reikä 4 ja tulokset 444.
-            if (
-                !scoreText &&
-                holeDigits.length > playerCount
-            ) {
-                const oneDigitHole = Number(holeDigits.slice(0, 1));
-                const twoDigitHole = Number(holeDigits.slice(0, 2));
-
-                if (
-                    holeDigits.length === playerCount + 1 &&
-                    oneDigitHole >= 1 &&
-                    oneDigitHole <= 9
-                ) {
-                    scoreText = holeDigits.slice(1);
-                    holeDigits = holeDigits.slice(0, 1);
-                } else if (
-                    holeDigits.length === playerCount + 2 &&
-                    twoDigitHole >= 10 &&
-                    twoDigitHole <= 18
-                ) {
-                    scoreText = holeDigits.slice(2);
-                    holeDigits = holeDigits.slice(0, 2);
-                }
-            }
-
-            const hole = Number(holeDigits);
-
-            if (hole < 1 || hole > 18) {
-                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
-            }
-
-            if (!scoreText) {
-                throw new Error("Tuloksia puuttuu.");
-            }
-
-            // Nimellinen korjaus jätetään nykyisen nimiparserin käsiteltäväksi.
-            const activeNames = Array.from(
-                { length: playerCount },
-                (_, index) => normalizePlayerNameForVoice(
-                    document.getElementById(`name${index + 1}`)?.value || ""
-                )
-            ).filter(Boolean);
-
-            if (
-                activeNames.some(name =>
-                    new RegExp(`(?:^|\\s)${name}(?:\\s|$)`).test(scoreText)
-                )
-            ) {
-                return null;
-            }
-
-            let scoreWords = scoreText.split(/\s+/).filter(Boolean);
-
-            // Tukee muotoa "reikä 2 555" kolmen pelaajan pelissä.
-            if (
-                scoreWords.length === 1 &&
-                /^\d+$/.test(scoreWords[0]) &&
-                scoreWords[0].length === playerCount
-            ) {
-                scoreWords = scoreWords[0].split("");
-            }
-
-            const scoresByPlayer = new Map();
-            let wordIndex = 0;
-
-            for (let playerIndex = 0; playerIndex < playerCount; playerIndex++) {
-                const parsed = parseVoiceScoreAt(
-                    scoreWords,
-                    wordIndex,
-                    hole,
-                    playerIndex
-                );
-
-                if (!parsed) {
-                    throw new Error("Tuloksia puuttuu.");
-                }
-
-                scoresByPlayer.set(playerIndex + 1, parsed.score);
-                wordIndex += parsed.consumed;
-            }
-
-            if (wordIndex !== scoreWords.length) {
-                throw new Error("Liikaa tuloksia.");
-            }
-
-            return { hole, scoresByPlayer };
-        }
-
         function parseNamedVoiceResults(spokenText) {
             const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
             const words = normalizedSpeech.split(/\s+/).filter(Boolean);
@@ -1716,25 +1613,6 @@
             };
         }
 
-        function findNextIncompleteHole() {
-            const playedHoleOrder = getPlayedHoleOrder();
-
-            for (const hole of playedHoleOrder) {
-                const holeComplete = Array.from(
-                    { length: playerCount },
-                    (_, index) => document.querySelector(
-                        `.p${index + 1}[data-hole="${hole}"]`
-                    )
-                ).every(input => normalizeScoreValue(input?.value) !== "");
-
-                if (!holeComplete) {
-                    return hole;
-                }
-            }
-
-            return startHole;
-        }
-
         function saveParsedScores(hole, scoresByPlayer) {
             const addedScores = [];
 
@@ -1760,7 +1638,7 @@
             }
 
             calculateScores();
-            nextHole = findNextIncompleteHole();
+            nextHole = hole < 18 ? hole + 1 : 1;
             roundSetupConfirmed = true;
             updateNextHole();
             updateRoundCompleteState();
@@ -1771,16 +1649,6 @@
         }
 
         function parseVoiceResults(spokenText) {
-            const explicitHoleResult =
-                parseExplicitHoleOrderedResults(spokenText);
-
-            if (explicitHoleResult) {
-                return saveParsedScores(
-                    explicitHoleResult.hole,
-                    explicitHoleResult.scoresByPlayer
-                );
-            }
-
             const namedResult = parseNamedVoiceResults(spokenText);
 
             if (namedResult) {
@@ -1800,18 +1668,7 @@
                 );
             }
 
-            let tokens = extractVoiceTokens(spokenText);
-
-            if (
-                tokens.length === 1 &&
-                typeof tokens[0] === "number" &&
-                /^[1-9]+$/.test(String(tokens[0])) &&
-                String(tokens[0]).length === playerCount
-            ) {
-                tokens = String(tokens[0])
-                    .split("")
-                    .map(Number);
-            }
+            const tokens = extractVoiceTokens(spokenText);
 
             if (tokens.length === 0) {
                 throw new Error("Tuloksia ei tunnistettu.");
@@ -1840,7 +1697,7 @@
             }
 
             if (hole < 1 || hole > 18) {
-                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
+                throw new Error("Reiän numeron pitää olla 1–18.");
             }
 
             if (scores.length !== playerCount) {
