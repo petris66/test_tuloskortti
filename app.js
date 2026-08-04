@@ -3199,7 +3199,7 @@
                 context.fillStyle = "#506252";
                 const diffText = strokeDiff === null ? "" : `Lyöntipeli ${strokeDiff > 0 ? "+" : ""}${strokeDiff}`;
                 const stableText = stableford ? `Pistebogey ${stableford.total} p` : "";
-
+                context.fillText(`${diffText}${diffText && stableText ? " · " : ""}${stableText}`, summaryX[0], y + 24);
             });
 
             const tableTop = summaryTop + 218;
@@ -3415,7 +3415,49 @@
             return canvas;
         }
 
-        function canvasToBlob(canvas) {
+        
+        function createStablefordScorecardCanvas(round) {
+            const canvas = document.createElement("canvas");
+            const width = 1200;
+            const height = 1500;
+            canvas.width = width;
+            canvas.height = height;
+
+            const context = canvas.getContext("2d");
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, width, height);
+
+            context.fillStyle = "#173f18";
+            context.font = "900 42px Arial";
+            context.fillText("Golf Voice Scorecard AI", 60, 80);
+
+            context.font = "800 32px Arial";
+            context.fillText("STABLEFORD / PISTEBOGEY", 60, 140);
+
+            context.font = "700 24px Arial";
+            context.fillStyle = "#333333";
+            context.fillText(
+                `${round.course || "Kenttä"} - ${formatDate(round.date)}`,
+                60,
+                190
+            );
+
+            let y = 270;
+            round.names.forEach((name, index) => {
+                const player = index + 1;
+                const stableford = round.stableford?.[player];
+                context.fillText(
+                    `${name}: ${stableford?.total ?? 0} p (OUT ${stableford?.out ?? 0} / IN ${stableford?.in ?? 0})`,
+                    80,
+                    y
+                );
+                y += 55;
+            });
+
+            return canvas;
+        }
+
+function canvasToBlob(canvas) {
             return new Promise((resolve, reject) => {
                 canvas.toBlob(blob => {
                     if (blob) {
@@ -3469,9 +3511,13 @@
             });
 
             try {
-                const canvas =
+                const strokeCanvas =
                     await createVerticalScorecardCanvas(round);
-                const blob = await canvasToBlob(canvas);
+                const stablefordCanvas =
+                    await createStablefordScorecardCanvas(round);
+
+                const blob = await canvasToBlob(strokeCanvas);
+                const stablefordBlob = await canvasToBlob(stablefordCanvas);
                 const safeCourse = String(
                     round.course || "golfkierros"
                 )
@@ -3485,18 +3531,24 @@
                     filename,
                     { type: "image/png" }
                 );
+
+                const stablefordFile = new File(
+                    [stablefordBlob],
+                    filename.replace(".png", "_Stableford.png"),
+                    { type: "image/png" }
+                );
                 const shareText = buildShareText(round);
 
                 if (
                     navigator.share &&
                     (!navigator.canShare ||
-                        navigator.canShare({ files: [file] }))
+                        navigator.canShare({ files: [file, stablefordFile] }))
                 ) {
                     try {
                         await navigator.share({
                             title: `Golfkierros – ${round.course}`,
                             text: shareText,
-                            files: [file]
+                            files: [file, stablefordFile]
                         });
                         return;
                     } catch (error) {
