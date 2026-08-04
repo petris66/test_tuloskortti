@@ -52,6 +52,10 @@
         const nineViewButton = document.getElementById("nineViewButton");
         const saveRoundActionButton = document.getElementById("saveRoundActionButton");
         const historyActionButton = document.getElementById("historyActionButton");
+        const playerNameInputs = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerSettingNameInput${index + 1}`)
+        );
+
         const playerHcpInputs = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerHcp${index + 1}`)
         );
@@ -63,9 +67,6 @@
         );
         const playerSettingNames = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerSettingName${index + 1}`)
-        );
-        const playerNameInputs = Array.from({ length: MAX_PLAYERS }, (_, index) =>
-            document.getElementById(`playerName${index + 1}`)
         );
         const stablefordCard = document.getElementById("stablefordCard");
         const stablefordToggleButton = document.getElementById("stablefordToggleButton");
@@ -296,19 +297,15 @@
             teeSelect.value = selectedTee;
         }
 
-        function clearPlayerSettingsOnNameChange(playerIndex) {
-            if (playerHcpInputs[playerIndex]) playerHcpInputs[playerIndex].value = "";
-            playerHandicaps[playerIndex] = "";
-            if (playerTeeSelects[playerIndex]) playerTeeSelects[playerIndex].value = "";
-            playerTees[playerIndex] = "";
-            if (playerCourseHcpElements[playerIndex]) playerCourseHcpElements[playerIndex].textContent = "Kentän HCP: –";
-        }
-
         function updatePlayerSettingNames() {
             for (let player = 1; player <= MAX_PLAYERS; player++) {
-                const name = document.getElementById(`name${player}`)?.value.trim();
+                const name = playerNameInputs[player - 1]?.value.trim() || "";
                 if (playerSettingNames[player - 1]) {
                     playerSettingNames[player - 1].textContent = name || `P${player}`;
+                }
+                const scorecardName = document.getElementById(`name${player}`);
+                if (scorecardName) {
+                    scorecardName.value = name;
                 }
             }
         }
@@ -2397,7 +2394,7 @@
 
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 state.names.push(
-                    document.getElementById(`name${player}`).value
+                    playerNameInputs[player - 1]?.value || ""
                 );
 
                 state.scores[player] = [];
@@ -2451,9 +2448,16 @@
                     if (typeof name === "string") {
                         const nameInput =
                             document.getElementById(`name${player}`);
+                        const settingNameInput =
+                            playerNameInputs[player - 1];
 
-                        nameInput.value =
+                        const restoredName =
                             /^P[1-4]$/i.test(name.trim()) ? "" : name;
+
+                        if (settingNameInput) {
+                            settingNameInput.value = restoredName;
+                        }
+                        nameInput.value = restoredName;
                     }
 
                     const scores = state.scores?.[player] || [];
@@ -3696,18 +3700,29 @@
             });
         });
 
-        document.querySelectorAll(".player-name").forEach(input => {
-            input.addEventListener("focus", () => {
-                const genericName = /^P[1-4]$/i.test(input.value.trim());
-
-                if (genericName) {
-                    input.value = "";
-                    saveState();
-                }
-            });
+        playerNameInputs.forEach((input, index) => {
+            if (!input) return;
 
             input.addEventListener("input", () => {
+                const previousName = document.getElementById(`name${index + 1}`)?.value.trim() || "";
+                const newName = input.value.trim();
+
+                if (previousName && previousName !== newName) {
+                    playerHandicaps[index] = "";
+                    playerTees[index] = "";
+
+                    if (playerHcpInputs[index]) {
+                        playerHcpInputs[index].value = "";
+                    }
+
+                    if (playerTeeSelects[index]) {
+                        playerTeeSelects[index].value = "";
+                    }
+                }
+
                 updatePlayerSettingNames();
+                updatePlayerTeeSelectColors();
+                updatePlayerCourseHandicapsAndStrokeMarkers();
                 updateStablefordPlayerNames();
                 saveState();
             });
@@ -3822,14 +3837,3 @@
         }
 
         initializeApp();
-
-
-playerNameInputs.forEach((input, index) => {
-    if (!input) return;
-    input.addEventListener("change", () => {
-        clearPlayerSettingsOnNameChange(index);
-        updatePlayerSettingNames();
-        saveState();
-        updatePlayerCourseHandicapsAndStrokeMarkers();
-    });
-});

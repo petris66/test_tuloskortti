@@ -1,5 +1,4 @@
-Version 0.5.4.11 - player name management fix
+Version 0.5.4.11-fix2-player-name-sync
 
-- Player names moved to player settings
-- Name change clears old HCP and tee
-- Scorecard names sync from player settings
+- Player name moved to player settings
+- Name changes clear HCP and tee selection
