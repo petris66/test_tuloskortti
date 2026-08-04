@@ -1,6 +1,6 @@
 Golf Voice Scorecard AI
-Paketti 5.4.7
-- Aiemman reiän korjaus ei enää muuta seuraavaa pelattavaa reikää
-- Korjauksen jälkeen pelkät tulokset kirjautuvat oikealle seuraavalle reiälle
-- Tukee myös yhteen lausuttuja yksinumeroisia tuloksia, esimerkiksi 444
-- Virheilmoitus: Reiän tulee olla yksi–kahdeksantoista
+Paketti 5.4.8
+- Korjauksen jälkeen seuraava pelattava reikä haetaan tuloskortista
+- Pelkät tulokset kirjautuvat korjauksen jälkeen oikealle reiälle
+- Tukee reikä 4 444, reikä4 444 ja yhdistynyttä muotoa reikä 4444
+- Virheilmoitus: Reiän tulee olla yksi - kahdeksantoista

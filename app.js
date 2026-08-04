@@ -1291,7 +1291,7 @@
                 parsedHole < 1 ||
                 parsedHole > 18
             ) {
-                throw new Error("Reiän tulee olla yksi–kahdeksantoista.");
+                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
             }
 
             return parsedHole;
@@ -1541,18 +1541,46 @@
             const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
 
             const match = normalizedSpeech.match(
-                /(?:^|\s)reika\s*(\d{1,2})(?:\s+|$)(.*)$/i
+                /(?:^|\s)reika\s*(\d+)(?:\s+|$)(.*)$/i
             );
 
             if (!match) {
                 return null;
             }
 
-            const hole = Number(match[1]);
-            const scoreText = String(match[2] || "").trim();
+            let holeDigits = String(match[1] || "");
+            let scoreText = String(match[2] || "").trim();
+
+            // Jos Safari yhdistää reiän ja tulokset:
+            // "reikä 4444" -> reikä 4 ja tulokset 444.
+            if (
+                !scoreText &&
+                holeDigits.length > playerCount
+            ) {
+                const oneDigitHole = Number(holeDigits.slice(0, 1));
+                const twoDigitHole = Number(holeDigits.slice(0, 2));
+
+                if (
+                    holeDigits.length === playerCount + 1 &&
+                    oneDigitHole >= 1 &&
+                    oneDigitHole <= 9
+                ) {
+                    scoreText = holeDigits.slice(1);
+                    holeDigits = holeDigits.slice(0, 1);
+                } else if (
+                    holeDigits.length === playerCount + 2 &&
+                    twoDigitHole >= 10 &&
+                    twoDigitHole <= 18
+                ) {
+                    scoreText = holeDigits.slice(2);
+                    holeDigits = holeDigits.slice(0, 2);
+                }
+            }
+
+            const hole = Number(holeDigits);
 
             if (hole < 1 || hole > 18) {
-                throw new Error("Reiän tulee olla yksi–kahdeksantoista.");
+                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
             }
 
             if (!scoreText) {
@@ -1688,15 +1716,27 @@
             };
         }
 
+        function findNextIncompleteHole() {
+            const playedHoleOrder = getPlayedHoleOrder();
+
+            for (const hole of playedHoleOrder) {
+                const holeComplete = Array.from(
+                    { length: playerCount },
+                    (_, index) => document.querySelector(
+                        `.p${index + 1}[data-hole="${hole}"]`
+                    )
+                ).every(input => normalizeScoreValue(input?.value) !== "");
+
+                if (!holeComplete) {
+                    return hole;
+                }
+            }
+
+            return startHole;
+        }
+
         function saveParsedScores(hole, scoresByPlayer) {
             const addedScores = [];
-            const previousNextHole = nextHole;
-            const holeHadExistingScores = Array.from(
-                { length: playerCount },
-                (_, index) => document.querySelector(
-                    `.p${index + 1}[data-hole="${hole}"]`
-                )
-            ).some(input => normalizeScoreValue(input?.value) !== "");
 
             for (let player = 1; player <= playerCount; player++) {
                 const score = scoresByPlayer.get(player);
@@ -1720,9 +1760,7 @@
             }
 
             calculateScores();
-            nextHole = holeHadExistingScores
-                ? previousNextHole
-                : (hole < 18 ? hole + 1 : 1);
+            nextHole = findNextIncompleteHole();
             roundSetupConfirmed = true;
             updateNextHole();
             updateRoundCompleteState();
@@ -1802,7 +1840,7 @@
             }
 
             if (hole < 1 || hole > 18) {
-                throw new Error("Reiän tulee olla yksi–kahdeksantoista.");
+                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
             }
 
             if (scores.length !== playerCount) {
