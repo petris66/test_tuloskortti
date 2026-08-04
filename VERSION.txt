@@ -1,7 +1,6 @@
-Version 0.5.4.11 fix6 corrected
+Version 0.5.4.11 fix7
 
-- tee field narrowed
-- course HCP label shown as Kentän / HCP on two lines
-- course HCP value shown larger on the right
-- player row remains on one line
-- no scoring, course data or tee selection logic changes
+- start-hole input scrolls into view when focused
+- mobile number keyboard no longer hides the field
+- two delayed scroll checks improve iPhone Safari behavior
+- no scoring, player, course or tee logic changes

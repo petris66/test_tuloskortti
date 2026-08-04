@@ -73,6 +73,27 @@
         const stablefordHeaderRow = document.getElementById("stablefordHeaderRow");
         const stablefordTotalRow = document.getElementById("stablefordTotalRow");
 
+        function keepStartHoleInputVisible() {
+            if (!startHoleInput) return;
+
+            const scrollInputIntoView = () => {
+                startHoleInput.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                    inline: "nearest"
+                });
+            };
+
+            startHoleInput.addEventListener("focus", () => {
+                window.setTimeout(scrollInputIntoView, 300);
+                window.setTimeout(scrollInputIntoView, 650);
+            });
+
+            startHoleInput.addEventListener("click", () => {
+                window.setTimeout(scrollInputIntoView, 250);
+            });
+        }
+
         function getSavedCourseSelection() {
             try {
                 const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -541,7 +562,8 @@
         }
 
         function refreshScoreTableForCourse() {
-            buildScoreTable();
+            keepStartHoleInputVisible();
+        buildScoreTable();
             setPlayerCount(playerCount);
             calculateScores();
             updateRoundLayout();

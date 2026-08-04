@@ -1796,3 +1796,10 @@ body {
         font-size: 21px;
     }
 }
+
+
+/* v0.5.4.11 fix7: keep start-hole input visible above mobile keyboard */
+#startHoleInput {
+    scroll-margin-top: 28vh;
+    scroll-margin-bottom: 42vh;
+}
