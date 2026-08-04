@@ -1291,7 +1291,7 @@
                 parsedHole < 1 ||
                 parsedHole > 18
             ) {
-                throw new Error("Reiän numeron pitää olla 1–18.");
+                throw new Error("Reiän tulee olla yksi–kahdeksantoista.");
             }
 
             return parsedHole;
@@ -1552,7 +1552,7 @@
             const scoreText = String(match[2] || "").trim();
 
             if (hole < 1 || hole > 18) {
-                throw new Error("Reiän numeron pitää olla 1–18.");
+                throw new Error("Reiän tulee olla yksi–kahdeksantoista.");
             }
 
             if (!scoreText) {
@@ -1690,6 +1690,13 @@
 
         function saveParsedScores(hole, scoresByPlayer) {
             const addedScores = [];
+            const previousNextHole = nextHole;
+            const holeHadExistingScores = Array.from(
+                { length: playerCount },
+                (_, index) => document.querySelector(
+                    `.p${index + 1}[data-hole="${hole}"]`
+                )
+            ).some(input => normalizeScoreValue(input?.value) !== "");
 
             for (let player = 1; player <= playerCount; player++) {
                 const score = scoresByPlayer.get(player);
@@ -1713,7 +1720,9 @@
             }
 
             calculateScores();
-            nextHole = hole < 18 ? hole + 1 : 1;
+            nextHole = holeHadExistingScores
+                ? previousNextHole
+                : (hole < 18 ? hole + 1 : 1);
             roundSetupConfirmed = true;
             updateNextHole();
             updateRoundCompleteState();
@@ -1753,7 +1762,18 @@
                 );
             }
 
-            const tokens = extractVoiceTokens(spokenText);
+            let tokens = extractVoiceTokens(spokenText);
+
+            if (
+                tokens.length === 1 &&
+                typeof tokens[0] === "number" &&
+                /^[1-9]+$/.test(String(tokens[0])) &&
+                String(tokens[0]).length === playerCount
+            ) {
+                tokens = String(tokens[0])
+                    .split("")
+                    .map(Number);
+            }
 
             if (tokens.length === 0) {
                 throw new Error("Tuloksia ei tunnistettu.");
@@ -1782,7 +1802,7 @@
             }
 
             if (hole < 1 || hole > 18) {
-                throw new Error("Reiän numeron pitää olla 1–18.");
+                throw new Error("Reiän tulee olla yksi–kahdeksantoista.");
             }
 
             if (scores.length !== playerCount) {
