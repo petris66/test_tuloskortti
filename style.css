@@ -1617,3 +1617,30 @@ body {
         font-size: 12px;
     }
 }
+
+
+/* v0.5.4.11 fix 3: player name is edited only in player settings */
+.player-round-setting > strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.player-round-setting label {
+    min-width: 0;
+}
+
+.player-round-setting .player-name {
+    width: 100%;
+    min-width: 0;
+}
+
+.scorecard-player-name {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--forest);
+    font-weight: 800;
+    text-align: center;
+}

@@ -1,4 +1,1 @@
-Version 0.5.4.11-fix2-player-name-sync
-
-- Player name moved to player settings
-- Name changes clear HCP and tee selection
+Version 0.5.4.11 fix 3 - player name settings sync
