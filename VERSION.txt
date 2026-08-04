@@ -1,5 +1,8 @@
 Golf Voice Scorecard AI
-Paketti 5.3.7
-- Lisätty poksu bogey-termiksi
-- Päivitetty index.html cache-busting viitteet
-- Ei muutoksia HCP-, Stableford- tai muuhun puhelogiikkaan
+Paketti 5.4.0
+- Uuden kierroksen asetusten järjestys muutettu
+- Pelaajamäärä
+- Pelaajakohtaiset tiedot
+- Kenttä
+- Aloitusreikä
+- Ei muutoksia laskentaan tai puhelogiikkaan
