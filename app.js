@@ -3120,7 +3120,7 @@
                 76,
                 summaryTop,
                 width - 152,
-                190,
+                300,
                 24,
                 mint
             );
@@ -3165,6 +3165,9 @@
                 const front = calculateSharedNine(scores, 0, 9);
                 const back = calculateSharedNine(scores, 9, 18);
                 const total = round.totals[player];
+                const stableford = round.stableford?.[player];
+                const parTotal = Array.from({length:18}, (_,i)=>round.par?.[i] || 0).reduce((a,b)=>a+b,0);
+                const strokeDiff = Number.isFinite(Number(total)) && parTotal ? Number(total)-Number(parTotal) : null;
 
                 context.fillStyle = ink;
                 context.font = "700 21px Arial";
@@ -3190,6 +3193,13 @@
                         y
                     );
                 });
+
+                context.textAlign = "left";
+                context.font = "600 17px Arial";
+                context.fillStyle = "#506252";
+                const diffText = strokeDiff === null ? "" : `Lyöntipeli ${strokeDiff > 0 ? "+" : ""}${strokeDiff}`;
+                const stableText = stableford ? `Pistebogey ${stableford.total} p` : "";
+                context.fillText(`${diffText}${diffText && stableText ? " · " : ""}${stableText}`, summaryX[0], y + 24);
             });
 
             const tableTop = summaryTop + 218;
