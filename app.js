@@ -2613,6 +2613,24 @@
             });
         }
 
+
+        function calculateSavedStableford(scores) {
+            if (!Array.isArray(scores)) return { out: 0, in: 0, total: 0 };
+
+            const calc = (start, end) => scores
+                .slice(start, end)
+                .reduce((sum, value) => {
+                    const score = Number(value);
+                    return sum + (Number.isFinite(score) && score > 0 ? score : 0);
+                }, 0);
+
+            return {
+                out: calc(0, 9),
+                in: calc(9, 18),
+                total: calc(0, 18)
+            };
+        }
+
         function buildRoundSnapshot() {
             const snapshot = {
                 id: crypto.randomUUID
@@ -2629,7 +2647,8 @@
                 playerCount,
                 names: [],
                 scores: {},
-                totals: {}
+                totals: {},
+                stableford: {}
             };
 
             for (let player = 1; player <= playerCount; player++) {
@@ -2653,6 +2672,10 @@
 
                 snapshot.totals[player] =
                     totalText === "DNF" ? "DNF" : Number(totalText) || 0;
+
+                snapshot.stableford[player] = calculateSavedStableford(
+                    snapshot.scores[player]
+                );
             }
 
             return snapshot;
@@ -3397,13 +3420,26 @@
         }
 
         function buildShareText(round) {
-            return [
+            const lines = [
                 "Golf Voice Scorecard AI",
                 "Petri Suokas · AI Golf Apps",
                 `${round.course || "Kenttä nimeämättä"} – ${formatDate(round.date)}`,
-                round.gameFormat || "Lyöntipeli",
-                "Tuloskortti liitteenä."
-            ].join("\n");
+                ""
+            ];
+
+            round.names.forEach((name, index) => {
+                const player = index + 1;
+                const stableford = round.stableford?.[player];
+                lines.push(`${name}`);
+                lines.push(`Lyöntipeli: ${round.totals[player]}`);
+                if (stableford) {
+                    lines.push(`Pistebogey: ${stableford.total} p (OUT ${stableford.out} / IN ${stableford.in})`);
+                }
+                lines.push("");
+            });
+
+            lines.push("Tuloskortti liitteenä.");
+            return lines.join("\n");
         }
 
         async function shareRound(roundId) {
