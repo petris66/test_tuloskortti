@@ -1918,6 +1918,14 @@
                 const alternatives = event.results[0];
                 let successfulResult = null;
                 let heardText = alternatives[0].transcript;
+
+                // Debug: näytetään raakapuhe vain testin ajaksi.
+                // Ei muuteta parserin toimintaa.
+                const rawSpeechDebug = document.getElementById("rawSpeechDebug");
+                if (rawSpeechDebug) {
+                    rawSpeechDebug.textContent = heardText;
+                }
+
                 let lastError = new Error("Puhetta ei voitu käsitellä.");
 
                 for (let i = 0; i < alternatives.length; i++) {
