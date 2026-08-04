@@ -1248,6 +1248,7 @@
                 ["bogeyn", 1],
                 ["boge", 1],
                 ["poki", 1],
+                ["poksu", 1],
                 ["bogy", 1],
                 ["bokkei", 1],
                 ["bokki", 1],

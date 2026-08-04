@@ -1,4 +1,5 @@
 Golf Voice Scorecard AI
-Paketti 5.3.6 golfterm-laajennus
-- Expanded birdie and bogey speech variants
-- Removed temporary cat/dog test terms
+Paketti 5.3.7
+- Lisätty poksu bogey-termiksi
+- Päivitetty index.html cache-busting viitteet
+- Ei muutoksia HCP-, Stableford- tai muuhun puhelogiikkaan
