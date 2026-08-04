@@ -64,6 +64,9 @@
         const playerSettingNames = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerSettingName${index + 1}`)
         );
+        const playerNameInputs = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerName${index + 1}`)
+        );
         const stablefordCard = document.getElementById("stablefordCard");
         const stablefordToggleButton = document.getElementById("stablefordToggleButton");
         const stablefordTableBody = document.getElementById("stablefordTableBody");
@@ -291,6 +294,14 @@
             selectedTee = tee;
             genderSelect.value = selectedGender;
             teeSelect.value = selectedTee;
+        }
+
+        function clearPlayerSettingsOnNameChange(playerIndex) {
+            if (playerHcpInputs[playerIndex]) playerHcpInputs[playerIndex].value = "";
+            playerHandicaps[playerIndex] = "";
+            if (playerTeeSelects[playerIndex]) playerTeeSelects[playerIndex].value = "";
+            playerTees[playerIndex] = "";
+            if (playerCourseHcpElements[playerIndex]) playerCourseHcpElements[playerIndex].textContent = "Kentän HCP: –";
         }
 
         function updatePlayerSettingNames() {
@@ -3811,3 +3822,14 @@
         }
 
         initializeApp();
+
+
+playerNameInputs.forEach((input, index) => {
+    if (!input) return;
+    input.addEventListener("change", () => {
+        clearPlayerSettingsOnNameChange(index);
+        updatePlayerSettingNames();
+        saveState();
+        updatePlayerCourseHandicapsAndStrokeMarkers();
+    });
+});

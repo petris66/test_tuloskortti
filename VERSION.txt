@@ -1,2 +1,5 @@
-Version 0.5.4.12
-Stableford share card - fixed
+Version 0.5.4.11 - player name management fix
+
+- Player names moved to player settings
+- Name change clears old HCP and tee
+- Scorecard names sync from player settings
