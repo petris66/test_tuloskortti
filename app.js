@@ -3199,7 +3199,7 @@
                 context.fillStyle = "#506252";
                 const diffText = strokeDiff === null ? "" : `Lyöntipeli ${strokeDiff > 0 ? "+" : ""}${strokeDiff}`;
                 const stableText = stableford ? `Pistebogey ${stableford.total} p` : "";
-                context.fillText(`${diffText}${diffText && stableText ? " · " : ""}${stableText}`, summaryX[0], y + 24);
+
             });
 
             const tableTop = summaryTop + 218;

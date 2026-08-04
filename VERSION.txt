@@ -1,6 +1,6 @@
-Golf Voice Scorecard AI
-Paketti 5.4.8
-- Korjauksen jälkeen seuraava pelattava reikä haetaan tuloskortista
-- Pelkät tulokset kirjautuvat korjauksen jälkeen oikealle reiälle
-- Tukee reikä 4 444, reikä4 444 ja yhdistynyttä muotoa reikä 4444
-- Virheilmoitus: Reiän tulee olla yksi - kahdeksantoista
+Version 1.0-clean-base
+
+- CSS cleanup completed
+- HTML cleanup completed
+- JS cleanup checked
+- Stable test version before feature development
