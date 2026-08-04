@@ -1,6 +1,4 @@
-Version 1.0-clean-base
-
-- CSS cleanup completed
-- HTML cleanup completed
-- JS cleanup checked
-- Stable test version before feature development
+Golf Voice Scorecard AI
+Paketti 5.3.6 golftermit parser
+- Added golf term parser conversion test
+- Birdie/par/bogey speech variants handled before normal parsing
