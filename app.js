@@ -1918,6 +1918,9 @@
                 const alternatives = event.results[0];
                 let successfulResult = null;
                 let heardText = alternatives[0].transcript;
+                voiceStatus.innerHTML =
+                    `<strong>Raaka puhe:</strong><br>` +
+                    alternatives.map(item => escapeHtml(item.transcript)).join("<br>");
                 let lastError = new Error("Puhetta ei voitu käsitellä.");
 
                 for (let i = 0; i < alternatives.length; i++) {
