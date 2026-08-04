@@ -1158,26 +1158,265 @@
                 .trim();
         }
 
+        function getPlayerHolePar(playerIndex, hole) {
+            const rows = getPlayerSelectedCourseRows(playerIndex);
+            const row = rows.find(item => Number(item.hole) === Number(hole));
+            const par = Number(row?.par);
+
+            return Number.isFinite(par) && par > 0 ? par : null;
+        }
+
+        function extractVoiceHole(normalizedSpeech) {
+            const holeMatch = normalizedSpeech.match(
+                /(?:reika|reikä)\s+(\d{1,2}|[a-zåäö]+)/
+            );
+
+            if (!holeMatch) {
+                return null;
+            }
+
+            const parsedHole = wordToNumber(holeMatch[1]);
+
+            if (
+                typeof parsedHole !== "number" ||
+                parsedHole < 1 ||
+                parsedHole > 18
+            ) {
+                throw new Error("Reiän numeron pitää olla 1–18.");
+            }
+
+            return parsedHole;
+        }
+
+        function getGolfTermOffset(words, index) {
+            const first = words[index] || "";
+            const second = words[index + 1] || "";
+            const joined = `${first} ${second}`.trim();
+
+            const termOffsets = new Map([
+                ["albatrossi", -3],
+                ["albatros", -3],
+                ["eagle", -2],
+                ["iigle", -2],
+                ["iikle", -2],
+                ["kotka", -2],
+                ["eagl", -2],
+                ["birdie", -1],
+                ["birdy", -1],
+                ["birdi", -1],
+                ["pordi", -1],
+                ["pördi", -1],
+                ["bordi", -1],
+                ["bördi", -1],
+                ["pörtsy", -1],
+                ["portsy", -1],
+                ["pirkku", -1],
+                ["lintu", -1],
+                ["sorsa", -1],
+                ["par", 0],
+                ["parsa", 0],
+                ["bogey", 1],
+                ["bogi", 1],
+                ["boge", 1],
+                ["tupla bogey", 2],
+                ["tupla bogi", 2],
+                ["tuplabogey", 2],
+                ["tuplabogi", 2],
+                ["tupla", 2],
+                ["tripla bogey", 3],
+                ["tripla bogi", 3],
+                ["triplabogey", 3],
+                ["triplabogi", 3],
+                ["tripla", 3]
+            ]);
+
+            if (termOffsets.has(joined)) {
+                return {
+                    offset: termOffsets.get(joined),
+                    consumed: 2,
+                    term: joined
+                };
+            }
+
+            if (termOffsets.has(first)) {
+                return {
+                    offset: termOffsets.get(first),
+                    consumed: 1,
+                    term: first
+                };
+            }
+
+            return null;
+        }
+
+        function parseVoiceScoreAt(words, index, hole, playerIndex) {
+            const word = words[index];
+
+            if (!word) {
+                return null;
+            }
+
+            if (isDashWord(word)) {
+                return {
+                    score: "-",
+                    consumed: 1,
+                    usedGolfTerm: false
+                };
+            }
+
+            const number = wordToNumber(word);
+
+            if (typeof number === "number" && number >= 1 && number <= 20) {
+                return {
+                    score: number,
+                    consumed: 1,
+                    usedGolfTerm: false
+                };
+            }
+
+            const golfTerm = getGolfTermOffset(words, index);
+
+            if (!golfTerm) {
+                return null;
+            }
+
+            const par = getPlayerHolePar(playerIndex, hole);
+
+            if (par === null) {
+                throw new Error(
+                    "Golftermiä ei voitu muuntaa, koska reiän Par-tieto puuttuu."
+                );
+            }
+
+            const score = par + golfTerm.offset;
+
+            if (score < 1 || score > 20) {
+                throw new Error("Golftermistä laskettu tulos ei ole sallittu.");
+            }
+
+            return {
+                score,
+                consumed: golfTerm.consumed,
+                usedGolfTerm: true
+            };
+        }
+
+        function removeExplicitHoleWords(words) {
+            const result = [...words];
+
+            for (let index = 0; index < result.length - 1; index++) {
+                if (result[index] === "reika" || result[index] === "reikä") {
+                    result.splice(index, 2);
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        function parseOrderedGolfTermResults(spokenText) {
+            const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
+            let hole = extractVoiceHole(normalizedSpeech) ?? nextHole;
+            let words = removeExplicitHoleWords(
+                normalizedSpeech.split(/\s+/).filter(Boolean)
+            );
+
+            // Tukee muotoa: "5 birdie par bogey".
+            if (
+                words.length > 1 &&
+                /^\d{1,2}$/.test(words[0]) &&
+                Number(words[0]) >= 1 &&
+                Number(words[0]) <= 18
+            ) {
+                const possibleHole = Number(words[0]);
+                const remainingWords = words.slice(1);
+                const containsGolfTerm = remainingWords.some((_, index) =>
+                    Boolean(getGolfTermOffset(remainingWords, index))
+                );
+
+                if (containsGolfTerm) {
+                    hole = possibleHole;
+                    words = remainingWords;
+                }
+            }
+
+            const scoresByPlayer = new Map();
+            let wordIndex = 0;
+            let usedGolfTerm = false;
+
+            for (let playerIndex = 0; playerIndex < playerCount; playerIndex++) {
+                while (wordIndex < words.length) {
+                    const parsed = parseVoiceScoreAt(
+                        words,
+                        wordIndex,
+                        hole,
+                        playerIndex
+                    );
+
+                    if (parsed) {
+                        scoresByPlayer.set(playerIndex + 1, parsed.score);
+                        usedGolfTerm ||= parsed.usedGolfTerm;
+                        wordIndex += parsed.consumed;
+                        break;
+                    }
+
+                    wordIndex += 1;
+                }
+            }
+
+            if (!usedGolfTerm) {
+                return null;
+            }
+
+            if (scoresByPlayer.size < playerCount) {
+                throw new Error("Tuloksia puuttuu.");
+            }
+
+            // Ylimääräiset tulos- tai golftermit tulkitaan virheeksi.
+            for (; wordIndex < words.length; wordIndex++) {
+                const extra = parseVoiceScoreAt(
+                    words,
+                    wordIndex,
+                    hole,
+                    Math.min(playerCount - 1, 0)
+                );
+
+                if (extra) {
+                    throw new Error("Liikaa tuloksia.");
+                }
+            }
+
+            return { hole, scoresByPlayer };
+        }
+
         function parseNamedVoiceResults(spokenText) {
             const normalizedSpeech = normalizePlayerNameForVoice(spokenText);
             const words = normalizedSpeech.split(/\s+/).filter(Boolean);
             const playerMatches = [];
+            const hole = extractVoiceHole(normalizedSpeech) ?? nextHole;
 
             for (let player = 1; player <= playerCount; player++) {
-                const inputName = document.getElementById(`name${player}`).value.trim();
+                const inputName =
+                    document.getElementById(`name${player}`).value.trim();
 
                 if (!inputName) {
                     continue;
                 }
 
-                const normalizedName = normalizePlayerNameForVoice(inputName);
-                const nameWords = normalizedName.split(/\s+/).filter(Boolean);
+                const normalizedName =
+                    normalizePlayerNameForVoice(inputName);
+                const nameWords =
+                    normalizedName.split(/\s+/).filter(Boolean);
 
                 if (nameWords.length === 0) {
                     continue;
                 }
 
-                for (let index = 0; index <= words.length - nameWords.length; index++) {
+                for (
+                    let index = 0;
+                    index <= words.length - nameWords.length;
+                    index++
+                ) {
                     const matches = nameWords.every((word, offset) =>
                         words[index + offset] === word
                     );
@@ -1186,19 +1425,17 @@
                         continue;
                     }
 
-                    const scoreWord = words[index + nameWords.length];
-                    let score = null;
+                    const parsed = parseVoiceScoreAt(
+                        words,
+                        index + nameWords.length,
+                        hole,
+                        player - 1
+                    );
 
-                    if (isDashWord(scoreWord)) {
-                        score = "-";
-                    } else {
-                        score = wordToNumber(scoreWord);
-                    }
-
-                    if (score === "-" || (typeof score === "number" && score >= 1 && score <= 20)) {
+                    if (parsed) {
                         playerMatches.push({
                             player,
-                            score,
+                            score: parsed.score,
                             index
                         });
                         break;
@@ -1211,25 +1448,15 @@
             }
 
             const uniquePlayers = new Map();
+
             playerMatches
                 .sort((a, b) => a.index - b.index)
-                .forEach(match => uniquePlayers.set(match.player, match.score));
+                .forEach(match =>
+                    uniquePlayers.set(match.player, match.score)
+                );
 
             if (uniquePlayers.size < playerCount) {
                 throw new Error("Tuloksia puuttuu.");
-            }
-
-            let hole = nextHole;
-            const holeMatch = normalizedSpeech.match(/(?:reika|reikä)\s+(\d{1,2}|[a-zåäö]+)/);
-
-            if (holeMatch) {
-                const parsedHole = wordToNumber(holeMatch[1]);
-
-                if (typeof parsedHole !== "number" || parsedHole < 1 || parsedHole > 18) {
-                    throw new Error("Reiän numeron pitää olla 1–18.");
-                }
-
-                hole = parsedHole;
             }
 
             return {
@@ -1280,6 +1507,16 @@
                 return saveParsedScores(
                     namedResult.hole,
                     namedResult.scoresByPlayer
+                );
+            }
+
+            const orderedGolfResult =
+                parseOrderedGolfTermResults(spokenText);
+
+            if (orderedGolfResult) {
+                return saveParsedScores(
+                    orderedGolfResult.hole,
+                    orderedGolfResult.scoresByPlayer
                 );
             }
 

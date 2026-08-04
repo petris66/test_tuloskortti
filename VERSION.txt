@@ -1,7 +1,7 @@
 Golf Voice Scorecard AI
-Paketti 5.2.3
-- Poistettu erillinen värillinen tiibadge
-- Väritetty itse pelaajakohtainen tiivalinta tiin mukaan
-- Säilytetty M / N -lyhenteet tiivalinnassa
-- Tiivistetty pelaajakortin korkeutta
-- Ei muutoksia laskentaan, puhekirjaukseen tai Stablefordiin
+Paketti 5.3.2
+- Golftermit puhekirjaukseen
+- Albatrossi, eagle, birdie, par, bogey, tupla bogey ja tripla bogey
+- Lisätty kotka, lintu, sorsa ja parsa
+- Mukana myös pörtsy, portsy, pirkku, iikle, birdi, pördi, bördi ja bogi
+- Ei muutoksia Stableford-, HCP- tai kenttädatalogiikkaan
