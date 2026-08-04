@@ -25,6 +25,7 @@
         const tableBody = document.getElementById("tableBody");
         const voiceStatus = document.getElementById("voiceStatus");
         const voiceButton = document.getElementById("voiceButton");
+        const speechDebugText = document.getElementById("speechDebugText");
         const nextHoleElement = document.getElementById("nextHole");
         const startHoleInput = document.getElementById("startHoleInput");
         const compactNextHoleElement =
@@ -1918,14 +1919,7 @@
                 const alternatives = event.results[0];
                 let successfulResult = null;
                 let heardText = alternatives[0].transcript;
-
-                // Debug: näytetään raakapuhe vain testin ajaksi.
-                // Ei muuteta parserin toimintaa.
-                const rawSpeechDebug = document.getElementById("rawSpeechDebug");
-                if (rawSpeechDebug) {
-                    rawSpeechDebug.textContent = heardText;
-                }
-
+                if (speechDebugText) speechDebugText.textContent = alternatives.map(item => item.transcript).join(" | ");
                 let lastError = new Error("Puhetta ei voitu käsitellä.");
 
                 for (let i = 0; i < alternatives.length; i++) {
