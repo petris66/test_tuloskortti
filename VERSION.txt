@@ -1,5 +1,5 @@
 Golf Voice Scorecard AI
-Paketti 5.3.4
+Paketti 5.3.5
 - Expanded golf term speech recognition
-- Added additional Finnish speech recognition variants
+- Added additional iPhone speech recognition variants
 - No scoring logic changes
