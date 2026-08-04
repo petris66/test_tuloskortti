@@ -64,9 +64,6 @@
         const playerSettingNames = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerSettingName${index + 1}`)
         );
-        const playerTeeBadges = Array.from({ length: MAX_PLAYERS }, (_, index) =>
-            document.getElementById(`playerTeeBadge${index + 1}`)
-        );
         const stablefordCard = document.getElementById("stablefordCard");
         const stablefordToggleButton = document.getElementById("stablefordToggleButton");
         const stablefordTableBody = document.getElementById("stablefordTableBody");
@@ -318,28 +315,20 @@
             return "tee-unknown";
         }
 
-        function updatePlayerTeeBadges() {
-            playerTeeBadges.forEach((badge, index) => {
-                if (!badge) return;
+        function updatePlayerTeeSelectColors() {
+            playerTeeSelects.forEach((select, index) => {
+                if (!select) return;
 
-                const { gender, tee } = decodePlayerTee(playerTees[index]);
-                const genderShort = gender === "Miehet"
-                    ? "M"
-                    : gender === "Naiset"
-                        ? "N"
-                        : gender;
+                const { tee } = decodePlayerTee(playerTees[index]);
 
-                badge.classList.remove(
+                select.classList.remove(
                     "tee-white",
                     "tee-yellow",
                     "tee-red",
                     "tee-blue",
                     "tee-unknown"
                 );
-                badge.classList.add(getTeeColorClass(tee));
-                badge.textContent = tee
-                    ? `${tee} · ${genderShort || "–"}`
-                    : "Tii: –";
+                select.classList.add(getTeeColorClass(tee));
             });
         }
 
@@ -377,7 +366,7 @@
             });
 
             applyPrimaryPlayerTeeToScorecard();
-            updatePlayerTeeBadges();
+            updatePlayerTeeSelectColors();
         }
 
         function parseExactHandicap(value) {
@@ -3144,7 +3133,7 @@
 
             input.addEventListener("input", () => {
                 playerHandicaps[index] = input.value.trim();
-                updatePlayerTeeBadges();
+                updatePlayerTeeSelectColors();
                 updatePlayerCourseHandicapsAndStrokeMarkers();
                 saveState();
             });

@@ -1,7 +1,7 @@
 Golf Voice Scorecard AI
-Paketti 5.2.2
-- Tarkka HCP suuremmalla fontilla
-- Kentän HCP suurempana ja korostettuna
-- Pelaajakohtainen tii värillisenä tunnisteena
-- Pelaajaryhmät lyhennetty muotoon M / N
+Paketti 5.2.3
+- Poistettu erillinen värillinen tiibadge
+- Väritetty itse pelaajakohtainen tiivalinta tiin mukaan
+- Säilytetty M / N -lyhenteet tiivalinnassa
+- Tiivistetty pelaajakortin korkeutta
 - Ei muutoksia laskentaan, puhekirjaukseen tai Stablefordiin
