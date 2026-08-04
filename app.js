@@ -2613,24 +2613,6 @@
             });
         }
 
-
-        function calculateSavedStableford(scores) {
-            if (!Array.isArray(scores)) return { out: 0, in: 0, total: 0 };
-
-            const calc = (start, end) => scores
-                .slice(start, end)
-                .reduce((sum, value) => {
-                    const score = Number(value);
-                    return sum + (Number.isFinite(score) && score > 0 ? score : 0);
-                }, 0);
-
-            return {
-                out: calc(0, 9),
-                in: calc(9, 18),
-                total: calc(0, 18)
-            };
-        }
-
         function buildRoundSnapshot() {
             const snapshot = {
                 id: crypto.randomUUID
@@ -2647,8 +2629,7 @@
                 playerCount,
                 names: [],
                 scores: {},
-                totals: {},
-                stableford: {}
+                totals: {}
             };
 
             for (let player = 1; player <= playerCount; player++) {
@@ -2672,10 +2653,6 @@
 
                 snapshot.totals[player] =
                     totalText === "DNF" ? "DNF" : Number(totalText) || 0;
-
-                snapshot.stableford[player] = calculateSavedStableford(
-                    snapshot.scores[player]
-                );
             }
 
             return snapshot;
@@ -3120,7 +3097,7 @@
                 76,
                 summaryTop,
                 width - 152,
-                300,
+                190,
                 24,
                 mint
             );
@@ -3165,9 +3142,6 @@
                 const front = calculateSharedNine(scores, 0, 9);
                 const back = calculateSharedNine(scores, 9, 18);
                 const total = round.totals[player];
-                const stableford = round.stableford?.[player];
-                const parTotal = Array.from({length:18}, (_,i)=>round.par?.[i] || 0).reduce((a,b)=>a+b,0);
-                const strokeDiff = Number.isFinite(Number(total)) && parTotal ? Number(total)-Number(parTotal) : null;
 
                 context.fillStyle = ink;
                 context.font = "700 21px Arial";
@@ -3193,13 +3167,6 @@
                         y
                     );
                 });
-
-                context.textAlign = "left";
-                context.font = "600 17px Arial";
-                context.fillStyle = "#506252";
-                const diffText = strokeDiff === null ? "" : `Lyöntipeli ${strokeDiff > 0 ? "+" : ""}${strokeDiff}`;
-                const stableText = stableford ? `Pistebogey ${stableford.total} p` : "";
-                context.fillText(`${diffText}${diffText && stableText ? " · " : ""}${stableText}`, summaryX[0], y + 24);
             });
 
             const tableTop = summaryTop + 218;
@@ -3430,26 +3397,13 @@
         }
 
         function buildShareText(round) {
-            const lines = [
+            return [
                 "Golf Voice Scorecard AI",
                 "Petri Suokas · AI Golf Apps",
                 `${round.course || "Kenttä nimeämättä"} – ${formatDate(round.date)}`,
-                ""
-            ];
-
-            round.names.forEach((name, index) => {
-                const player = index + 1;
-                const stableford = round.stableford?.[player];
-                lines.push(`${name}`);
-                lines.push(`Lyöntipeli: ${round.totals[player]}`);
-                if (stableford) {
-                    lines.push(`Pistebogey: ${stableford.total} p (OUT ${stableford.out} / IN ${stableford.in})`);
-                }
-                lines.push("");
-            });
-
-            lines.push("Tuloskortti liitteenä.");
-            return lines.join("\n");
+                round.gameFormat || "Lyöntipeli",
+                "Tuloskortti liitteenä."
+            ].join("\n");
         }
 
         async function shareRound(roundId) {
