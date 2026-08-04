@@ -3415,49 +3415,66 @@
             return canvas;
         }
 
-        
-        function createStablefordScorecardCanvas(round) {
+        async function createStablefordScorecardCanvas(round) {
             const canvas = document.createElement("canvas");
-            const width = 1200;
-            const height = 1500;
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = 1080;
+            canvas.height = 1760;
 
-            const context = canvas.getContext("2d");
-            context.fillStyle = "#ffffff";
-            context.fillRect(0, 0, width, height);
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#fbfcf7";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            context.fillStyle = "#173f18";
-            context.font = "900 42px Arial";
-            context.fillText("Golf Voice Scorecard AI", 60, 80);
+            ctx.fillStyle = "#173f18";
+            ctx.font = "900 46px Arial";
+            ctx.fillText("Golf Voice Scorecard AI", 70, 90);
 
-            context.font = "800 32px Arial";
-            context.fillText("STABLEFORD / PISTEBOGEY", 60, 140);
+            ctx.font = "800 32px Arial";
+            ctx.fillText("STABLEFORD-PISTEBOGEY", 70, 145);
 
-            context.font = "700 24px Arial";
-            context.fillStyle = "#333333";
-            context.fillText(
-                `${round.course || "Kenttä"} - ${formatDate(round.date)}`,
-                60,
-                190
+            ctx.font = "700 22px Arial";
+            ctx.fillStyle = "#173019";
+            ctx.fillText(
+                `${round.course || "Kenttä"} · ${formatDate(round.date)}`,
+                70,
+                195
             );
 
             let y = 270;
-            round.names.forEach((name, index) => {
+            const activePlayers = round.names || [];
+
+            activePlayers.forEach((name, index) => {
                 const player = index + 1;
-                const stableford = round.stableford?.[player];
-                context.fillText(
-                    `${name}: ${stableford?.total ?? 0} p (OUT ${stableford?.out ?? 0} / IN ${stableford?.in ?? 0})`,
-                    80,
+                const stableford = round.stableford?.[player] || {};
+
+                ctx.font = "800 28px Arial";
+                ctx.fillText(name, 70, y);
+
+                ctx.font = "600 22px Arial";
+                ctx.fillText(
+                    `OUT ${stableford.out || 0}  IN ${stableford.in || 0}  YHT ${stableford.total || 0} p`,
+                    280,
                     y
                 );
                 y += 55;
+
+                const scores = stableford.points || stableford.scores || [];
+                ctx.font = "18px Arial";
+                ctx.fillText(
+                    scores.length ? scores.join("  ") : "Reikäkohtaiset pisteet tallennettu korttiin",
+                    90,
+                    y
+                );
+                y += 70;
             });
+
+            ctx.font = "600 18px Arial";
+            ctx.fillStyle = "#607262";
+            ctx.fillText("AI Golf Apps · Petri Suokas", 70, 1680);
 
             return canvas;
         }
 
-function canvasToBlob(canvas) {
+        function canvasToBlob(canvas) {
             return new Promise((resolve, reject) => {
                 canvas.toBlob(blob => {
                     if (blob) {
@@ -3511,12 +3528,12 @@ function canvasToBlob(canvas) {
             });
 
             try {
-                const strokeCanvas =
+                const canvas =
                     await createVerticalScorecardCanvas(round);
                 const stablefordCanvas =
                     await createStablefordScorecardCanvas(round);
 
-                const blob = await canvasToBlob(strokeCanvas);
+                const blob = await canvasToBlob(canvas);
                 const stablefordBlob = await canvasToBlob(stablefordCanvas);
                 const safeCourse = String(
                     round.course || "golfkierros"

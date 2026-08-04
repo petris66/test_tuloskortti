@@ -1,6 +1,2 @@
-Version 1.0-clean-base
-
-- CSS cleanup completed
-- HTML cleanup completed
-- JS cleanup checked
-- Stable test version before feature development
+Version 0.5.4.12
+Stableford share card update
