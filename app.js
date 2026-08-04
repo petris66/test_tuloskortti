@@ -258,6 +258,11 @@
             return { gender, tee };
         }
 
+        function getShortTeeLabel(tee) {
+            const value = String(tee || "").trim();
+            return value.length <= 2 ? value : value.slice(0, 2);
+        }
+
         function getAvailablePlayerTees() {
             const combinations = new Map();
 
@@ -269,7 +274,7 @@
                         value,
                         gender: row.gender,
                         tee: row.tee,
-                        label: `${row.tee} · ${row.gender === "Miehet" ? "M" : row.gender === "Naiset" ? "N" : row.gender}`
+                        label: `${getShortTeeLabel(row.tee)} · ${row.gender === "Miehet" ? "M" : row.gender === "Naiset" ? "N" : row.gender}`
                     });
                 }
             });

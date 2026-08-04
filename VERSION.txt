@@ -1,6 +1,7 @@
-Version 0.5.4.11 fix 4
+Version 0.5.4.11 fix5 – compact tee labels
 
-- Removed Player 1-4 labels from player settings
-- Player name, exact HCP, tee and course HCP shown on one row
-- Changing player name clears previous exact HCP and tee selection
-- Scorecard name synchronization retained
+- Tee names shortened to two characters in player settings
+- Color tees: Keltainen → Ke, Punainen → Pu, Valkoinen → Va, Sininen → Si
+- Numeric tee labels with two digits remain unchanged
+- Full tee values and tee color logic remain unchanged
+- Based on working fix4 player settings layout
