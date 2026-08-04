@@ -1,6 +1,7 @@
-Version 0.5.4.11 fix7
+Version 0.5.4.12
 
-- start-hole input scrolls into view when focused
-- mobile number keyboard no longer hides the field
-- two delayed scroll checks improve iPhone Safari behavior
-- no scoring, player, course or tee logic changes
+- shared scorecard now contains two PNG images
+- first image mirrors the application stroke-play scorecard
+- second image mirrors the application Stableford points table
+- both images include all 18 holes, nine totals and round total
+- no player, tee, course or voice-scoring logic changes

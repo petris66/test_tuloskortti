@@ -2703,7 +2703,16 @@
                 names: [],
                 scores: {},
                 totals: {},
-                stableford: {}
+                stableford: {},
+                stablefordPoints: {},
+                par: Array.from({ length: 18 }, (_, index) =>
+                    Number(getHoleData(index + 1)?.par) || 0
+                ),
+                holeHcp: Array.from({ length: 18 }, (_, index) =>
+                    Number(getHoleData(index + 1)?.hcp) || 0
+                ),
+                playerHandicaps: playerHandicaps.slice(0, playerCount),
+                playerTees: playerTees.slice(0, playerCount)
             };
 
             for (let player = 1; player <= playerCount; player++) {
@@ -2728,9 +2737,24 @@
                 snapshot.totals[player] =
                     totalText === "DNF" ? "DNF" : Number(totalText) || 0;
 
-                snapshot.stableford[player] = calculateSavedStableford(
-                    snapshot.scores[player]
+                snapshot.stablefordPoints[player] = Array.from(
+                    { length: 18 },
+                    (_, index) => {
+                        const points = getStablefordPoints(player - 1, index + 1);
+                        return typeof points === "number" ? points : null;
+                    }
                 );
+
+                snapshot.stableford[player] = {
+                    out: snapshot.stablefordPoints[player]
+                        .slice(0, 9)
+                        .reduce((sum, value) => sum + (Number(value) || 0), 0),
+                    in: snapshot.stablefordPoints[player]
+                        .slice(9, 18)
+                        .reduce((sum, value) => sum + (Number(value) || 0), 0),
+                    total: snapshot.stablefordPoints[player]
+                        .reduce((sum, value) => sum + (Number(value) || 0), 0)
+                };
             }
 
             return snapshot;
@@ -3470,6 +3494,294 @@
             return canvas;
         }
 
+
+        function getSavedStablefordPoints(round, player) {
+            const saved = round.stablefordPoints?.[player];
+
+            if (Array.isArray(saved) && saved.length >= 18) {
+                return saved.slice(0, 18).map(value =>
+                    value === null || value === undefined ? null : Number(value)
+                );
+            }
+
+            return Array.from({ length: 18 }, () => null);
+        }
+
+        function getSharePointColors(points) {
+            if (points === null || points === undefined) {
+                return { background: "#ffffff", text: "#173019" };
+            }
+            if (points <= 0) {
+                return { background: "#f3f5f2", text: "#68756a" };
+            }
+            if (points === 1) {
+                return { background: "#fff2d6", text: "#7a5100" };
+            }
+            if (points === 2) {
+                return { background: "#eaf5e5", text: "#173f18" };
+            }
+            if (points === 3) {
+                return { background: "#d8efd0", text: "#173f18" };
+            }
+            return { background: "#c0e5b6", text: "#173f18" };
+        }
+
+        async function createAppScorecardCanvas(round, mode = "stroke") {
+            const canvas = document.createElement("canvas");
+            canvas.width = 1240;
+            canvas.height = 1840;
+
+            const context = canvas.getContext("2d");
+            const width = canvas.width;
+            const height = canvas.height;
+
+            const forest = "#173f18";
+            const forestTwo = "#286f24";
+            const mint = "#eaf5e5";
+            const cream = "#fbfcf7";
+            const gold = "#f2d178";
+            const ink = "#173019";
+            const line = "#bfd2ba";
+            const white = "#ffffff";
+            const soft = "#e8f1e4";
+
+            const background = context.createLinearGradient(0, 0, 0, height);
+            background.addColorStop(0, forest);
+            background.addColorStop(0.22, "#315f31");
+            background.addColorStop(0.58, "#d7ebcf");
+            background.addColorStop(1, "#eef6e9");
+            context.fillStyle = background;
+            context.fillRect(0, 0, width, height);
+
+            const logo = await loadShareLogo();
+            if (logo) {
+                fillRoundedRect(context, 62, 46, 106, 106, 24, white);
+                context.drawImage(logo, 72, 56, 86, 86);
+            }
+
+            context.fillStyle = white;
+            context.textAlign = "left";
+            context.font = "700 30px Arial";
+            context.fillText("GOLF VOICE", 194, 80);
+            context.font = "800 52px Georgia";
+            context.fillText("Scorecard AI", 194, 132);
+
+            context.fillStyle = gold;
+            context.font = "700 20px Arial";
+            context.fillText("BY PETRI SUOKAS · POWERED BY AI", 194, 168);
+
+            fillRoundedRect(context, 42, 204, width - 84, height - 250, 34, cream);
+
+            context.fillStyle = forestTwo;
+            context.font = "900 24px Arial";
+            context.textAlign = "left";
+            context.fillText(
+                mode === "stableford" ? "STABLEFORD-PISTEET" : "TULOSKORTTI",
+                76,
+                258
+            );
+
+            context.fillStyle = ink;
+            const course = round.course || "Kenttä nimeämättä";
+            const courseSize = fitCanvasText(context, course, width - 152, 44, 28);
+            context.font = `800 ${courseSize}px Georgia`;
+            context.fillText(course, 76, 316);
+
+            context.fillStyle = "#4f6451";
+            context.font = "700 23px Arial";
+            context.fillText(
+                `${formatDate(round.date)} · ${mode === "stableford" ? "Stableford" : (round.gameFormat || "Lyöntipeli")}`,
+                76,
+                354
+            );
+
+            const tableLeft = 64;
+            const tableTop = 394;
+            const tableWidth = width - 128;
+            const headerHeight = 62;
+            const rowHeight = 55;
+            const rows = [];
+
+            for (let hole = 1; hole <= 18; hole++) {
+                rows.push({ type: "hole", hole, label: String(hole) });
+
+                if (hole === 9) {
+                    rows.push({ type: "front", label: "Etuysi" });
+                }
+                if (hole === 18) {
+                    rows.push({ type: "back", label: "Takaysi" });
+                }
+            }
+            rows.push({ type: "total", label: "Yhteensä" });
+
+            const tableHeight = headerHeight + rows.length * rowHeight;
+            fillRoundedRect(context, tableLeft, tableTop, tableWidth, tableHeight, 22, white);
+
+            context.save();
+            roundedRectPath(context, tableLeft, tableTop, tableWidth, tableHeight, 22);
+            context.clip();
+
+            const fixedColumns = mode === "stableford"
+                ? [112, 92]
+                : [112, 82, 88];
+            const fixedWidth = fixedColumns.reduce((sum, value) => sum + value, 0);
+            const playerWidth = (tableWidth - fixedWidth) / round.names.length;
+
+            context.fillStyle = forest;
+            context.fillRect(tableLeft, tableTop, tableWidth, headerHeight);
+
+            const headers = mode === "stableford"
+                ? ["Reikä", "Par"]
+                : ["Reikä", "Par", "HCP"];
+
+            let x = tableLeft;
+            context.fillStyle = white;
+            context.textAlign = "center";
+            context.font = "800 21px Arial";
+
+            headers.forEach((header, index) => {
+                const columnWidth = fixedColumns[index];
+                context.fillText(header, x + columnWidth / 2, tableTop + 39);
+                x += columnWidth;
+            });
+
+            round.names.forEach((name, index) => {
+                const center = tableLeft + fixedWidth + playerWidth * index + playerWidth / 2;
+                const size = fitCanvasText(context, name, playerWidth - 12, 21, 12);
+                context.font = `800 ${size}px Arial`;
+                context.fillText(name, center, tableTop + 39);
+            });
+
+            rows.forEach((row, rowIndex) => {
+                const y = tableTop + headerHeight + rowIndex * rowHeight;
+                const isSummary = row.type !== "hole";
+
+                context.fillStyle = row.type === "total"
+                    ? forest
+                    : isSummary
+                        ? mint
+                        : rowIndex % 2 === 0
+                            ? white
+                            : "#f7faf5";
+                context.fillRect(tableLeft, y, tableWidth, rowHeight);
+
+                context.fillStyle = row.type === "total" ? white : (isSummary ? forest : ink);
+                context.font = `${isSummary ? "800" : "700"} 20px Arial`;
+                context.textAlign = "center";
+
+                context.fillText(row.label, tableLeft + fixedColumns[0] / 2, y + 35);
+
+                if (row.type === "hole") {
+                    const par = Number(round.par?.[row.hole - 1]) || "–";
+                    context.fillText(
+                        String(par),
+                        tableLeft + fixedColumns[0] + fixedColumns[1] / 2,
+                        y + 35
+                    );
+
+                    if (mode === "stroke") {
+                        const holeHcp = Number(round.holeHcp?.[row.hole - 1]) || "–";
+                        context.fillText(
+                            String(holeHcp),
+                            tableLeft + fixedColumns[0] + fixedColumns[1] + fixedColumns[2] / 2,
+                            y + 35
+                        );
+                    }
+                }
+
+                round.names.forEach((name, index) => {
+                    const player = index + 1;
+                    let value = "";
+                    let cellBackground = null;
+                    let textColor = row.type === "total" ? white : ink;
+
+                    if (mode === "stableford") {
+                        const points = getSavedStablefordPoints(round, player);
+
+                        if (row.type === "hole") {
+                            value = points[row.hole - 1];
+                            const pointColors = getSharePointColors(value);
+                            cellBackground = pointColors.background;
+                            textColor = pointColors.text;
+                            value = value === null ? "–" : String(value);
+                        } else if (row.type === "front") {
+                            value = points.slice(0, 9).reduce((sum, item) => sum + (Number(item) || 0), 0);
+                        } else if (row.type === "back") {
+                            value = points.slice(9, 18).reduce((sum, item) => sum + (Number(item) || 0), 0);
+                        } else {
+                            value = points.reduce((sum, item) => sum + (Number(item) || 0), 0);
+                        }
+                    } else {
+                        const scores = round.scores[player] || [];
+
+                        if (row.type === "hole") {
+                            value = getShareScoreValue(scores[row.hole - 1]) || "–";
+                        } else if (row.type === "front") {
+                            value = calculateSharedNine(scores, 0, 9);
+                        } else if (row.type === "back") {
+                            value = calculateSharedNine(scores, 9, 18);
+                        } else {
+                            value = round.totals[player];
+                        }
+                    }
+
+                    const cellX = tableLeft + fixedWidth + playerWidth * index;
+
+                    if (cellBackground && row.type === "hole") {
+                        context.fillStyle = cellBackground;
+                        context.fillRect(cellX, y, playerWidth, rowHeight);
+                    }
+
+                    context.fillStyle = row.type === "total" ? white : textColor;
+                    context.font = `${isSummary ? "800" : "700"} 22px Arial`;
+                    context.fillText(
+                        String(value),
+                        cellX + playerWidth / 2,
+                        y + 35
+                    );
+                });
+            });
+
+            context.strokeStyle = line;
+            context.lineWidth = 2;
+
+            for (let rowIndex = 0; rowIndex <= rows.length; rowIndex++) {
+                const y = tableTop + headerHeight + rowIndex * rowHeight;
+                context.beginPath();
+                context.moveTo(tableLeft, y);
+                context.lineTo(tableLeft + tableWidth, y);
+                context.stroke();
+            }
+
+            let columnX = tableLeft;
+            fixedColumns.forEach(columnWidth => {
+                columnX += columnWidth;
+                context.beginPath();
+                context.moveTo(columnX, tableTop);
+                context.lineTo(columnX, tableTop + tableHeight);
+                context.stroke();
+            });
+
+            for (let player = 1; player < round.names.length; player++) {
+                const playerX = tableLeft + fixedWidth + playerWidth * player;
+                context.beginPath();
+                context.moveTo(playerX, tableTop);
+                context.lineTo(playerX, tableTop + tableHeight);
+                context.stroke();
+            }
+
+            context.restore();
+
+            context.fillStyle = "#607262";
+            context.textAlign = "center";
+            context.font = "600 18px Arial";
+            context.fillText("Petri Suokas", width / 2, height - 54);
+            context.font = "800 18px Arial";
+            context.fillText("AI Golf Apps", width / 2, height - 28);
+
+            return canvas;
+        }
+
         function canvasToBlob(canvas) {
             return new Promise((resolve, reject) => {
                 canvas.toBlob(blob => {
@@ -3520,80 +3832,81 @@
 
             shareButtons.forEach(button => {
                 button.disabled = true;
-                button.textContent = "Luodaan jakokorttia…";
+                button.textContent = "Luodaan kaksi tuloskorttia…";
             });
 
             try {
-                const canvas =
-                    await createVerticalScorecardCanvas(round);
-                const blob = await canvasToBlob(canvas);
-                const safeCourse = String(
-                    round.course || "golfkierros"
-                )
+                const strokeCanvas = await createAppScorecardCanvas(round, "stroke");
+                const stablefordCanvas = await createAppScorecardCanvas(round, "stableford");
+
+                const [strokeBlob, stablefordBlob] = await Promise.all([
+                    canvasToBlob(strokeCanvas),
+                    canvasToBlob(stablefordCanvas)
+                ]);
+
+                const safeCourse = String(round.course || "golfkierros")
                     .replace(/[^\p{L}\p{N}_-]+/gu, "_")
                     .replace(/^_+|_+$/g, "")
                     .slice(0, 40) || "golfkierros";
-                const filename =
-                    `Golf_Voice_${safeCourse}_${round.date || "kierros"}.png`;
-                const file = new File(
-                    [blob],
-                    filename,
+
+                const baseName = `Golf_Voice_${safeCourse}_${round.date || "kierros"}`;
+
+                const strokeFile = new File(
+                    [strokeBlob],
+                    `${baseName}_Lyontipeli.png`,
                     { type: "image/png" }
                 );
-                const shareText = buildShareText(round);
+
+                const stablefordFile = new File(
+                    [stablefordBlob],
+                    `${baseName}_Stableford.png`,
+                    { type: "image/png" }
+                );
+
+                const files = [strokeFile, stablefordFile];
 
                 if (
                     navigator.share &&
-                    (!navigator.canShare ||
-                        navigator.canShare({ files: [file] }))
+                    (!navigator.canShare || navigator.canShare({ files }))
                 ) {
                     try {
                         await navigator.share({
                             title: `Golfkierros – ${round.course}`,
-                            text: shareText,
-                            files: [file]
+                            files
                         });
                         return;
                     } catch (error) {
                         if (error.name === "AbortError") {
                             return;
                         }
+                        console.warn("Kahden kuvan jako epäonnistui:", error);
                     }
                 }
 
-                const imageUrl = URL.createObjectURL(blob);
-                const downloadLink = document.createElement("a");
-                downloadLink.href = imageUrl;
-                downloadLink.download = filename;
-                downloadLink.rel = "noopener";
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                downloadLink.remove();
+                [
+                    { blob: strokeBlob, name: strokeFile.name },
+                    { blob: stablefordBlob, name: stablefordFile.name }
+                ].forEach(item => {
+                    const imageUrl = URL.createObjectURL(item.blob);
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = imageUrl;
+                    downloadLink.download = item.name;
+                    downloadLink.rel = "noopener";
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.remove();
 
-                setTimeout(() => {
-                    URL.revokeObjectURL(imageUrl);
-                }, 3000);
-
-                alert(
-                    "Tuloskortti luotiin kuvaksi. Voit jakaa sen Kuvat- tai Tiedostot-sovelluksesta."
-                );
+                    window.setTimeout(() => {
+                        URL.revokeObjectURL(imageUrl);
+                    }, 4000);
+                });
             } catch (error) {
-                console.error(error);
-
-                const text = buildShareText(round);
-
-                try {
-                    await navigator.clipboard.writeText(text);
-                    alert(
-                        "Jakokuvan luominen epäonnistui, joten kierroksen yhteenveto kopioitiin leikepöydälle."
-                    );
-                } catch (clipboardError) {
-                    prompt("Kopioi kierroksen yhteenveto:", text);
-                }
+                console.error("Tuloskorttien jakaminen epäonnistui:", error);
+                alert("Kahden tuloskorttikuvan luominen epäonnistui.");
             } finally {
                 shareButtons.forEach(button => {
                     button.disabled = false;
-                    button.textContent = "Jaa tuloskortti";
+                    button.textContent = "📤 Jaa tuloskortti";
                 });
             }
         }
