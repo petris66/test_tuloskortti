@@ -1,5 +1,8 @@
 Golf Voice Scorecard AI
-Paketti 5.3.5
-- Expanded golf term speech recognition
-- Added additional iPhone speech recognition variants
-- No scoring logic changes
+Paketti 5.3.5 korjattu
+
+- Palautettu 5.3.4 pohja
+- Lisätty puheentunnistuksen lisämuodot:
+  Birdie: pördi, bördi, pöördy, pöördi, böördy, böördi
+  Bogey: poki, bogy, bokey, bokkei, bokki, boogi
+- Ei muutoksia piste-, HCP- tai Stableford-logiikkaan
