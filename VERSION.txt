@@ -1,8 +1,4 @@
 Golf Voice Scorecard AI
-Paketti 5.4.0
-- Uuden kierroksen asetusten järjestys muutettu
-- Pelaajamäärä
-- Pelaajakohtaiset tiedot
-- Kenttä
-- Aloitusreikä
-- Ei muutoksia laskentaan tai puhelogiikkaan
+Paketti 5.4.1
+- Pelaajan tiivalinnan pohjaväri päivittyy heti valinnan yhteydessä
+- Ei muutoksia HCP-, Stableford- tai puhelogiikkaan

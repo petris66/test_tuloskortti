@@ -3420,6 +3420,7 @@
 
             select.addEventListener("change", () => {
                 playerTees[index] = select.value;
+                updatePlayerTeeSelectColors();
 
                 // Tuloskortin Par/HCP-näkymä seuraa ensimmäisen aktiivisen
                 // pelaajan tii-/ryhmävalintaa. Muiden pelaajien valinnat säilyvät erillisinä.
