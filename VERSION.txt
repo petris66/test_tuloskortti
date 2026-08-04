@@ -1,4 +1,4 @@
 Golf Voice Scorecard AI
-Paketti 5.3.6 golftermit parser
-- Added golf term parser conversion test
-- Birdie/par/bogey speech variants handled before normal parsing
+Paketti 5.3.6 cat-dog parser test
+- cat = birdie
+- dog = bogey

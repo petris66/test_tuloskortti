@@ -672,29 +672,7 @@
             speakMessage(`Viiva merkitty reiälle ${hole}`);
         }
 
-        
-        function convertGolfTermToScore(text) {
-            const normalized = String(text || "")
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "");
-
-            if (/(pordi|pordi|pordi|pordy|pordi|bordi|bordy|birdie|birdy|birdi|pirkku)/.test(normalized)) {
-                return -1;
-            }
-
-            if (/(poki|boki|bokey|bogy|bogey|bogi)/.test(normalized)) {
-                return 1;
-            }
-
-            if (/(par|bar)/.test(normalized)) {
-                return 0;
-            }
-
-            return null;
-        }
-
-function normalizeScoreValue(value) {
+        function normalizeScoreValue(value) {
             const cleaned = String(value || "").trim().toLowerCase();
 
             if (cleaned === "-" || cleaned === "–" || cleaned === "—" || cleaned === "x") {
@@ -1224,6 +1202,7 @@ function normalizeScoreValue(value) {
                 ["kotka", -2],
                 ["eagl", -2],
                 ["birdie", -1],
+                ["cat", -1],
                 ["birdy", -1],
                 ["birdi", -1],
                 ["pordi", -1],
@@ -1251,6 +1230,7 @@ function normalizeScoreValue(value) {
                 ["parsa", 0],
                 ["bar", 0],
                 ["bogey", 1],
+                ["dog", 1],
                 ["bogi", 1],
                 ["bogin", 1],
                 ["bogeyn", 1],
@@ -1940,8 +1920,6 @@ function normalizeScoreValue(value) {
                 const alternatives = event.results[0];
                 let successfulResult = null;
                 let heardText = alternatives[0].transcript;
-                const golfTermScore = convertGolfTermToScore(heardText);
-
                 let lastError = new Error("Puhetta ei voitu käsitellä.");
 
                 for (let i = 0; i < alternatives.length; i++) {
