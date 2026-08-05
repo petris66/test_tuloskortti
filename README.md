@@ -1,5 +1,4 @@
 # Golf Voice Scorecard AI
-# Golf Voice Scorecard AI
 
 AI-assisted voice-controlled golf scorecard application.
 
@@ -44,7 +43,13 @@ Projektirakenne:
 - `images/` – tulevat kuvat
 - `backup/` – omat varmuuskopiot
 
-Lataa GitHub-repositorion juureen kaikki tämän paketin kansiot ja tiedostot.
+Repository sisältää sovelluksen lähdekoodin ja tarvittavat resurssit.
+
+## Development history
+
+The project versioning has changed during development.
+Older versions below describe earlier development phases.
+Current development follows the v0.5.x version series.
 
 
 ## v3.3
