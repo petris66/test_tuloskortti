@@ -1,4 +1,38 @@
 # Golf Voice Scorecard AI
+# Golf Voice Scorecard AI
+
+AI-assisted voice-controlled golf scorecard application.
+
+Golf Voice Scorecard AI is a mobile-first web application designed to make golf scoring faster and easier using voice commands.
+
+## Project status
+
+🚧 Under active development and testing.
+
+Current version:
+**v0.5.4.12**
+
+## Main features
+
+- Voice-controlled score entry
+- 1–4 player support
+- 18-hole scorecard
+- Stroke play scoring
+- Stableford scoring
+- Player and tee management
+- Shareable scorecard images
+- Mobile-first design
+
+## Technology
+
+Built with:
+- HTML
+- CSS
+- JavaScript
+- Web Speech API
+- GitHub Pages
+
+---
 
 Projektirakenne:
 
@@ -123,3 +157,21 @@ Poista vanha kotinäytön kuvake ja lisää sovellus Safari-valikosta uudelleen,
 - Jaettava kuva sisältää nyt vain kierroksen tiedot ja varsinaisen tuloskortin.
 - Sovelluksen kierroksen aikainen voittajan ilmoitus säilyy ennallaan.
 - Jakokuvan korkeutta tiivistettiin poistuneen yhteenveto-osion verran.
+
+- ---
+
+## License
+
+This project is protected under a custom All Rights Reserved license.
+
+The source code is available for demonstration and evaluation purposes only.
+
+Commercial use, redistribution or creation of derivative products requires permission from the copyright holder.
+
+See [LICENSE](LICENSE) for details.
+
+## Author
+
+Petri Suokas
+
+© 2026 Petri Suokas
