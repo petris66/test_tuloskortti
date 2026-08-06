@@ -1920,3 +1920,18 @@ body {
         margin: -4px 0 12px;
     }
 }
+
+/* GPS 1.1.7 - round length selector */
+.round-length-settings{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.round-length-fieldset{margin:0;padding:0;border:0}
+.round-length-fieldset legend{margin:0 0 5px;padding:0;font-size:.9rem;color:#5f6b63}
+.round-length-options{display:flex;gap:8px}
+.round-length-option{position:relative;cursor:pointer}
+.round-length-option input{position:absolute;opacity:0;pointer-events:none}
+.round-length-option span{display:block;padding:8px 12px;border:1px solid #cfd5cf;border-radius:8px;background:#fff;font-weight:600;white-space:nowrap}
+.round-length-option input:checked+span{border-color:#68776c;box-shadow:inset 0 0 0 1px #68776c;background:#f2f5f2}
+.round-length-option input:focus-visible+span{outline:2px solid currentColor;outline-offset:2px}
+.round-hole-count-hidden{display:none}
+.round-start-hole{margin-bottom:0}
+.round-start-hole input{display:block;width:90px;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #cfd5cf}
+@media(max-width:520px){.round-length-options{gap:6px}.round-length-option span{padding:8px 10px}}

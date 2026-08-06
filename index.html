@@ -121,15 +121,20 @@
             <p class="course-data-status" id="courseDataStatus">Ladataan kenttädataa…</p>
             <p class="selected-course-info" id="selectedCourseInfo">Valitse kenttä ja pelaajakohtaiset tiit.</p>
 
-            <div class="round-length-settings" aria-label="Kierroksen pituus ja aloitusreikä" style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
-                <label class="section-help" style="margin-bottom:0;">Pelattavat reiät
-                    <select id="roundHoleCount" aria-label="Pelattavien reikien määrä" style="display:block;width:110px;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;background:white;">
+            <div class="round-length-settings" aria-label="Kierroksen pituus ja aloitusreikä">
+                <fieldset class="round-length-fieldset">
+                    <legend>Kierroksen pituus</legend>
+                    <div class="round-length-options">
+                        <label class="round-length-option"><input type="radio" name="roundHoleCountChoice" value="9"><span>9 reikää</span></label>
+                        <label class="round-length-option"><input type="radio" name="roundHoleCountChoice" value="18" checked><span>18 reikää</span></label>
+                    </div>
+                    <select id="roundHoleCount" aria-label="Kierroksen pituus" class="round-hole-count-hidden">
                         <option value="18" selected>18 reikää</option>
                         <option value="9">9 reikää</option>
                     </select>
-                </label>
-                <label class="section-help" style="margin-bottom:0;">Aloitusreikä
-                    <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä" style="display:block;width:90px;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
+                </fieldset>
+                <label class="section-help round-start-hole">Aloitusreikä
+                    <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä">
                 </label>
             </div>
         </section>
@@ -455,7 +460,22 @@
         </div>
     </div>
 
-    <script src="app.js?v=gps-1-1-5" defer></script>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("roundHoleCount");
+    const choices = document.querySelectorAll('input[name="roundHoleCountChoice"]');
+    if (!select || !choices.length) return;
+    const sync = () => choices.forEach(c => c.checked = c.value === select.value);
+    choices.forEach(c => c.addEventListener("change", () => {
+        if (!c.checked) return;
+        select.value = c.value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+    }));
+    select.addEventListener("change", sync);
+    sync();
+});
+</script>
+<script src="app.js?v=gps-1-1-5" defer></script>
 
 </body>
 </html>

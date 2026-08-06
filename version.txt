@@ -1,7 +1,19 @@
-Version GPS 1.1.6
+Golf Voice Scorecard AI
+Development Repository
 
-- Added 9 / 18 hole round selection
-- Round completion follows the selected round length
-- Starting hole and selected round length are saved
-- GPS stops when the selected round is finished
-- Based on tested GPS 1.1.4 / 1.1.5 foundation
+Version:
+GPS 1.1.7
+
+Base Version:
+GPS 1.1.6
+
+Date:
+2026-08-06
+
+Status:
+Development
+
+Changes:
+- Renamed the setting to "Kierroksen pituus".
+- Added clear 9 / 18 hole selection buttons.
+- Preserved GPS 1.1.6 round-length logic and GPS shutdown behavior.
