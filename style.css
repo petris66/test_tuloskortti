@@ -1803,3 +1803,120 @@ body {
     scroll-margin-top: 28vh;
     scroll-margin-bottom: 42vh;
 }
+
+
+/* --- GPS package 1.1 --- */
+.gps-card {
+    position: relative;
+}
+
+.gps-heading-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.gps-heading-row .section-title {
+    flex: 1;
+}
+
+.gps-state-badge {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    border: 1px solid #c7d4c4;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.gps-state-off {
+    color: #59625b;
+    background: #f1f3f0;
+}
+
+.gps-state-loading {
+    color: #6d530d;
+    background: #fff5cf;
+    border-color: #e8d080;
+}
+
+.gps-state-on {
+    color: #175019;
+    background: #e4f4df;
+    border-color: #9fc49a;
+}
+
+.gps-state-error {
+    color: #7a1d1d;
+    background: #fff0f0;
+    border-color: #e0b3b3;
+}
+
+.gps-toggle-button {
+    width: 100%;
+    color: white;
+    background: linear-gradient(145deg, #2c7e28, #195119);
+    border-color: #1b501a;
+}
+
+.gps-toggle-button.gps-stop-button {
+    color: var(--ink);
+    background: #f7fbf4;
+    border-color: #afc6aa;
+}
+
+.gps-message {
+    margin: 12px 0;
+    padding: 11px 13px;
+    border: 1px solid #c6d9c1;
+    border-radius: 14px;
+    color: #486046;
+    background: #f2f8ef;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.gps-data-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.gps-data-item {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #d4dfd1;
+    border-radius: 14px;
+    background: #fbfdf9;
+}
+
+.gps-data-item span {
+    color: #60725f;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.gps-data-item strong {
+    overflow-wrap: anywhere;
+    color: var(--forest);
+    font-size: 15px;
+}
+
+.gps-data-item-wide {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 420px) {
+    .gps-heading-row {
+        display: block;
+    }
+
+    .gps-state-badge {
+        display: inline-block;
+        margin: -4px 0 12px;
+    }
+}

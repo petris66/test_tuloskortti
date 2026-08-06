@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=package-5-4-12-two-share-cards">
+    <link rel="stylesheet" href="style.css?v=gps-1-1">
 
 </head>
 
@@ -179,6 +179,44 @@
                         onclick="saveCompletedRound()">
                     💾 Tallenna tarkistettu kierros
                 </button>
+            </div>
+        </section>
+
+        <section class="card gps-card" id="gpsCard" aria-labelledby="gpsTitle">
+            <div class="gps-heading-row">
+                <h2 class="section-title" id="gpsTitle">GPS</h2>
+                <span class="gps-state-badge gps-state-off" id="gpsStateBadge">GPS pois käytöstä</span>
+            </div>
+
+            <button type="button" class="action-button gps-toggle-button" id="gpsToggleButton" onclick="toggleGps()">
+                📍 Salli GPS
+            </button>
+
+            <p class="gps-message" id="gpsMessage" role="status" aria-live="polite">
+                GPS ei ole käytössä. Sijaintia ei tallenneta.
+            </p>
+
+            <div class="gps-data-grid" aria-label="GPS-tiedot">
+                <div class="gps-data-item">
+                    <span>Status</span>
+                    <strong id="gpsStatus">Ei käytössä</strong>
+                </div>
+                <div class="gps-data-item">
+                    <span>Tarkkuus</span>
+                    <strong id="gpsAccuracy">—</strong>
+                </div>
+                <div class="gps-data-item">
+                    <span>Lat</span>
+                    <strong id="gpsLatitude">—</strong>
+                </div>
+                <div class="gps-data-item">
+                    <span>Lon</span>
+                    <strong id="gpsLongitude">—</strong>
+                </div>
+                <div class="gps-data-item gps-data-item-wide">
+                    <span>Päivitetty</span>
+                    <strong id="gpsUpdatedAt">—</strong>
+                </div>
             </div>
         </section>
 
@@ -405,7 +443,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=package-5-4-12-two-share-cards" defer></script>
+    <script src="app.js?v=gps-1-1" defer></script>
 
 </body>
 </html>

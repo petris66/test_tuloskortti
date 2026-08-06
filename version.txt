@@ -1,6 +1,7 @@
-Version 1.0-clean-base
+Version 1.1-gps-base
 
-- CSS cleanup completed
-- HTML cleanup completed
-- JS cleanup checked
-- Stable test version before feature development
+- Browser GPS layer added
+- GPS on/off control and permission handling
+- GPS status, accuracy, coordinates and update time
+- No course GPS data or Garmin connection yet
+- Development repository package; live v0.5.5 unchanged
