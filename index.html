@@ -121,9 +121,17 @@
             <p class="course-data-status" id="courseDataStatus">Ladataan kenttädataa…</p>
             <p class="selected-course-info" id="selectedCourseInfo">Valitse kenttä ja pelaajakohtaiset tiit.</p>
 
-            <label class="section-help">Aloitusreikä
-                <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
-            </label>
+            <div class="round-length-settings" aria-label="Kierroksen pituus ja aloitusreikä" style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
+                <label class="section-help" style="margin-bottom:0;">Pelattavat reiät
+                    <select id="roundHoleCount" aria-label="Pelattavien reikien määrä" style="display:block;width:110px;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;background:white;">
+                        <option value="18" selected>18 reikää</option>
+                        <option value="9">9 reikää</option>
+                    </select>
+                </label>
+                <label class="section-help" style="margin-bottom:0;">Aloitusreikä
+                    <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä" style="display:block;width:90px;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #cfd5cf;">
+                </label>
+            </div>
         </section>
 
         <section class="card next-hole-box next-hole-card" id="nextHoleCard">

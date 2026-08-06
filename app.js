@@ -8,6 +8,7 @@
         let roundSetupConfirmed = false;
         let nextHole = 1;
         let startHole = 1;
+        let roundHoleCount = 18;
         let roundComplete = false;
         let frontNineAnnounced = false;
         let pendingVoiceMessage = "";
@@ -27,6 +28,7 @@
         const voiceButton = document.getElementById("voiceButton");
         const nextHoleElement = document.getElementById("nextHole");
         const startHoleInput = document.getElementById("startHoleInput");
+        const roundHoleCountInput = document.getElementById("roundHoleCount");
         const compactNextHoleElement =
             document.getElementById("compactNextHole");
         const roundCompleteModal = document.getElementById("roundCompleteModal");
@@ -1083,7 +1085,7 @@
 
         function getPlayedHoleOrder() {
             return Array.from(
-                { length: 18 },
+                { length: roundHoleCount },
                 (_, index) => ((startHole - 1 + index) % 18) + 1
             );
         }
@@ -2225,30 +2227,21 @@
 
 
         function getPlayedHoleCount() {
-            let lastPlayedHole = 0;
+            let playedHoleCount = 0;
 
-            for (let hole = 1; hole <= 18; hole++) {
-                let complete = true;
+            for (const hole of getPlayedHoleOrder()) {
+                const complete = Array.from(
+                    { length: playerCount },
+                    (_, index) => document.querySelector(
+                        `.p${index + 1}[data-hole="${hole}"]`
+                    )
+                ).every(input => normalizeScoreValue(input?.value) !== "");
 
-                for (let player = 1; player <= playerCount; player++) {
-                    const input = document.querySelector(
-                        `.p${player}[data-hole="${hole}"]`
-                    );
-
-                    if (!input || input.value === "") {
-                        complete = false;
-                        break;
-                    }
-                }
-
-                if (complete) {
-                    lastPlayedHole = hole;
-                } else {
-                    break;
-                }
+                if (!complete) break;
+                playedHoleCount += 1;
             }
 
-            return lastPlayedHole;
+            return playedHoleCount;
         }
 
         function getStandingsData() {
@@ -2728,6 +2721,7 @@
                 playerCount,
                 roundSetupConfirmed,
                 startHole,
+                roundHoleCount,
                 nextHole,
                 roundComplete,
                 frontNineAnnounced,
@@ -2773,7 +2767,12 @@
                 playerCount = Number(state.playerCount) || 1;
                 roundSetupConfirmed = Boolean(state.roundSetupConfirmed);
                 startHole = Number(state.startHole) || 1;
+                roundHoleCount = Number(state.roundHoleCount) === 9 ? 9 : 18;
                 nextHole = Number(state.nextHole) || 1;
+
+                if (roundHoleCountInput) {
+                    roundHoleCountInput.value = String(roundHoleCount);
+                }
 
                 if (startHoleInput) {
                     startHoleInput.value = roundSetupConfirmed
@@ -2934,9 +2933,9 @@
         function finishRound() {
             const playedHoles = getPlayedHoleCount();
 
-            if (playedHoles < 18) {
+            if (playedHoles < roundHoleCount) {
                 voiceStatus.textContent =
-                    "Kierros ei ole vielä valmis. Pelaa 18 reikää ennen päättämistä.";
+                    `Kierros ei ole vielä valmis. Pelaa ${roundHoleCount} reikää ennen päättämistä.`;
                 speakMessage("Kierros ei ole vielä valmis");
                 return;
             }
@@ -3005,6 +3004,8 @@
                 date: roundDateInput.value || getTodayDateValue(),
                 gameFormat: gameFormatInput.value,
                 notes: roundNotesInput.value.trim(),
+                startHole,
+                roundHoleCount,
                 playerCount,
                 names: [],
                 scores: {},
@@ -4326,7 +4327,9 @@
             roundSetupConfirmed = false;
             manualNineView = null;
             startHole = 1;
+            roundHoleCount = 18;
             if (startHoleInput) startHoleInput.value = "";
+            if (roundHoleCountInput) roundHoleCountInput.value = "18";
             document.querySelectorAll(".selected-score").forEach(input => {
                 input.classList.remove("selected-score");
             });
@@ -4481,6 +4484,18 @@
             startHoleInput.addEventListener("input", applyStartHole);
             startHoleInput.addEventListener("change", applyStartHole);
             startHoleInput.addEventListener("blur", applyStartHole);
+        }
+
+
+        if (roundHoleCountInput) {
+            roundHoleCountInput.addEventListener("change", () => {
+                roundHoleCount = Number(roundHoleCountInput.value) === 9 ? 9 : 18;
+                nextHole = findNextIncompleteHole();
+                updateNextHole();
+                updateRoundCompleteState();
+                updateRoundLayout();
+                saveState();
+            });
         }
 
         announceStandingsInput.addEventListener("change", () => {

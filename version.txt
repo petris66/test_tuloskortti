@@ -1,7 +1,7 @@
-Version GPS 1.1.5
+Version GPS 1.1.6
 
-- Automatically stops GPS tracking when a completed round is ended
-- Stops watchPosition and all GPS refresh timers before opening the round completion dialog
-- Shows: GPS poistettiin käytöstä akun säästämiseksi.
-- GPS remains active if the round cannot yet be ended because fewer than 18 holes have been played
-- Development repository: test_tuloskortti
+- Added 9 / 18 hole round selection
+- Round completion follows the selected round length
+- Starting hole and selected round length are saved
+- GPS stops when the selected round is finished
+- Based on tested GPS 1.1.4 / 1.1.5 foundation
