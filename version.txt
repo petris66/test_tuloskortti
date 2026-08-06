@@ -1,7 +1,7 @@
-Version GPS 1.1.2
+Version GPS 1.1.3
 
-- Continuous watchPosition tracking
-- Removed forced five-second position requests
-- Longer Safari GPS timeout
-- Timeout after a valid fix keeps the last position visible
-- Permission denial returns the button to retry state
+- Hybrid GPS tracking for iPhone Safari
+- Continuous watchPosition remains active
+- Fresh position requested every 10 seconds while page is visible
+- Temporary request timeouts no longer clear a valid position
+- GPS tracking restarts when the app returns to the foreground

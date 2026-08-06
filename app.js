@@ -83,6 +83,7 @@
 
         const GPS = (() => {
             let watchId = null;
+            let refreshTimer = null;
             let latestPosition = null;
             let positionHandler = null;
             let errorHandler = null;
@@ -92,7 +93,7 @@
             }
 
             function isActive() {
-                return watchId !== null;
+                return watchId !== null || refreshTimer !== null;
             }
 
             function getPosition() {
@@ -103,11 +104,19 @@
                 return latestPosition?.coords?.accuracy ?? null;
             }
 
-            function options() {
+            function watchOptions() {
                 return {
                     enableHighAccuracy: true,
-                    maximumAge: 5000,
-                    timeout: 30000
+                    maximumAge: 0,
+                    timeout: 60000
+                };
+            }
+
+            function refreshOptions() {
+                return {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 15000
                 };
             }
 
@@ -123,6 +132,30 @@
                 }
             }
 
+            function requestFreshPosition() {
+                if (!isAvailable() || !isActive() || document.hidden) return;
+
+                navigator.geolocation.getCurrentPosition(
+                    acceptPosition,
+                    error => {
+                        // iPhone Safari aikakatkaisee yksittäisiä hakuja herkästi.
+                        // Jatkuva seuranta jää silti päälle, eikä toimivaa sijaintia poisteta.
+                        if (error?.code === 3 && latestPosition) return;
+                        acceptError(error);
+                    },
+                    refreshOptions()
+                );
+            }
+
+            function startWatch() {
+                if (!isAvailable() || watchId !== null) return;
+                watchId = navigator.geolocation.watchPosition(
+                    acceptPosition,
+                    acceptError,
+                    watchOptions()
+                );
+            }
+
             function start(onPosition, onError) {
                 if (!isAvailable()) {
                     onError({ code: 0, message: "Geolocation API ei ole käytettävissä." }, false);
@@ -133,21 +166,31 @@
 
                 positionHandler = onPosition;
                 errorHandler = onError;
-
-                watchId = navigator.geolocation.watchPosition(
-                    acceptPosition,
-                    acceptError,
-                    options()
-                );
-
+                startWatch();
+                requestFreshPosition();
+                refreshTimer = window.setInterval(requestFreshPosition, 10000);
                 return true;
+            }
+
+            function restartAfterVisibilityChange() {
+                if (!isActive() || document.hidden || !isAvailable()) return;
+                if (watchId !== null) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
+                startWatch();
+                requestFreshPosition();
             }
 
             function stop() {
                 if (watchId !== null && isAvailable()) {
                     navigator.geolocation.clearWatch(watchId);
                 }
+                if (refreshTimer !== null) {
+                    window.clearInterval(refreshTimer);
+                }
                 watchId = null;
+                refreshTimer = null;
                 latestPosition = null;
                 positionHandler = null;
                 errorHandler = null;
@@ -156,6 +199,7 @@
             return {
                 start,
                 stop,
+                restartAfterVisibilityChange,
                 getPosition,
                 getAccuracy,
                 isAvailable,
@@ -192,7 +236,7 @@
                 gpsToggleButton.textContent = "Poista GPS käytöstä";
                 gpsToggleButton.classList.add("gps-stop-button");
             }
-            if (gpsMessage) gpsMessage.textContent = "GPS-seuranta on aktiivinen. Sijainti päivittyy, kun iPhone saa uuden paikannuksen.";
+            if (gpsMessage) gpsMessage.textContent = "GPS-seuranta on aktiivinen. Sijainti tarkistetaan myös automaattisesti noin 10 sekunnin välein.";
             if (gpsStatus) gpsStatus.textContent = "GPS aktiivinen";
             if (gpsAccuracy) gpsAccuracy.textContent = Number.isFinite(accuracy) ? `±${Math.round(accuracy)} m` : "—";
             if (gpsLatitude) gpsLatitude.textContent = Number(latitude).toFixed(6);
@@ -4386,6 +4430,9 @@
 
         async function initializeApp() {
             resetGpsDisplay();
+            document.addEventListener("visibilitychange", () => {
+                if (!document.hidden) GPS.restartAfterVisibilityChange();
+            });
             window.addEventListener("pagehide", () => GPS.stop(), { once: true });
             await loadCourseData();
             buildScoreTable();
