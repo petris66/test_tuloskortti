@@ -83,19 +83,16 @@
 
         const GPS = (() => {
             let watchId = null;
-            let refreshTimer = null;
             let latestPosition = null;
             let positionHandler = null;
             let errorHandler = null;
-
-            const REFRESH_INTERVAL_MS = 5000;
 
             function isAvailable() {
                 return "geolocation" in navigator;
             }
 
             function isActive() {
-                return watchId !== null || refreshTimer !== null;
+                return watchId !== null;
             }
 
             function getPosition() {
@@ -109,8 +106,8 @@
             function options() {
                 return {
                     enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 10000
+                    maximumAge: 5000,
+                    timeout: 30000
                 };
             }
 
@@ -120,24 +117,15 @@
             }
 
             function acceptError(error) {
-                errorHandler?.(error);
+                errorHandler?.(error, Boolean(latestPosition));
                 if (error?.code === 1) {
                     stop();
                 }
             }
 
-            function requestFreshPosition() {
-                if (!isAvailable() || !isActive()) return;
-                navigator.geolocation.getCurrentPosition(
-                    acceptPosition,
-                    acceptError,
-                    options()
-                );
-            }
-
             function start(onPosition, onError) {
                 if (!isAvailable()) {
-                    onError({ code: 0, message: "Geolocation API ei ole käytettävissä." });
+                    onError({ code: 0, message: "Geolocation API ei ole käytettävissä." }, false);
                     return false;
                 }
 
@@ -152,11 +140,6 @@
                     options()
                 );
 
-                refreshTimer = window.setInterval(
-                    requestFreshPosition,
-                    REFRESH_INTERVAL_MS
-                );
-
                 return true;
             }
 
@@ -164,11 +147,7 @@
                 if (watchId !== null && isAvailable()) {
                     navigator.geolocation.clearWatch(watchId);
                 }
-                if (refreshTimer !== null) {
-                    window.clearInterval(refreshTimer);
-                }
                 watchId = null;
-                refreshTimer = null;
                 latestPosition = null;
                 positionHandler = null;
                 errorHandler = null;
@@ -213,7 +192,7 @@
                 gpsToggleButton.textContent = "Poista GPS käytöstä";
                 gpsToggleButton.classList.add("gps-stop-button");
             }
-            if (gpsMessage) gpsMessage.textContent = "Sijainti tarkistetaan automaattisesti noin 5 sekunnin välein.";
+            if (gpsMessage) gpsMessage.textContent = "GPS-seuranta on aktiivinen. Sijainti päivittyy, kun iPhone saa uuden paikannuksen.";
             if (gpsStatus) gpsStatus.textContent = "GPS aktiivinen";
             if (gpsAccuracy) gpsAccuracy.textContent = Number.isFinite(accuracy) ? `±${Math.round(accuracy)} m` : "—";
             if (gpsLatitude) gpsLatitude.textContent = Number(latitude).toFixed(6);
@@ -244,13 +223,23 @@
             }
         }
 
-        function handleGpsError(error) {
+        function handleGpsError(error, hasPreviousPosition = false) {
             const permissionDenied = error?.code === 1;
+
+            if (error?.code === 3 && hasPreviousPosition) {
+                setGpsBadge("waiting", "GPS odottaa päivitystä");
+                if (gpsStatus) gpsStatus.textContent = "Viimeisin sijainti käytössä";
+                if (gpsMessage) gpsMessage.textContent = "Uutta GPS-paikannusta odotetaan. Viimeisin onnistunut sijainti säilyy näkyvissä.";
+                return;
+            }
             setGpsBadge("error", permissionDenied ? "GPS-lupa estetty" : "GPS-virhe");
             if (gpsStatus) gpsStatus.textContent = permissionDenied ? "Lupa estetty" : "Sijaintia ei saatu";
             if (gpsMessage) gpsMessage.textContent = getGpsErrorMessage(error);
             if (gpsToggleButton) {
-                if (GPS.isActive()) {
+                if (permissionDenied) {
+                    gpsToggleButton.textContent = "📍 Yritä GPS:ää uudelleen";
+                    gpsToggleButton.classList.remove("gps-stop-button");
+                } else if (GPS.isActive()) {
                     gpsToggleButton.textContent = "Poista GPS käytöstä";
                     gpsToggleButton.classList.add("gps-stop-button");
                 } else {

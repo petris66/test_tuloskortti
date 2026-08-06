@@ -1,7 +1,7 @@
-Version GPS 1.1.1
+Version GPS 1.1.2
 
-- GPS position is actively refreshed about every 5 seconds
-- Update time now reflects the latest successful GPS check
-- GPS errors are detected while GPS is already active
-- Turning iPhone Location Services off is reported in the GPS panel
-- Existing scorecard functions unchanged
+- Continuous watchPosition tracking
+- Removed forced five-second position requests
+- Longer Safari GPS timeout
+- Timeout after a valid fix keeps the last position visible
+- Permission denial returns the button to retry state
