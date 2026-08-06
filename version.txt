@@ -1,7 +1,8 @@
-Version GPS 1.1.3
+Version GPS 1.1.4
 
-- Hybrid GPS tracking for iPhone Safari
-- Continuous watchPosition remains active
-- Fresh position requested every 10 seconds while page is visible
-- Temporary request timeouts no longer clear a valid position
-- GPS tracking restarts when the app returns to the foreground
+- Uses the geolocation measurement timestamp
+- Rejects cached measurements older than the current GPS session
+- Rejects duplicate measurement timestamps
+- Shows GPS measurement time and live measurement age
+- Warns when the latest accepted position is over 60 seconds old
+- Development repository: test_tuloskortti

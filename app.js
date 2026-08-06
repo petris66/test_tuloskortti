@@ -80,13 +80,18 @@
         const gpsLatitude = document.getElementById("gpsLatitude");
         const gpsLongitude = document.getElementById("gpsLongitude");
         const gpsUpdatedAt = document.getElementById("gpsUpdatedAt");
+        const gpsPositionAge = document.getElementById("gpsPositionAge");
 
         const GPS = (() => {
             let watchId = null;
             let refreshTimer = null;
+            let ageTimer = null;
             let latestPosition = null;
             let positionHandler = null;
             let errorHandler = null;
+            let staleHandler = null;
+            let sessionStartedAt = 0;
+            let latestTimestamp = 0;
 
             function isAvailable() {
                 return "geolocation" in navigator;
@@ -116,20 +121,37 @@
                 return {
                     enableHighAccuracy: true,
                     maximumAge: 0,
-                    timeout: 15000
+                    timeout: 30000
                 };
             }
 
+            function positionTimestamp(position) {
+                const timestamp = Number(position?.timestamp);
+                return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : Date.now();
+            }
+
             function acceptPosition(position) {
+                const timestamp = positionTimestamp(position);
+                const tooOldForSession = timestamp < sessionStartedAt - 2000;
+                const duplicateMeasurement = latestTimestamp > 0 && timestamp <= latestTimestamp;
+
+                if (tooOldForSession || duplicateMeasurement) {
+                    staleHandler?.(position, {
+                        tooOldForSession,
+                        duplicateMeasurement,
+                        ageMs: Math.max(0, Date.now() - timestamp)
+                    });
+                    return;
+                }
+
+                latestTimestamp = timestamp;
                 latestPosition = position;
                 positionHandler?.(position);
             }
 
             function acceptError(error) {
                 errorHandler?.(error, Boolean(latestPosition));
-                if (error?.code === 1) {
-                    stop();
-                }
+                if (error?.code === 1) stop();
             }
 
             function requestFreshPosition() {
@@ -138,8 +160,6 @@
                 navigator.geolocation.getCurrentPosition(
                     acceptPosition,
                     error => {
-                        // iPhone Safari aikakatkaisee yksittäisiä hakuja herkästi.
-                        // Jatkuva seuranta jää silti päälle, eikä toimivaa sijaintia poisteta.
                         if (error?.code === 3 && latestPosition) return;
                         acceptError(error);
                     },
@@ -156,24 +176,28 @@
                 );
             }
 
-            function start(onPosition, onError) {
+            function start(onPosition, onError, onStale) {
                 if (!isAvailable()) {
                     onError({ code: 0, message: "Geolocation API ei ole käytettävissä." }, false);
                     return false;
                 }
-
                 if (isActive()) return true;
 
                 positionHandler = onPosition;
                 errorHandler = onError;
+                staleHandler = onStale;
+                sessionStartedAt = Date.now();
+                latestTimestamp = 0;
                 startWatch();
                 requestFreshPosition();
-                refreshTimer = window.setInterval(requestFreshPosition, 10000);
+                refreshTimer = window.setInterval(requestFreshPosition, 15000);
+                ageTimer = window.setInterval(updateGpsPositionAge, 1000);
                 return true;
             }
 
             function restartAfterVisibilityChange() {
                 if (!isActive() || document.hidden || !isAvailable()) return;
+                sessionStartedAt = Date.now();
                 if (watchId !== null) {
                     navigator.geolocation.clearWatch(watchId);
                     watchId = null;
@@ -183,17 +207,18 @@
             }
 
             function stop() {
-                if (watchId !== null && isAvailable()) {
-                    navigator.geolocation.clearWatch(watchId);
-                }
-                if (refreshTimer !== null) {
-                    window.clearInterval(refreshTimer);
-                }
+                if (watchId !== null && isAvailable()) navigator.geolocation.clearWatch(watchId);
+                if (refreshTimer !== null) window.clearInterval(refreshTimer);
+                if (ageTimer !== null) window.clearInterval(ageTimer);
                 watchId = null;
                 refreshTimer = null;
+                ageTimer = null;
                 latestPosition = null;
                 positionHandler = null;
                 errorHandler = null;
+                staleHandler = null;
+                sessionStartedAt = 0;
+                latestTimestamp = 0;
             }
 
             return {
@@ -225,29 +250,60 @@
             if (gpsLatitude) gpsLatitude.textContent = "—";
             if (gpsLongitude) gpsLongitude.textContent = "—";
             if (gpsUpdatedAt) gpsUpdatedAt.textContent = "—";
+            if (gpsPositionAge) gpsPositionAge.textContent = "—";
+        }
+
+        function formatGpsAge(ageMs) {
+            const seconds = Math.max(0, Math.floor(ageMs / 1000));
+            if (seconds < 60) return `${seconds} s`;
+            const minutes = Math.floor(seconds / 60);
+            return `${minutes} min ${seconds % 60} s`;
+        }
+
+        function updateGpsPositionAge() {
+            const position = GPS.getPosition();
+            if (!gpsPositionAge || !position) return;
+            const timestamp = Number(position.timestamp) || Date.now();
+            const ageMs = Math.max(0, Date.now() - timestamp);
+            gpsPositionAge.textContent = formatGpsAge(ageMs);
+
+            if (ageMs > 60000 && GPS.isActive()) {
+                setGpsBadge("waiting", "GPS-sijainti vanhenee");
+                if (gpsStatus) gpsStatus.textContent = "Odotetaan uutta sijaintia";
+                if (gpsMessage) gpsMessage.textContent = "Viimeisin GPS-mittaus on yli minuutin vanha. Vanhaa sijaintia ei merkitä uudeksi päivitykseksi.";
+            }
+        }
+
+        function handleStaleGpsPosition(position, details) {
+            const ageText = formatGpsAge(details?.ageMs || 0);
+            setGpsBadge("waiting", "Vanha GPS-sijainti");
+            if (gpsStatus) gpsStatus.textContent = "Odotetaan tuoretta mittausta";
+            if (gpsMessage) gpsMessage.textContent = `Safari palautti vanhan GPS-mittauksen (${ageText}). Sitä ei hyväksytty uudeksi sijainniksi.`;
+            updateGpsPositionAge();
         }
 
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
-            const updatedAt = new Date();
+            const measurementTime = new Date(Number(position.timestamp) || Date.now());
 
             setGpsBadge("on", "GPS käytössä");
             if (gpsToggleButton) {
                 gpsToggleButton.textContent = "Poista GPS käytöstä";
                 gpsToggleButton.classList.add("gps-stop-button");
             }
-            if (gpsMessage) gpsMessage.textContent = "GPS-seuranta on aktiivinen. Sijainti tarkistetaan myös automaattisesti noin 10 sekunnin välein.";
+            if (gpsMessage) gpsMessage.textContent = "GPS-seuranta on aktiivinen. Näytössä käytetään vain uutta GPS-mittausta, ei selaimen vanhaa välimuistisijaintia.";
             if (gpsStatus) gpsStatus.textContent = "GPS aktiivinen";
             if (gpsAccuracy) gpsAccuracy.textContent = Number.isFinite(accuracy) ? `±${Math.round(accuracy)} m` : "—";
             if (gpsLatitude) gpsLatitude.textContent = Number(latitude).toFixed(6);
             if (gpsLongitude) gpsLongitude.textContent = Number(longitude).toFixed(6);
             if (gpsUpdatedAt) {
-                gpsUpdatedAt.textContent = updatedAt.toLocaleTimeString("fi-FI", {
+                gpsUpdatedAt.textContent = measurementTime.toLocaleTimeString("fi-FI", {
                     hour: "2-digit",
                     minute: "2-digit",
                     second: "2-digit"
                 });
             }
+            updateGpsPositionAge();
         }
 
         function getGpsErrorMessage(error) {
@@ -301,7 +357,7 @@
                 gpsToggleButton.textContent = "Poista GPS käytöstä";
                 gpsToggleButton.classList.add("gps-stop-button");
             }
-            GPS.start(handleGpsPosition, handleGpsError);
+            GPS.start(handleGpsPosition, handleGpsError, handleStaleGpsPosition);
         }
 
         function stopGps() {
