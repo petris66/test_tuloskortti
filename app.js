@@ -83,14 +83,19 @@
 
         const GPS = (() => {
             let watchId = null;
+            let refreshTimer = null;
             let latestPosition = null;
+            let positionHandler = null;
+            let errorHandler = null;
+
+            const REFRESH_INTERVAL_MS = 5000;
 
             function isAvailable() {
                 return "geolocation" in navigator;
             }
 
             function isActive() {
-                return watchId !== null;
+                return watchId !== null || refreshTimer !== null;
             }
 
             function getPosition() {
@@ -101,6 +106,35 @@
                 return latestPosition?.coords?.accuracy ?? null;
             }
 
+            function options() {
+                return {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 10000
+                };
+            }
+
+            function acceptPosition(position) {
+                latestPosition = position;
+                positionHandler?.(position);
+            }
+
+            function acceptError(error) {
+                errorHandler?.(error);
+                if (error?.code === 1) {
+                    stop();
+                }
+            }
+
+            function requestFreshPosition() {
+                if (!isAvailable() || !isActive()) return;
+                navigator.geolocation.getCurrentPosition(
+                    acceptPosition,
+                    acceptError,
+                    options()
+                );
+            }
+
             function start(onPosition, onError) {
                 if (!isAvailable()) {
                     onError({ code: 0, message: "Geolocation API ei ole käytettävissä." });
@@ -109,22 +143,18 @@
 
                 if (isActive()) return true;
 
+                positionHandler = onPosition;
+                errorHandler = onError;
+
                 watchId = navigator.geolocation.watchPosition(
-                    position => {
-                        latestPosition = position;
-                        onPosition(position);
-                    },
-                    error => {
-                        onError(error);
-                        if (error.code === error.PERMISSION_DENIED) {
-                            stop();
-                        }
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 3000,
-                        timeout: 15000
-                    }
+                    acceptPosition,
+                    acceptError,
+                    options()
+                );
+
+                refreshTimer = window.setInterval(
+                    requestFreshPosition,
+                    REFRESH_INTERVAL_MS
                 );
 
                 return true;
@@ -134,8 +164,14 @@
                 if (watchId !== null && isAvailable()) {
                     navigator.geolocation.clearWatch(watchId);
                 }
+                if (refreshTimer !== null) {
+                    window.clearInterval(refreshTimer);
+                }
                 watchId = null;
+                refreshTimer = null;
                 latestPosition = null;
+                positionHandler = null;
+                errorHandler = null;
             }
 
             return {
@@ -170,14 +206,14 @@
 
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
-            const updatedAt = new Date(position.timestamp || Date.now());
+            const updatedAt = new Date();
 
             setGpsBadge("on", "GPS käytössä");
             if (gpsToggleButton) {
                 gpsToggleButton.textContent = "Poista GPS käytöstä";
                 gpsToggleButton.classList.add("gps-stop-button");
             }
-            if (gpsMessage) gpsMessage.textContent = "Sijainti päivittyy laitteen GPS-tietojen perusteella.";
+            if (gpsMessage) gpsMessage.textContent = "Sijainti tarkistetaan automaattisesti noin 5 sekunnin välein.";
             if (gpsStatus) gpsStatus.textContent = "GPS aktiivinen";
             if (gpsAccuracy) gpsAccuracy.textContent = Number.isFinite(accuracy) ? `±${Math.round(accuracy)} m` : "—";
             if (gpsLatitude) gpsLatitude.textContent = Number(latitude).toFixed(6);
@@ -213,9 +249,14 @@
             setGpsBadge("error", permissionDenied ? "GPS-lupa estetty" : "GPS-virhe");
             if (gpsStatus) gpsStatus.textContent = permissionDenied ? "Lupa estetty" : "Sijaintia ei saatu";
             if (gpsMessage) gpsMessage.textContent = getGpsErrorMessage(error);
-            if (permissionDenied && gpsToggleButton) {
-                gpsToggleButton.textContent = "📍 Yritä GPS:ää uudelleen";
-                gpsToggleButton.classList.remove("gps-stop-button");
+            if (gpsToggleButton) {
+                if (GPS.isActive()) {
+                    gpsToggleButton.textContent = "Poista GPS käytöstä";
+                    gpsToggleButton.classList.add("gps-stop-button");
+                } else {
+                    gpsToggleButton.textContent = "📍 Yritä GPS:ää uudelleen";
+                    gpsToggleButton.classList.remove("gps-stop-button");
+                }
             }
         }
 
