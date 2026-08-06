@@ -1,8 +1,7 @@
-Version GPS 1.1.4
+Version GPS 1.1.5
 
-- Uses the geolocation measurement timestamp
-- Rejects cached measurements older than the current GPS session
-- Rejects duplicate measurement timestamps
-- Shows GPS measurement time and live measurement age
-- Warns when the latest accepted position is over 60 seconds old
+- Automatically stops GPS tracking when a completed round is ended
+- Stops watchPosition and all GPS refresh timers before opening the round completion dialog
+- Shows: GPS poistettiin käytöstä akun säästämiseksi.
+- GPS remains active if the round cannot yet be ended because fewer than 18 holes have been played
 - Development repository: test_tuloskortti

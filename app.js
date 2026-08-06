@@ -360,9 +360,9 @@
             GPS.start(handleGpsPosition, handleGpsError, handleStaleGpsPosition);
         }
 
-        function stopGps() {
+        function stopGps(message = "GPS ei ole käytössä. Sijaintia ei tallenneta.") {
             GPS.stop();
-            resetGpsDisplay();
+            resetGpsDisplay(message);
         }
 
         function toggleGps() {
@@ -2939,6 +2939,10 @@
                     "Kierros ei ole vielä valmis. Pelaa 18 reikää ennen päättämistä.";
                 speakMessage("Kierros ei ole vielä valmis");
                 return;
+            }
+
+            if (GPS.isActive()) {
+                stopGps("GPS poistettiin käytöstä akun säästämiseksi.");
             }
 
             roundComplete = true;
