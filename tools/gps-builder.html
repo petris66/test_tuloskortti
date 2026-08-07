@@ -3,11 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.4.2</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIINfQ3ynR6x0vR3f5M0QmM0QmM0QmM0QmM="
-      crossorigin=""
-      onerror="this.remove()">
+<title>Golf Voice Scorecard AI – GPS Builder 0.4.3</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
   --bg:#f4f6f3;--card:#fff;--text:#1d2a20;--muted:#667368;--border:#d7ded6;
@@ -39,7 +36,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .pill.ok{background:#e6f4e6;color:#1c5d28}
 .pill.warn{background:#fff4d6;color:#6c4a00}
 .pill.err{background:var(--badbg);color:var(--bad)}
-#map{height:560px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#eef2ee}
+#map{height:560px;width:100%;position:relative;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#eef2ee}
 .map-help{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
 .legend{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block;background:#64748b}
@@ -79,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.4.2</h1>
+  <h1>GPS Builder 0.4.3</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -160,8 +157,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   </section>
 </main>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=1.9.4"></script>
 <script>
 (() => {
   const endpoints = [
@@ -226,7 +222,22 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       attribution:'© OpenStreetMap contributors'
     }).addTo(map);
     markerLayer=L.layerGroup().addTo(map);
+    observeMapResize();
+    window.setTimeout(()=>map.invalidateSize(true),100);
     return true;
+  }
+
+  let mapResizeObserver=null;
+
+  function observeMapResize(){
+    const mapElement=document.getElementById("map");
+    if(!mapElement || !window.ResizeObserver || mapResizeObserver) return;
+    mapResizeObserver=new ResizeObserver(()=>{
+      if(map){
+        window.setTimeout(()=>map.invalidateSize(false),50);
+      }
+    });
+    mapResizeObserver.observe(mapElement);
   }
 
   function markerColor(g){
@@ -272,6 +283,11 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   function renderMap(){
     if(!initMap()) return;
     markerLayer.clearLayers();
+
+    // Leaflet tarvitsee koon uudelleenlaskennan, koska Builderin kortit ja
+    // Course Library -paneeli muuttavat sivun layoutia haun aikana.
+    map.invalidateSize(true);
+
     if(!greens.length){
       setMapStatus("Kartta odottaa green-hakua.");
       return;
@@ -279,15 +295,29 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
     const bounds=[];
     greens.forEach((g,index)=>{
-      const label=g.extra?"×":(g.hole?`H${g.hole}`:`G${index+1}`);
-      const marker=L.marker([g.lat,g.lon],{icon:circleIcon(markerColor(g),label)})
+      const label=`G${index+1}`;
+      const marker=L.marker([g.lat,g.lon],{
+        icon:circleIcon(markerColor(g),label)
+      })
         .bindPopup(popupHtml(index,g))
         .addTo(markerLayer);
       bounds.push([g.lat,g.lon]);
     });
 
-    if(bounds.length) map.fitBounds(bounds,{padding:[20,20]});
-    setMapStatus(`Kartalla ${greens.length} greeniä. Klikkaa markkereita ja määritä reiät 1–18.`,"ok");
+    if(bounds.length){
+      map.fitBounds(bounds,{padding:[28,28],maxZoom:17});
+    }
+
+    // fitBounds heti layout-muutoksen yhteydessä voi jättää Leafletin vanhaan
+    // kokoon. Toinen invalidointi seuraavalla event loopilla korjaa tiilet.
+    window.setTimeout(()=>{
+      map.invalidateSize(true);
+      if(bounds.length){
+        map.fitBounds(bounds,{padding:[28,28],maxZoom:17});
+      }
+    },150);
+
+    setMapStatus(`Kartalla ${greens.length} greeniä tunnuksilla G1–G${greens.length}. Klikkaa markeria ja määritä reikä 1–18.`,"ok");
   }
 
   document.addEventListener("click",e=>{

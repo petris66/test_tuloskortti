@@ -1,9 +1,11 @@
 GPS Builder
-Version: 0.4.2
-Base Version: GPS Builder 0.4.1
+Version: 0.4.3
+Base Version: GPS Builder 0.4.2
 Date: 2026-08-07
 Status: Development tool
 
-Fix:
-- Correct Course Library path from data/courses/ to data/source/.
-- Keep GPS Library under data/gps/.
+Fixes:
+- Fix Leaflet CSS loading.
+- Recalculate map size after layout changes.
+- Refresh map tiles and bounds after green fetch.
+- Show green references as G1-Gn.
