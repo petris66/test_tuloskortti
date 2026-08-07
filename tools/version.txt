@@ -1,11 +1,10 @@
 GPS Builder
-Version: 0.4.0
-Base Version: GPS Builder 0.3.0
+Version: 0.4.1
+Base Version: GPS Builder 0.4.0
 Date: 2026-08-07
 Status: Development tool
 
-Changes:
-- Added Course Library integration.
-- Added hole par/HCP/tee distance reference panel.
-- Added G1-Gn map marker references.
-- Added map-green to Course-Library-hole linking workflow.
+Fixes:
+- Load Course Library through its manifest and GitHub Pages repo base path.
+- Add POST/GET fallback for Overpass queries.
+- Preserve existing map and green assignment workflow.

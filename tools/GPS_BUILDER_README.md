@@ -1,26 +1,22 @@
-# GPS Builder 0.4.0
+# GPS Builder 0.4.1
 
-Development-only helper for producing static GPS Library files for Golf Voice Scorecard AI.
+Development-only tool for creating static Golf Voice Scorecard AI GPS Library files.
 
-## Changes from 0.3.0
+## Fixes from 0.4.0
 
-- Loads the selected course from the existing Course Library.
-- Shows holes 1–18 with par, HCP and tee distances beside the OSM map.
-- Labels unassigned OSM greens as G1, G2, ... for unambiguous discussion and verification.
-- Lets you select a map green and attach it directly to a Course Library hole.
-- Keeps the 18/18 validation and extra/practice-green handling from 0.3.0.
+- Course Library is now resolved through `data/courses/manifest.json`.
+- GitHub Pages repository base path is derived automatically.
+- Course files are loaded from the path declared in the Course Library manifest.
+- Overpass requests now retry using both POST and GET.
+- Multiple Overpass endpoints remain available as fallbacks.
+- Map, G1-Gn markers, manual hole assignment and JSON generation are unchanged.
 
 ## Porvoo workflow
 
-1. Open `tools/gps-builder.html?v=400`.
-2. Press **Porvoo-esiasetus**.
-3. Confirm Course Library shows 18/18 holes.
-4. Press **Hae greenit OpenStreetMapista**.
-5. Click a G-marker on the map.
-6. Press **Valitse Gx ja liitä reiän listasta**.
-7. Use the Course Library hole list to attach it to the correct hole.
-8. Mark the extra/practice green as **Ylimääräinen**.
-9. Continue until validation shows 18/18.
-10. Generate and download `porvoogolf.json`.
-
-The Course Library is used as reference data only; GPS coordinates still require map/field verification.
+1. Open `tools/gps-builder.html?v=401`.
+2. Select **Porvoo-esiasetus**.
+3. Press **Hae greenit OpenStreetMapista**.
+4. Confirm Course Library shows `18/18 reikää`.
+5. Confirm the green search returns the Porvoo greens.
+6. Assign G-markers to holes 1-18 and mark the extra green unused.
+7. Generate and download `porvoogolf.json`.

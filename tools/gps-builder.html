@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.4.0</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.4.1</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIINfQ3ynR6x0vR3f5M0QmM0QmM0QmM0QmM="
       crossorigin=""
@@ -79,7 +79,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.4.0</h1>
+  <h1>GPS Builder 0.4.1</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -346,23 +346,78 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
     return byHole;
   }
 
+  function repoBasePath(){
+    const parts=window.location.pathname.split("/").filter(Boolean);
+    // GitHub Pages project site: /<repo>/tools/gps-builder.html
+    if(parts.length>=3 && parts[parts.length-2]==="tools"){
+      return "/" + parts.slice(0,-2).join("/");
+    }
+    return "";
+  }
+
+  async function fetchJsonCandidates(paths){
+    let lastError=null;
+    for(const path of paths){
+      try{
+        const response=await fetch(path,{cache:"no-store"});
+        if(!response.ok) throw new Error(`${path} → HTTP ${response.status}`);
+        return {data:await response.json(),path};
+      }catch(err){
+        lastError=err;
+        console.warn("JSON-haku epäonnistui:",path,err);
+      }
+    }
+    throw lastError||new Error("JSON-haku epäonnistui");
+  }
+
   async function loadCourseLibrary(){
     courseRows=[];courseByHole=new Map();
     courseHoleList.innerHTML="";
     const id=(courseId.value||"").trim();
     if(!id){courseLibraryStatus.textContent="courseId puuttuu.";return;}
+
     try{
       courseLibraryStatus.textContent="Ladataan Course Library…";
-      const response=await fetch(`../data/courses/FI/${encodeURIComponent(id)}.json?v=builder040`,{cache:"no-store"});
-      if(!response.ok) throw new Error(`HTTP ${response.status}`);
-      courseRows=await response.json();
+      courseLibraryStatus.className="status";
+
+      const base=repoBasePath();
+      const manifestCandidates=[
+        `${base}/data/courses/manifest.json?v=builder041`,
+        `../data/courses/manifest.json?v=builder041`
+      ];
+
+      const manifestResult=await fetchJsonCandidates(manifestCandidates);
+      const manifest=manifestResult.data;
+      const entry=(manifest?.courses||[]).find(item=>item.courseId===id);
+
+      if(!entry?.file){
+        throw new Error(`Kenttää ${id} ei löytynyt Course Library manifestista`);
+      }
+
+      const courseCandidates=[
+        `${base}/data/courses/${entry.file}?v=builder041`,
+        `../data/courses/${entry.file}?v=builder041`
+      ];
+
+      const courseResult=await fetchJsonCandidates(courseCandidates);
+      courseRows=courseResult.data;
+
+      // Kenttätiedosto on nykyisessä Course Libraryssa taulukko.
+      // Jos rakenne joskus muuttuu objektiksi, hyväksytään myös .rows/.data.
+      if(!Array.isArray(courseRows)){
+        courseRows=courseRows?.rows||courseRows?.data||[];
+      }
+
       normalizeCourseRows(courseRows);
       const holes=[...courseByHole.keys()].filter(h=>h>=1&&h<=18);
-      courseLibraryStatus.textContent=`Course Library ladattu: ${holes.length}/18 reikää.`;
+
+      courseLibraryStatus.textContent=
+        `Course Library ladattu: ${holes.length}/18 reikää ✓`;
       courseLibraryStatus.className="status "+(holes.length===18?"ok":"warn");
       renderCourseHoles();
     }catch(err){
-      courseLibraryStatus.textContent=`Course Libraryn lataus epäonnistui: ${err.message||err}`;
+      courseLibraryStatus.textContent=
+        `Course Libraryn lataus epäonnistui: ${err.message||err}`;
       courseLibraryStatus.className="status err";
     }
   }
@@ -532,26 +587,80 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 out tags center geom;`;
   }
 
+  async function fetchOverpassWithFallback(endpoint,query){
+    const attempts=[
+      async()=>{
+        const controller=new AbortController();
+        const timer=setTimeout(()=>controller.abort(),25000);
+        try{
+          const response=await fetch(endpoint,{
+            method:"POST",
+            headers:{
+              "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8",
+              "Accept":"application/json"
+            },
+            body:"data="+encodeURIComponent(query),
+            cache:"no-store",
+            signal:controller.signal
+          });
+          if(!response.ok) throw new Error(`POST HTTP ${response.status}`);
+          return await response.json();
+        }finally{
+          clearTimeout(timer);
+        }
+      },
+      async()=>{
+        const controller=new AbortController();
+        const timer=setTimeout(()=>controller.abort(),25000);
+        try{
+          const response=await fetch(
+            `${endpoint}?data=${encodeURIComponent(query)}&v=${Date.now()}`,
+            {
+              method:"GET",
+              headers:{"Accept":"application/json"},
+              cache:"no-store",
+              signal:controller.signal
+            }
+          );
+          if(!response.ok) throw new Error(`GET HTTP ${response.status}`);
+          return await response.json();
+        }finally{
+          clearTimeout(timer);
+        }
+      }
+    ];
+
+    let lastError=null;
+    for(const attempt of attempts){
+      try{
+        const data=await attempt();
+        if(!Array.isArray(data?.elements)){
+          throw new Error("Virheellinen Overpass-vastaus");
+        }
+        return data;
+      }catch(err){
+        lastError=err;
+        console.warn("Overpass-yritys epäonnistui:",endpoint,err);
+      }
+    }
+    throw lastError||new Error("Overpass-haku epäonnistui");
+  }
+
   async function fetchData(){
     const query=buildQuery();
     fetchBtn.disabled=true;
     lastJson=null;output.value="";downloadBtn.disabled=true;
     let lastError=null;
 
+    // Course Library voidaan ladata rinnalla; Overpass-haku ei riipu siitä.
+    if(!courseByHole.size){
+      loadCourseLibrary();
+    }
+
     for(const endpoint of endpoints){
       try{
-        setStatus(`Haetaan: ${endpoint}`);
-        const controller=new AbortController();
-        const timer=setTimeout(()=>controller.abort(),25000);
-        const response=await fetch(endpoint,{
-          method:"POST",
-          headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},
-          body:"data="+encodeURIComponent(query),
-          signal:controller.signal
-        });
-        clearTimeout(timer);
-        if(!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data=await response.json();
+        setStatus(`Haetaan greenejä: ${endpoint}`);
+        const data=await fetchOverpassWithFallback(endpoint,query);
 
         greens=(data.elements||[])
           .filter(e=>e.tags?.golf==="green")
@@ -579,14 +688,20 @@ out tags center geom;`;
           greens.length>=18?"ok":"warn"
         );
         fetchBtn.disabled=false;
-        if(!courseByHole.size) await loadCourseLibrary();
         return;
       }catch(err){
-        console.warn(endpoint,err);lastError=err;
+        console.warn(endpoint,err);
+        lastError=err;
       }
     }
+
     fetchBtn.disabled=false;
-    setStatus("Kaikki Overpass-palvelimet epäonnistuivat. "+(lastError?.message||""),"err");
+    setStatus(
+      "Kaikki Overpass-palvelimet epäonnistuivat. " +
+      (lastError?.message||"Tuntematon verkkovirhe") +
+      ". Kokeile hetken päästä uudelleen.",
+      "err"
+    );
   }
 
   function sortRows(){
