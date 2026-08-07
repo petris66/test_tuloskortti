@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.4.1</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.4.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIINfQ3ynR6x0vR3f5M0QmM0QmM0QmM0QmM="
       crossorigin=""
@@ -79,7 +79,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.4.1</h1>
+  <h1>GPS Builder 0.4.2</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -382,8 +382,8 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
       const base=repoBasePath();
       const manifestCandidates=[
-        `${base}/data/courses/manifest.json?v=builder041`,
-        `../data/courses/manifest.json?v=builder041`
+        `${base}/data/source/manifest.json?v=builder042`,
+        `../data/source/manifest.json?v=builder042`
       ];
 
       const manifestResult=await fetchJsonCandidates(manifestCandidates);
@@ -395,8 +395,8 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       }
 
       const courseCandidates=[
-        `${base}/data/courses/${entry.file}?v=builder041`,
-        `../data/courses/${entry.file}?v=builder041`
+        `${base}/data/source/${entry.file}?v=builder042`,
+        `../data/source/${entry.file}?v=builder042`
       ];
 
       const courseResult=await fetchJsonCandidates(courseCandidates);
