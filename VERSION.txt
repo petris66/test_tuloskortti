@@ -1,5 +1,6 @@
 Version 0.5.4.12
 
+
 - shared scorecard now contains two PNG images
 - first image mirrors the application stroke-play scorecard
 - second image mirrors the application Stableford points table
