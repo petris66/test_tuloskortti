@@ -1,12 +1,11 @@
 GPS Builder
-Version: 0.3.0
-Base Version: GPS Builder 0.2.0
+Version: 0.4.0
+Base Version: GPS Builder 0.3.0
 Date: 2026-08-07
 Status: Development tool
 
 Changes:
-- Added interactive OpenStreetMap map.
-- Added marker-based hole assignment 1-18.
-- Added extra/practice-green marking.
-- Synchronized map and table assignments.
-- JSON export requires exactly one active green for each hole 1-18.
+- Added Course Library integration.
+- Added hole par/HCP/tee distance reference panel.
+- Added G1-Gn map marker references.
+- Added map-green to Course-Library-hole linking workflow.
