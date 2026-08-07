@@ -1,12 +1,12 @@
 GPS Builder
-Version: 0.2.0
-Base Version: GPS Builder 0.1.0
+Version: 0.3.0
+Base Version: GPS Builder 0.2.0
 Date: 2026-08-07
 Status: Development tool
 
 Changes:
-- Added 1-18 hole validation.
-- Added duplicate and missing-hole detection.
-- Added golf=hole endpoint matching for duplicate green candidates.
-- Added automatic best-candidate selection.
-- JSON export requires exactly one selected green for every hole 1-18.
+- Added interactive OpenStreetMap map.
+- Added marker-based hole assignment 1-18.
+- Added extra/practice-green marking.
+- Synchronized map and table assignments.
+- JSON export requires exactly one active green for each hole 1-18.
