@@ -2,32 +2,27 @@ Golf Voice Scorecard AI
 Development Repository
 
 Version:
-GPS Phase 2.0.0
+GPS Phase 2.0.1
 
 Base Version:
-Scorecard Safety 1.0.0
+GPS Phase 2.0.0 / v0.6.1 development milestone
 
 Date:
 2026-08-07
 
 Status:
-Development / sofa test before Porvoo field test
+Sofa test before Porvoo field test
 
 Changes:
-- Added Green Center distance for the active scorecard hole.
-- Added GPS course data structure under data/gps/.
-- Added Porvoo Golf and Gumböle Golf GPS configurations.
-- Golf green geometry is fetched from OpenStreetMap via Overpass API.
-- Hole numbers are resolved from green tags or from numbered golf hole lines.
-- Resolved green centers are cached locally in the browser for field use.
-- Added visible GPS course-data status (for example 18/18 greens).
-- No Front/Back distances yet; Phase 2.0 intentionally tests Center only.
-- Preserved Scorecard Safety 1.0.0, Course Library 1.0.0 and existing GPS tracking.
+- Removed live Overpass dependency from the player-facing application.
+- GPS data is loaded from the local GPS Library under data/gps/.
+- Added Porvoo Golf 14-hole Green Center field-test dataset.
+- Included holes 1-3 and 8-18.
+- Holes 4-7 intentionally show no GPS data because the course layout changed.
+- Active scorecard hole controls the displayed Green Center distance.
+- GPS distance is calculated locally from the phone/browser position.
+- GPS Library status shows the partial Porvoo field-test coverage.
 
-Field-test target:
-- Porvoo Golf: compare Green Center distance with Garmin center distance.
-- Gumböle Golf: GPS data configuration prepared for the next test.
-
-Important:
-- OpenStreetMap is community-maintained data. Field verification is required.
-- If GPS course data shows fewer than 18/18 greens, do not treat missing-hole distances as verified.
+Field test:
+- Compare Green Center against Garmin Center on holes 1-3 and 8-18.
+- Do not use holes 4-7 for distance validation yet.

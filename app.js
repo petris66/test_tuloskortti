@@ -92,13 +92,6 @@
 
 
         const GolfGPS = (() => {
-            const CACHE_PREFIX = "golfVoiceGpsCourseV1:";
-            const OVERPASS_ENDPOINTS = [
-                "https://overpass-api.de/api/interpreter",
-                "https://overpass.kumi.systems/api/interpreter",
-                "https://overpass.nchc.org.tw/api/interpreter"
-            ];
-
             let manifest = null;
             let config = null;
             let greenCenters = new Map();
@@ -121,242 +114,16 @@
                 return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             }
 
-            function parseHoleNumber(tags = {}) {
-                const values = [
-                    tags.ref,
-                    tags.hole,
-                    tags["golf:hole"],
-                    tags.name,
-                    tags.description
-                ].filter(value => value !== undefined && value !== null);
-
-                for (const raw of values) {
-                    const text = String(raw).trim();
-                    const direct = Number(text);
-                    if (Number.isInteger(direct) && direct >= 1 && direct <= 18) {
-                        return direct;
-                    }
-
-                    const match = text.match(/(?:hole|reika|reikä|green|viherio|viheriö)?\s*#?\s*(1[0-8]|[1-9])\b/i);
-                    if (match) {
-                        return Number(match[1]);
-                    }
-                }
-                return null;
-            }
-
-            function elementCenter(element) {
-                if (
-                    Number.isFinite(Number(element?.lat)) &&
-                    Number.isFinite(Number(element?.lon))
-                ) {
-                    return { lat: Number(element.lat), lon: Number(element.lon) };
-                }
-
-                if (
-                    Number.isFinite(Number(element?.center?.lat)) &&
-                    Number.isFinite(Number(element?.center?.lon))
-                ) {
-                    return {
-                        lat: Number(element.center.lat),
-                        lon: Number(element.center.lon)
-                    };
-                }
-
-                const geometry = Array.isArray(element?.geometry)
-                    ? element.geometry.filter(point =>
-                        Number.isFinite(Number(point?.lat)) &&
-                        Number.isFinite(Number(point?.lon))
-                    )
-                    : [];
-
-                if (!geometry.length) return null;
-
-                return {
-                    lat: geometry.reduce((sum, point) => sum + Number(point.lat), 0) / geometry.length,
-                    lon: geometry.reduce((sum, point) => sum + Number(point.lon), 0) / geometry.length
-                };
-            }
-
-            function endpointCandidates(element) {
-                const geometry = Array.isArray(element?.geometry)
-                    ? element.geometry.filter(point =>
-                        Number.isFinite(Number(point?.lat)) &&
-                        Number.isFinite(Number(point?.lon))
-                    )
-                    : [];
-                if (!geometry.length) return [];
-                return [
-                    { lat: Number(geometry[0].lat), lon: Number(geometry[0].lon) },
-                    { lat: Number(geometry[geometry.length - 1].lat), lon: Number(geometry[geometry.length - 1].lon) }
-                ];
-            }
-
-            function mapGreens(elements) {
-                const greens = elements
-                    .filter(element => element?.tags?.golf === "green")
-                    .map(element => ({
-                        element,
-                        point: elementCenter(element),
-                        hole: parseHoleNumber(element.tags)
-                    }))
-                    .filter(item => item.point);
-
-                const mapped = new Map();
-
-                // Ensisijaisesti suoraan numeroidut greenit.
-                greens.forEach(item => {
-                    if (item.hole && !mapped.has(item.hole)) {
-                        mapped.set(item.hole, item.point);
-                    }
-                });
-
-                // Jos greeniltä puuttuu numero, yhdistetään se numeroituun golf=hole -linjaan.
-                const holeWays = elements
-                    .filter(element => element?.tags?.golf === "hole")
-                    .map(element => ({
-                        hole: parseHoleNumber(element.tags),
-                        endpoints: endpointCandidates(element)
-                    }))
-                    .filter(item => item.hole && item.endpoints.length);
-
-                const usedGreenIndexes = new Set();
-                greens.forEach((green, index) => {
-                    if (green.hole && mapped.has(green.hole)) usedGreenIndexes.add(index);
-                });
-
-                holeWays.forEach(holeWay => {
-                    if (mapped.has(holeWay.hole)) return;
-
-                    let best = null;
-                    greens.forEach((green, greenIndex) => {
-                        if (usedGreenIndexes.has(greenIndex)) return;
-
-                        holeWay.endpoints.forEach(endpoint => {
-                            const distance = distanceMeters(
-                                endpoint.lat, endpoint.lon,
-                                green.point.lat, green.point.lon
-                            );
-                            if (!best || distance < best.distance) {
-                                best = { greenIndex, point: green.point, distance };
-                            }
-                        });
-                    });
-
-                    // Hole-linjan pään pitäisi osua greenille tai hyvin lähelle sitä.
-                    if (best && best.distance <= 140) {
-                        mapped.set(holeWay.hole, best.point);
-                        usedGreenIndexes.add(best.greenIndex);
-                    }
-                });
-
-                return mapped;
-            }
-
-            function buildQuery(courseConfig) {
-                const lat = Number(courseConfig.center.lat);
-                const lon = Number(courseConfig.center.lon);
-                const radius = Number(courseConfig.searchRadiusMeters) || 3000;
-
-                return `[out:json][timeout:25];
-(
-  node["golf"="green"](around:${radius},${lat},${lon});
-  way["golf"="green"](around:${radius},${lat},${lon});
-  relation["golf"="green"](around:${radius},${lat},${lon});
-  way["golf"="hole"](around:${radius},${lat},${lon});
-);
-out tags center geom;`;
-            }
-
-            async function fetchOverpass(courseConfig) {
-                const query = buildQuery(courseConfig);
-                let lastError = null;
-
-                for (const endpoint of OVERPASS_ENDPOINTS) {
-                    try {
-                        const controller = new AbortController();
-                        const timeoutId = window.setTimeout(() => controller.abort(), 18000);
-                        const response = await fetch(
-                            `${endpoint}?data=${encodeURIComponent(query)}`,
-                            {
-                                cache: "no-store",
-                                signal: controller.signal,
-                                headers: { "Accept": "application/json" }
-                            }
-                        );
-                        window.clearTimeout(timeoutId);
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-
-                        const data = await response.json();
-                        if (!Array.isArray(data?.elements)) {
-                            throw new Error("Virheellinen Overpass-vastaus");
-                        }
-
-                        return data.elements;
-                    } catch (error) {
-                        lastError = error;
-                        console.warn("Overpass endpoint epäonnistui:", endpoint, error);
-                    }
-                }
-
-                throw lastError || new Error("GPS-kenttädatan haku epäonnistui");
-            }
-
-            function cacheKey(courseId) {
-                return `${CACHE_PREFIX}${courseId}`;
-            }
-
-            function readCache(courseId) {
-                try {
-                    const value = JSON.parse(localStorage.getItem(cacheKey(courseId)) || "null");
-                    if (!value || !Array.isArray(value.greens)) return null;
-                    return value;
-                } catch {
-                    return null;
-                }
-            }
-
-            function writeCache(courseId, mapped) {
-                try {
-                    localStorage.setItem(cacheKey(courseId), JSON.stringify({
-                        savedAt: Date.now(),
-                        greens: [...mapped.entries()].map(([hole, point]) => ({
-                            hole,
-                            lat: point.lat,
-                            lon: point.lon
-                        }))
-                    }));
-                } catch (error) {
-                    console.warn("GPS-kenttädatan välimuisti epäonnistui:", error);
-                }
-            }
-
-            function cacheToMap(cache) {
-                const map = new Map();
-                cache?.greens?.forEach(row => {
-                    const hole = Number(row.hole);
-                    const lat = Number(row.lat);
-                    const lon = Number(row.lon);
-                    if (
-                        Number.isInteger(hole) &&
-                        hole >= 1 &&
-                        hole <= 18 &&
-                        Number.isFinite(lat) &&
-                        Number.isFinite(lon)
-                    ) {
-                        map.set(hole, { lat, lon });
-                    }
-                });
-                return map;
-            }
-
             async function loadManifest() {
                 if (manifest) return manifest;
-                const response = await fetch("data/gps/manifest.json", { cache: "no-store" });
-                if (!response.ok) throw new Error(`GPS manifest HTTP ${response.status}`);
+
+                const response = await fetch("data/gps/manifest.json?v=gps201", {
+                    cache: "no-store"
+                });
+                if (!response.ok) {
+                    throw new Error(`GPS manifest HTTP ${response.status}`);
+                }
+
                 manifest = await response.json();
                 return manifest;
             }
@@ -364,14 +131,41 @@ out tags center geom;`;
             async function loadConfig(courseId) {
                 const gpsManifest = await loadManifest();
                 const entry = gpsManifest?.courses?.find(item => item.courseId === courseId);
-                if (!entry) return null;
+                if (!entry?.file) return null;
 
-                const response = await fetch(`data/gps/${entry.file}`, { cache: "no-store" });
-                if (!response.ok) throw new Error(`GPS config HTTP ${response.status}`);
+                const response = await fetch(`data/gps/${entry.file}?v=gps201`, {
+                    cache: "no-store"
+                });
+                if (!response.ok) {
+                    throw new Error(`GPS config HTTP ${response.status}`);
+                }
+
                 return response.json();
             }
 
-            async function loadCourse(courseId, forceRefresh = false) {
+            function holesToMap(courseConfig) {
+                const mapped = new Map();
+
+                (courseConfig?.holes || []).forEach(row => {
+                    const hole = Number(row?.hole);
+                    const lat = Number(row?.greenCenter?.lat);
+                    const lon = Number(row?.greenCenter?.lon);
+
+                    if (
+                        Number.isInteger(hole) &&
+                        hole >= 1 &&
+                        hole <= 18 &&
+                        Number.isFinite(lat) &&
+                        Number.isFinite(lon)
+                    ) {
+                        mapped.set(hole, { lat, lon });
+                    }
+                });
+
+                return mapped;
+            }
+
+            async function loadCourse(courseId) {
                 loadingCourseId = courseId;
                 config = null;
                 greenCenters = new Map();
@@ -381,6 +175,7 @@ out tags center geom;`;
                 }
 
                 const courseConfig = await loadConfig(courseId);
+
                 if (loadingCourseId !== courseId) {
                     return { supported: false, count: 0 };
                 }
@@ -390,36 +185,17 @@ out tags center geom;`;
                 }
 
                 config = courseConfig;
-
-                if (!forceRefresh) {
-                    const cached = readCache(courseId);
-                    const cachedMap = cacheToMap(cached);
-                    if (cachedMap.size >= 9) {
-                        greenCenters = cachedMap;
-                        return {
-                            supported: true,
-                            count: greenCenters.size,
-                            source: "cache"
-                        };
-                    }
-                }
-
-                const elements = await fetchOverpass(courseConfig);
-                if (loadingCourseId !== courseId) {
-                    return { supported: false, count: 0 };
-                }
-
-                const mapped = mapGreens(elements);
-                greenCenters = mapped;
-
-                if (mapped.size > 0) {
-                    writeCache(courseId, mapped);
-                }
+                greenCenters = holesToMap(courseConfig);
 
                 return {
-                    supported: true,
-                    count: mapped.size,
-                    source: "osm"
+                    supported: greenCenters.size > 0,
+                    count: greenCenters.size,
+                    partial: Boolean(courseConfig.partial),
+                    unavailableHoles: Array.isArray(courseConfig.unavailableHoles)
+                        ? courseConfig.unavailableHoles.map(Number).filter(Number.isFinite)
+                        : [],
+                    validationStatus: courseConfig?.fieldValidation?.status || "unknown",
+                    source: "gps-library"
                 };
             }
 
@@ -435,11 +211,17 @@ out tags center geom;`;
                 return config;
             }
 
+            function isHoleUnavailable(hole) {
+                return Array.isArray(config?.unavailableHoles) &&
+                    config.unavailableHoles.map(Number).includes(Number(hole));
+            }
+
             return {
                 loadCourse,
                 getGreenCenter,
                 getCount,
                 getConfig,
+                isHoleUnavailable,
                 distanceMeters
             };
         })();
@@ -659,7 +441,8 @@ out tags center geom;`;
             if (!gpsGreenCenterDistance) return;
 
             if (!position || !green) {
-                gpsGreenCenterDistance.textContent = "—";
+                gpsGreenCenterDistance.textContent =
+                    GolfGPS.isHoleUnavailable(nextHole) ? "ei dataa" : "—";
                 return;
             }
 
@@ -696,14 +479,17 @@ out tags center geom;`;
                 }
 
                 if (result.count === 18) {
+                    gpsCourseDataStatus.textContent = "18/18 greeniä ✓";
+                } else if (result.count > 0 && result.partial) {
+                    const unavailable = result.unavailableHoles?.length
+                        ? ` · reiät ${result.unavailableHoles.join(", ")} odottavat päivitystä`
+                        : "";
                     gpsCourseDataStatus.textContent =
-                        result.source === "cache"
-                            ? "18/18 greeniä ✓"
-                            : "18/18 greeniä ladattu ✓";
+                        `${result.count}/18 testigreeniä ✓${unavailable}`;
                 } else if (result.count > 0) {
                     gpsCourseDataStatus.textContent = `${result.count}/18 greeniä`;
                 } else {
-                    gpsCourseDataStatus.textContent = "Greenejä ei tunnistettu";
+                    gpsCourseDataStatus.textContent = "GPS-kenttädata ei ole vielä valmis";
                 }
 
                 updateGreenCenterDistance();
