@@ -1,0 +1,14 @@
+{
+  "courseId": "porvoogolf",
+  "course": "Porvoo Golf",
+  "country": "FI",
+  "phase": "2.0",
+  "center": {
+    "lat": 60.4218,
+    "lon": 25.6952
+  },
+  "searchRadiusMeters": 3200,
+  "source": "OpenStreetMap via Overpass API",
+  "mode": "green-center",
+  "notes": "Green geometry is fetched from OpenStreetMap and cached locally in the browser. Field verification against Garmin is required."
+}

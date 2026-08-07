@@ -1,0 +1,14 @@
+{
+  "courseId": "gumbole",
+  "course": "Gumböle Golf",
+  "country": "FI",
+  "phase": "2.0",
+  "center": {
+    "lat": 60.223967,
+    "lon": 24.611271
+  },
+  "searchRadiusMeters": 3200,
+  "source": "OpenStreetMap via Overpass API",
+  "mode": "green-center",
+  "notes": "Prepared for the next field test. Phase 2.0 displays green center only."
+}
