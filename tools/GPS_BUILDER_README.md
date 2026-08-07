@@ -1,22 +1,25 @@
-# GPS Builder 0.1.0
+# GPS Builder 0.2.0
 
-Development-only tool for building Golf Voice Scorecard AI GPS Library files.
+Development-only tool for creating static Golf Voice Scorecard AI GPS Library files.
 
-## Purpose
+## Changes from 0.1.0
 
-The scorecard should not depend on live Overpass API calls during a golf round. GPS Builder is used separately to fetch OpenStreetMap green geometry, assign hole numbers and export a static JSON file for `data/gps/<country>/`.
+- Fetches both `golf=green` and numbered `golf=hole` geometry from OpenStreetMap.
+- Detects missing hole numbers and duplicate green candidates.
+- Scores duplicate candidates by distance to the matching hole-line endpoint.
+- Automatically selects one best candidate for each hole 1–18 when possible.
+- Allows manual candidate selection before JSON export.
+- JSON export is enabled only when exactly one selected green exists for every hole 1–18.
 
-## Workflow
+## Porvoo workflow
 
-1. Open `tools/gps-builder.html` through GitHub Pages.
-2. Select Porvoo or Gumböle preset, or enter another course manually.
-3. Fetch greens from OpenStreetMap.
-4. Confirm the returned greens and assign missing hole numbers.
-5. Build JSON.
-6. Download `<courseId>.json`.
-7. Review it before adding it to `data/gps/FI/`.
+1. Open `tools/gps-builder.html`.
+2. Select **Porvoo-esiasetus**.
+3. Press **Hae greenit OpenStreetMapista**.
+4. Check the validation summary.
+5. If it says 18/18 and one selected green per hole, press **Muodosta JSON**.
+6. Press **Lataa JSON**.
+7. Add the downloaded `porvoogolf.json` to `data/gps/FI/`.
 8. Field-test Green Center distances against Garmin before marking the data verified.
 
-## Important
-
-This is a development tool and should not be linked from the user-facing application. OpenStreetMap is community-maintained data, so generated coordinates must be field-tested.
+OpenStreetMap is community-maintained data. Automatic selection is a development aid, not field validation.
