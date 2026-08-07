@@ -2,26 +2,25 @@ Golf Voice Scorecard AI
 Development Repository
 
 Version:
-Course Library 1.0.0
+Scorecard Safety 1.0.0
 
 Base Version:
-GPS 1.1.7
+Course Library 1.0.0
 
 Date:
 2026-08-07
 
 Status:
-Development / sofa test + field test
+Development / sofa test
 
 Changes:
-- Added country-based course library structure under data/courses/FI/.
-- Migrated all 15 existing course configurations into individual course files.
-- Added St. Laurence Golf – Kalkki-Petteri from official scorecard/slope data.
-- Added St. Laurence Golf – Pyhä Lauri from official 2026 scorecard/slope data.
-- Added Porvoo Golf as provisional 2026 data with official new hole 4–7 lengths.
-- Porvoo Golf CR/Slope intentionally omitted until the club publishes new 2026 values.
-- Added manifest-based course loading with combined-file fallback.
+- Added voice commands to clear all player scores from a selected hole.
+- Supported commands include "tyhjennä reikä 6", "poista reikä 6" and "poista reiän 6 tulokset".
+- Clearing a hole preserves the round's current progression point.
+- Existing explicit hole correction can be used immediately after clearing the hole.
+- Made the active playing hole more prominent with "NYT PELATAAN" and a stronger visual highlight.
+- Preserved Course Library 1.0.0 and GPS functionality.
 
 Notes:
 - No live-repository changes.
-- Porvoo holes 4–7 are ready for field verification.
+- This package is intended for the test_tuloskortti development repository.

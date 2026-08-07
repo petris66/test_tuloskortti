@@ -141,8 +141,8 @@
 
         <section class="card next-hole-box next-hole-card" id="nextHoleCard">
             <div>
-                <div class="next-hole-label">Aloitusreikä</div>
-                <div class="muted">Anna aloitusreikä ennen ensimmäistä kirjausta.</div>
+                <div class="next-hole-label" id="activeHoleLabel">Aloitusreikä</div>
+                <div class="muted" id="activeHoleHelp">Anna aloitusreikä ennen ensimmäistä kirjausta.</div>
             </div>
 
             <div class="next-hole-number" id="nextHole">1</div>
@@ -164,7 +164,7 @@
             </div>
 
             <div class="compact-hole-line">
-                <span>Seuraava reikä</span>
+                <span id="compactHoleLabel">Nyt pelataan</span>
                 <strong id="compactNextHole">1</strong>
             </div>
 
@@ -475,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sync();
 });
 </script>
-<script src="app.js?v=course-library-1-0-0" defer></script>
+<script src="app.js?v=scorecard-safety-1-0-0" defer></script>
 
 </body>
 </html>

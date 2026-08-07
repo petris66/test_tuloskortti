@@ -31,6 +31,9 @@
         const roundHoleCountInput = document.getElementById("roundHoleCount");
         const compactNextHoleElement =
             document.getElementById("compactNextHole");
+        const activeHoleLabel = document.getElementById("activeHoleLabel");
+        const activeHoleHelp = document.getElementById("activeHoleHelp");
+        const compactHoleLabel = document.getElementById("compactHoleLabel");
         const roundCompleteModal = document.getElementById("roundCompleteModal");
         const roundCompleteActions = document.getElementById("roundCompleteActions");
         const savedMessage = document.getElementById("savedMessage");
@@ -2143,7 +2146,91 @@
             return { hole, addedScores };
         }
 
+
+        function parseClearHoleCommand(spokenText) {
+            const normalized = normalizePlayerNameForVoice(spokenText);
+
+            // Hyväksytyt muodot esimerkiksi:
+            // "tyhjennä reikä 6"
+            // "tyhjenna reika kuusi"
+            // "poista reikä 6"
+            // "poista reiän 6 tulokset"
+            const isClearCommand =
+                /\btyhjenna\b/.test(normalized) ||
+                /\btyhjennä\b/.test(normalized) ||
+                /\bpoista\b/.test(normalized);
+
+            if (!isClearCommand) {
+                return null;
+            }
+
+            const holeMatch = normalized.match(
+                /(?:reika|reikä|reian|reiän)\s+(\d{1,2}|[a-zåäö]+)/
+            );
+
+            if (!holeMatch) {
+                // "poista" on myös vanha kumoa-synonyymi, joten ilman reikänumeroa
+                // tätä ei tulkita koko reiän poistoksi.
+                return null;
+            }
+
+            const hole = wordToNumber(holeMatch[1]);
+
+            if (
+                typeof hole !== "number" ||
+                hole < 1 ||
+                hole > 18
+            ) {
+                throw new Error("Reiän tulee olla yksi - kahdeksantoista.");
+            }
+
+            return { hole };
+        }
+
+        function clearHoleScores(hole) {
+            const preservedNextHole = nextHole;
+            let clearedCount = 0;
+
+            for (let player = 1; player <= playerCount; player++) {
+                const input = document.querySelector(
+                    `.p${player}[data-hole="${hole}"]`
+                );
+
+                if (!input) {
+                    continue;
+                }
+
+                if (normalizeScoreValue(input.value) !== "") {
+                    clearedCount += 1;
+                }
+
+                input.value = "";
+            }
+
+            calculateScores();
+
+            // Korjaustoiminto ei muuta kierroksen varsinaista etenemiskohtaa.
+            nextHole = preservedNextHole;
+            updateNextHole();
+            updateRoundCompleteState();
+            updateRoundLayout();
+            saveState();
+
+            return {
+                action: "hole-cleared",
+                hole,
+                clearedCount,
+                addedScores: []
+            };
+        }
+
         function parseVoiceResults(spokenText) {
+            const clearHoleCommand = parseClearHoleCommand(spokenText);
+
+            if (clearHoleCommand) {
+                return clearHoleScores(clearHoleCommand.hole);
+            }
+
             const explicitHoleResult =
                 parseExplicitHoleOrderedResults(spokenText);
 
@@ -2564,29 +2651,45 @@
                 }
 
                 if (successfulResult) {
-                    voiceStatus.innerHTML =
-                        `<strong>Kuulin:</strong> ${escapeHtml(heardText)}<br>` +
-                        `<strong>Reikä ${successfulResult.hole} tallennettu ✅</strong><br>` +
-                        successfulResult.addedScores.join(", ");
+                    if (successfulResult.action === "hole-cleared") {
+                        const clearedText = successfulResult.clearedCount > 0
+                            ? `Reiän ${successfulResult.hole} tulokset poistettu ✅`
+                            : `Reikä ${successfulResult.hole} oli jo tyhjä.`;
 
-                    showSavedHoleInScorecard(
-                        successfulResult.hole
-                    );
+                        voiceStatus.innerHTML =
+                            `<strong>Kuulin:</strong> ${escapeHtml(heardText)}<br>` +
+                            `<strong>${escapeHtml(clearedText)}</strong><br>` +
+                            `Kierroksen etenemiskohta säilyi reiässä ${nextHole}.`;
 
-                    pendingVoiceMessage =
-                        `Reikä ${successfulResult.hole} tallennettu`;
+                        pendingVoiceMessage =
+                            successfulResult.clearedCount > 0
+                                ? `Reiän ${successfulResult.hole} tulokset poistettu`
+                                : `Reikä ${successfulResult.hole} oli jo tyhjä`;
+                    } else {
+                        voiceStatus.innerHTML =
+                            `<strong>Kuulin:</strong> ${escapeHtml(heardText)}<br>` +
+                            `<strong>Reikä ${successfulResult.hole} tallennettu ✅</strong><br>` +
+                            successfulResult.addedScores.join(", ");
 
-                    if (announceStandings) {
-                        const standingsMessage = buildStandingsMessage();
+                        showSavedHoleInScorecard(
+                            successfulResult.hole
+                        );
 
-                        if (standingsMessage) {
-                            pendingVoiceMessage += `. ${standingsMessage}`;
+                        pendingVoiceMessage =
+                            `Reikä ${successfulResult.hole} tallennettu`;
+
+                        if (announceStandings) {
+                            const standingsMessage = buildStandingsMessage();
+
+                            if (standingsMessage) {
+                                pendingVoiceMessage += `. ${standingsMessage}`;
+                            }
                         }
+
+                        checkFrontNineCompletion();
                     }
 
-                    checkFrontNineCompletion();
-
-                    // 18. reikä ei päätä kierrosta automaattisesti.
+                    // Kierrosta ei päätetä automaattisesti.
                     // Käyttäjä päättää kierroksen Päätä kierros -painikkeella.
                 } else {
                     voiceStatus.innerHTML =
@@ -2669,6 +2772,26 @@
         function updateNextHole() {
             nextHoleElement.textContent = nextHole;
             compactNextHoleElement.textContent = nextHole;
+
+            const roundIsActive = roundSetupConfirmed && !roundComplete;
+
+            if (activeHoleLabel) {
+                activeHoleLabel.textContent = roundIsActive
+                    ? "NYT PELATAAN"
+                    : "Aloitusreikä";
+            }
+
+            if (activeHoleHelp) {
+                activeHoleHelp.textContent = roundIsActive
+                    ? "Seuraava puhekirjaus kohdistuu tähän reikään."
+                    : "Anna aloitusreikä ennen ensimmäistä kirjausta.";
+            }
+
+            if (compactHoleLabel) {
+                compactHoleLabel.textContent = roundIsActive
+                    ? "Nyt pelataan"
+                    : "Aloitusreikä";
+            }
         }
 
         function updateRoundLayout() {

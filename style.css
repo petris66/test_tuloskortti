@@ -1935,3 +1935,27 @@ body {
 .round-start-hole{margin-bottom:0}
 .round-start-hole input{display:block;width:90px;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #cfd5cf}
 @media(max-width:520px){.round-length-options{gap:6px}.round-length-option span{padding:8px 10px}}
+
+
+/* Scorecard Safety 1.0.0 - clearer active hole */
+.round-active .next-hole-card {
+    border: 2px solid var(--forest-2);
+    box-shadow: 0 16px 38px rgba(23, 63, 24, .24);
+}
+
+.round-active .next-hole-label {
+    color: var(--forest);
+    font-size: 16px;
+    letter-spacing: .16em;
+}
+
+.round-active .next-hole-number {
+    transform: scale(1.06);
+}
+
+.round-active .compact-hole-line {
+    padding: 8px 10px;
+    border: 1px solid #9fc49a;
+    border-radius: 14px;
+    background: #edf7e9;
+}
