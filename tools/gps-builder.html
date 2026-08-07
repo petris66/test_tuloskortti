@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.4.3</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.5.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.4.3</h1>
+  <h1>GPS Builder 0.5.0</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -147,7 +147,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
   <section class="card">
     <h2>4. Valmis GPS Library JSON</h2>
-    <p class="small">JSON voidaan muodostaa vasta, kun käytössä on täsmälleen yksi green jokaiselle reiälle 1–18. Ylimääräiset greenit ohitetaan.</p>
+    <p class="small">Normaalisti JSON muodostetaan 18/18 reiästä. Porvoossa Builder sallii testiexportin varmoille rei'ille 1–3 ja 8–18; muuttuneet reiät 4–7 jätetään pois.</p>
     <div class="actions">
       <button class="primary" id="buildBtn" disabled>Muodosta JSON</button>
       <button class="secondary" id="downloadBtn" disabled>Lataa JSON</button>
@@ -518,8 +518,20 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       if(arr.length===0) missing.push(h);
       if(arr.length>1) duplicates.push(h);
     }
-    const selectionOk=missing.length===0&&duplicates.length===0&&active.filter(g=>Number.isInteger(g.hole)).length===18;
-    return {active,byHole,missing,duplicates,selectionOk};
+
+    const safeSet=partialExportHoles();
+    let exportable=false;
+    let exportHoles=[];
+
+    if(safeSet){
+      exportHoles=[...safeSet].filter(h=>(byHole.get(h)||[]).length===1);
+      exportable=exportHoles.length===safeSet.size;
+    }else{
+      exportHoles=[...byHole.keys()].filter(h=>(byHole.get(h)||[]).length===1);
+      exportable=missing.length===0 && duplicates.length===0 && exportHoles.length===18;
+    }
+
+    return {active,byHole,missing,duplicates,exportable,exportHoles,safeSet};
   }
 
   function updateSummary(){
@@ -537,8 +549,22 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
     missingPill.className="pill "+(v.missing.length===0?"ok":"err");
     extraPill.className="pill "+(extras===Math.max(0,greens.length-18)?"ok":"warn");
 
-    buildBtn.disabled=!v.selectionOk;
-    if(v.selectionOk){
+    buildBtn.disabled=!v.exportable;
+
+    if(v.safeSet){
+      const missingSafe=[...v.safeSet].filter(h=>(v.byHole.get(h)||[]).length!==1);
+      if(!missingSafe.length){
+        setValidation(
+          "Porvoon 14 varmaa testireikää (1–3 ja 8–18) ovat valmiit. Reiät 4–7 jätetään tarkoituksella pois GPS-exportista.",
+          "ok"
+        );
+      }else{
+        setValidation(
+          `Porvoon testiexportista puuttuvat vielä reiät: ${missingSafe.join(", ")}. Reiät 4–7 jätetään tarkoituksella pois.`,
+          "warn"
+        );
+      }
+    }else if(v.exportable){
       setValidation("18/18: täsmälleen yksi käytössä oleva green jokaiselle reiälle. Valmis JSONin muodostamiseen.","ok");
     }else if(v.missing.length){
       setValidation(`Puuttuvat reiät: ${v.missing.join(", ")}. Määritä ne kartalta.`,"warn");
@@ -590,7 +616,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       const tdLon=document.createElement("td");tdLon.className="coord";tdLon.textContent=g.lon.toFixed(7);
       const tdId=document.createElement("td");tdId.className="coord";tdId.textContent=`${g.type}/${g.id}`;
       const tdState=document.createElement("td");tdState.className="small";
-      tdState.textContent=g.extra?"Ylimääräinen":(g.hole?`Reikä ${g.hole}`:"Määrittämättä");
+      tdState.textContent=g.extra?"Ylimääräinen":(g.hole?`Reikä ${g.hole}${g.autoAssigned?" (auto)":""}`:"Määrittämättä");
 
       const tdRm=document.createElement("td");
       const rm=document.createElement("button");rm.className="danger";rm.textContent="×";
@@ -613,6 +639,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   node["golf"="green"](around:${r},${la},${lo});
   way["golf"="green"](around:${r},${la},${lo});
   relation["golf"="green"](around:${r},${la},${lo});
+  way["golf"="hole"](around:${r},${la},${lo});
 );
 out tags center geom;`;
   }
@@ -676,6 +703,89 @@ out tags center geom;`;
     throw lastError||new Error("Overpass-haku epäonnistui");
   }
 
+
+  function endpointsOf(element){
+    const geometry=Array.isArray(element?.geometry)
+      ? element.geometry.filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lon))
+      : [];
+    if(!geometry.length) return [];
+    return [
+      {lat:+geometry[0].lat,lon:+geometry[0].lon},
+      {lat:+geometry[geometry.length-1].lat,lon:+geometry[geometry.length-1].lon}
+    ];
+  }
+
+  function radians(v){ return Number(v)*Math.PI/180; }
+
+  function haversineMeters(lat1,lon1,lat2,lon2){
+    const R=6371000;
+    const p1=radians(lat1), p2=radians(lat2);
+    const dp=radians(lat2-lat1), dl=radians(lon2-lon1);
+    const a=Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  }
+
+  function autoAssignGreens(golfHoles){
+    greens.forEach(g=>{
+      g.autoAssigned=false;
+      g.autoDistance=null;
+    });
+
+    const usedGreenIndexes=new Set();
+
+    greens.forEach((g,index)=>{
+      if(Number.isInteger(g.hole) && g.hole>=1 && g.hole<=18){
+        g.selected=true;
+        usedGreenIndexes.add(index);
+      }
+    });
+
+    for(const holeWay of golfHoles){
+      const hole=holeWay.hole;
+      if(!Number.isInteger(hole) || hole<1 || hole>18) continue;
+      if(greens.some(g=>g.hole===hole && !g.extra)) continue;
+
+      let best=null;
+      greens.forEach((g,index)=>{
+        if(g.extra || usedGreenIndexes.has(index)) return;
+        holeWay.endpoints.forEach(ep=>{
+          const d=haversineMeters(ep.lat,ep.lon,g.lat,g.lon);
+          if(!best || d<best.distance){
+            best={index,distance:d};
+          }
+        });
+      });
+
+      if(best && best.distance<=160){
+        const g=greens[best.index];
+        g.hole=hole;
+        g.selected=true;
+        g.autoAssigned=true;
+        g.autoDistance=best.distance;
+        usedGreenIndexes.add(best.index);
+      }
+    }
+  }
+
+  function applyPorvooKnownChanges(){
+    if((courseId.value||"").trim()!=="porvoogolf") return;
+    greens.forEach(g=>{
+      if([4,5,6,7].includes(g.hole)){
+        g.hole=null;
+        g.selected=false;
+        g.autoAssigned=false;
+        g.autoDistance=null;
+      }
+    });
+  }
+
+  function partialExportHoles(){
+    if((courseId.value||"").trim()==="porvoogolf"){
+      return new Set([1,2,3,8,9,10,11,12,13,14,15,16,17,18]);
+    }
+    return null;
+  }
+
   async function fetchData(){
     const query=buildQuery();
     fetchBtn.disabled=true;
@@ -692,6 +802,16 @@ out tags center geom;`;
         setStatus(`Haetaan greenejä: ${endpoint}`);
         const data=await fetchOverpassWithFallback(endpoint,query);
 
+        const golfHoles=(data.elements||[])
+          .filter(e=>e.tags?.golf==="hole")
+          .map(e=>({
+            hole:parseHole(e.tags),
+            endpoints:endpointsOf(e),
+            id:e.id,
+            tags:e.tags||{}
+          }))
+          .filter(h=>h.hole && h.endpoints.length);
+
         greens=(data.elements||[])
           .filter(e=>e.tags?.golf==="green")
           .map(e=>{
@@ -705,16 +825,25 @@ out tags center geom;`;
               id:e.id,
               tags:e.tags||{},
               selected:!!hole,
-              extra:false
+              extra:false,
+              autoAssigned:false,
+              autoDistance:null
             };
           }).filter(Boolean);
+
+        autoAssignGreens(golfHoles);
+        applyPorvooKnownChanges();
 
         render();
         renderMap();
 
-        const numbered=greens.filter(g=>g.hole).length;
+        const autoCount=greens.filter(g=>g.autoAssigned).length;
+        const safeSet=partialExportHoles();
+        const safeCount=safeSet ? greens.filter(g=>safeSet.has(g.hole)).length : greens.filter(g=>g.hole).length;
+
         setStatus(
-          `Löytyi ${greens.length} greeniä. Reiän numero löytyi OSM-datasta ${numbered}:lle. Määritä loput kartalta.`,
+          `Löytyi ${greens.length} greeniä. Automaattisesti yhdistetty ${autoCount}. ` +
+          (safeSet ? `Porvoon varmoja testireikiä ${safeCount}/14.` : `Numeroitu ${safeCount}/18.`),
           greens.length>=18?"ok":"warn"
         );
         fetchBtn.disabled=false;
@@ -744,25 +873,32 @@ out tags center geom;`;
 
   function buildJson(){
     const v=validation();
-    if(!v.selectionOk){
-      setBuild("Greenien määritys ei ole vielä 18/18 kunnossa.","err");
+    if(!v.exportable){
+      setBuild("GPS-exportti ei ole vielä valmis.","err");
       return;
     }
-    const selected=v.active.filter(g=>Number.isInteger(g.hole)).sort((a,b)=>a.hole-b.hole);
+
+    const selected=greens
+      .filter(g=>Number.isInteger(g.hole) && v.exportHoles.includes(g.hole))
+      .sort((a,b)=>a.hole-b.hole);
 
     lastJson={
-      schemaVersion:"1.0",
+      schemaVersion:"1.1",
       libraryVersion:"1.0.0",
       courseId:courseId.value.trim(),
       course:courseName.value.trim(),
       country:(country.value.trim()||"FI"),
       mode:"green-center",
       generatedAt:new Date().toISOString(),
-      source:"OpenStreetMap / Overpass",
+      source:"OpenStreetMap / Overpass + Course Library",
+      partial:!!v.safeSet,
+      unavailableHoles:v.safeSet?[4,5,6,7]:[],
       fieldValidation:{
         status:"pending",
         referenceDevice:"Garmin",
-        notes:"Verify Green Center distances on course before marking validated."
+        notes:v.safeSet
+          ? "Porvoo holes 4-7 intentionally excluded because the course layout changed. Verify holes 1-3 and 8-18 on course."
+          : "Verify Green Center distances on course before marking validated."
       },
       holes:selected.map(g=>({
         hole:g.hole,
@@ -770,14 +906,21 @@ out tags center geom;`;
         source:{
           provider:"OpenStreetMap",
           osmElement:`${g.type}/${g.id}`,
-          assignedWith:"GPS Builder map",
+          assignedWith:g.autoAssigned?"golf=hole auto-match":"GPS Builder map/manual",
+          matchDistanceMeters:g.autoDistance==null?null:Math.round(g.autoDistance),
           verified:false
         }
       }))
     };
+
     output.value=JSON.stringify(lastJson,null,2);
     downloadBtn.disabled=false;
-    setBuild("18/18 reikää muodostettu. JSON on valmis ladattavaksi GPS Libraryyn.","ok");
+    setBuild(
+      v.safeSet
+        ? "Porvoon 14 reiän testidata muodostettu. Reiät 4–7 jätetty pois tarkoituksella."
+        : "18/18 reikää muodostettu. JSON on valmis ladattavaksi GPS Libraryyn.",
+      "ok"
+    );
   }
 
   function downloadJson(){

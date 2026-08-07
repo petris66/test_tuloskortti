@@ -1,23 +1,21 @@
-# GPS Builder 0.4.3
+# GPS Builder 0.5.0
 
-Development-only tool for creating static Golf Voice Scorecard AI GPS Library files.
+Development-only GPS Library builder for Golf Voice Scorecard AI.
 
-## Fix from 0.4.2
+## Changes
+- Fetches both golf greens and numbered golf hole lines from OpenStreetMap.
+- Automatically matches numbered hole geometry to the nearest green.
+- Keeps manual map correction as fallback.
+- Porvoo test mode exports only known unchanged holes 1-3 and 8-18.
+- Porvoo holes 4-7 are intentionally excluded from the first field-test JSON.
 
-- Fixed Leaflet stylesheet loading.
-- Force Leaflet to recalculate map size after Builder layout changes.
-- Added a resize observer for the map container.
-- Refit map bounds after green markers are rendered.
-- Green markers are displayed as G1-Gn for easier manual identification.
-- Course Library, Overpass and JSON logic are unchanged.
-
-## Porvoo test
-
-1. Open `tools/gps-builder.html?v=403`.
-2. Select **Porvoo-esiasetus**.
-3. Press **Hae greenit OpenStreetMapista**.
-4. Expected:
-   - Course Library: 18/18 holes loaded
-   - OSM: approximately 19 greens found
-   - Full golf-course map visible with G1-G19 markers
-5. Assign the 18 playing greens and mark the extra green unused.
+## Porvoo workflow
+1. Open `tools/gps-builder.html?v=500`.
+2. Select Porvoo preset.
+3. Fetch greens from OpenStreetMap.
+4. Builder auto-matches numbered hole lines to greens.
+5. Verify holes 1-3 and 8-18.
+6. Generate JSON.
+7. Download `porvoogolf.json`.
+8. Add it to `data/gps/FI/`.
+9. Field-test Green Center against Garmin.
