@@ -2,18 +2,26 @@ Golf Voice Scorecard AI
 Development Repository
 
 Version:
-GPS 1.1.7
+Course Library 1.0.0
 
 Base Version:
-GPS 1.1.6
+GPS 1.1.7
 
 Date:
-2026-08-06
+2026-08-07
 
 Status:
-Development
+Development / sofa test + field test
 
 Changes:
-- Renamed the setting to "Kierroksen pituus".
-- Added clear 9 / 18 hole selection buttons.
-- Preserved GPS 1.1.6 round-length logic and GPS shutdown behavior.
+- Added country-based course library structure under data/courses/FI/.
+- Migrated all 15 existing course configurations into individual course files.
+- Added St. Laurence Golf – Kalkki-Petteri from official scorecard/slope data.
+- Added St. Laurence Golf – Pyhä Lauri from official 2026 scorecard/slope data.
+- Added Porvoo Golf as provisional 2026 data with official new hole 4–7 lengths.
+- Porvoo Golf CR/Slope intentionally omitted until the club publishes new 2026 values.
+- Added manifest-based course loading with combined-file fallback.
+
+Notes:
+- No live-repository changes.
+- Porvoo holes 4–7 are ready for field verification.

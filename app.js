@@ -412,18 +412,32 @@
         }
 
         async function loadCourseData() {
-            courseDataStatus.textContent = "Ladataan kenttädataa…";
+            courseDataStatus.textContent = "Ladataan kenttäkirjastoa…";
 
             try {
-                const response = await fetch("data/courses_2026-08-03.json", {
-                    cache: "no-store"
-                });
+                let data = [];
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                try {
+                    const manifestResponse = await fetch("data/courses/manifest.json", { cache: "no-store" });
+                    if (!manifestResponse.ok) throw new Error(`Manifest HTTP ${manifestResponse.status}`);
+                    const manifest = await manifestResponse.json();
+                    const courseFiles = Array.isArray(manifest?.courses) ? manifest.courses : [];
+                    if (courseFiles.length === 0) throw new Error("Kenttämanifesti on tyhjä.");
+
+                    const libraries = await Promise.all(courseFiles.map(async entry => {
+                        const response = await fetch(`data/courses/${entry.file}`, { cache: "no-store" });
+                        if (!response.ok) throw new Error(`${entry.file}: HTTP ${response.status}`);
+                        const rows = await response.json();
+                        if (!Array.isArray(rows)) throw new Error(`${entry.file}: virheellinen kenttädata`);
+                        return rows;
+                    }));
+                    data = libraries.flat();
+                } catch (libraryError) {
+                    console.warn("Kenttäkirjaston lataus epäonnistui, käytetään yhdistettyä varatiedostoa:", libraryError);
+                    const fallbackResponse = await fetch("data/courses_2026-08-07.json", { cache: "no-store" });
+                    if (!fallbackResponse.ok) throw new Error(`Fallback HTTP ${fallbackResponse.status}`);
+                    data = await fallbackResponse.json();
                 }
-
-                const data = await response.json();
 
                 if (!Array.isArray(data) || data.length === 0) {
                     throw new Error("Kenttädata on tyhjä.");
