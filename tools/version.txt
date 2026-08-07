@@ -1,0 +1,5 @@
+GPS Builder
+Version: 0.1.0
+Date: 2026-08-07
+Status: Development tool
+Base application: GPS Phase 2.0.0
