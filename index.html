@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=course-library-1-0-0">
+    <link rel="stylesheet" href="style.css?v=gps-phase-2-0-0">
 
 </head>
 
@@ -208,6 +208,20 @@
             <p class="gps-message" id="gpsMessage" role="status" aria-live="polite">
                 GPS ei ole käytössä. Sijaintia ei tallenneta.
             </p>
+
+            <div class="gps-green-panel" aria-label="Golf-GPS">
+                <div class="gps-course-data-line">
+                    <span>GPS-kenttädata</span>
+                    <strong id="gpsCourseDataStatus">Ei ladattu</strong>
+                </div>
+                <div class="gps-green-center-box">
+                    <div>
+                        <span>Green Center</span>
+                        <small>Reikä <strong id="gpsGreenHole">1</strong></small>
+                    </div>
+                    <strong class="gps-green-distance" id="gpsGreenCenterDistance">—</strong>
+                </div>
+            </div>
 
             <div class="gps-data-grid" aria-label="GPS-tiedot">
                 <div class="gps-data-item">
@@ -475,7 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sync();
 });
 </script>
-<script src="app.js?v=scorecard-safety-1-0-0" defer></script>
+<script src="app.js?v=gps-phase-2-0-0" defer></script>
 
 </body>
 </html>

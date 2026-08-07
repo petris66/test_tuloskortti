@@ -1959,3 +1959,78 @@ body {
     border-radius: 14px;
     background: #edf7e9;
 }
+
+
+/* GPS Phase 2.0.0 - Green Center */
+.gps-green-panel {
+    display: grid;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.gps-course-data-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border: 1px solid #c6d9c1;
+    border-radius: 14px;
+    background: #f6faf4;
+    font-size: 13px;
+}
+
+.gps-course-data-line strong {
+    color: var(--forest);
+    text-align: right;
+}
+
+.gps-green-center-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 2px solid #8db487;
+    border-radius: 18px;
+    background: #edf7e9;
+}
+
+.gps-green-center-box > div {
+    display: grid;
+    gap: 3px;
+}
+
+.gps-green-center-box span {
+    color: var(--forest-2);
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.gps-green-center-box small {
+    color: #557254;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.gps-green-distance {
+    min-width: 112px;
+    color: var(--forest);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 38px;
+    line-height: 1;
+    text-align: right;
+}
+
+@media (max-width: 500px) {
+    .gps-green-center-box {
+        padding: 13px 14px;
+    }
+
+    .gps-green-distance {
+        min-width: 96px;
+        font-size: 34px;
+    }
+}

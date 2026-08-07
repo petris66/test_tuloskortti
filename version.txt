@@ -2,25 +2,32 @@ Golf Voice Scorecard AI
 Development Repository
 
 Version:
-Scorecard Safety 1.0.0
+GPS Phase 2.0.0
 
 Base Version:
-Course Library 1.0.0
+Scorecard Safety 1.0.0
 
 Date:
 2026-08-07
 
 Status:
-Development / sofa test
+Development / sofa test before Porvoo field test
 
 Changes:
-- Added voice commands to clear all player scores from a selected hole.
-- Supported commands include "tyhjennä reikä 6", "poista reikä 6" and "poista reiän 6 tulokset".
-- Clearing a hole preserves the round's current progression point.
-- Existing explicit hole correction can be used immediately after clearing the hole.
-- Made the active playing hole more prominent with "NYT PELATAAN" and a stronger visual highlight.
-- Preserved Course Library 1.0.0 and GPS functionality.
+- Added Green Center distance for the active scorecard hole.
+- Added GPS course data structure under data/gps/.
+- Added Porvoo Golf and Gumböle Golf GPS configurations.
+- Golf green geometry is fetched from OpenStreetMap via Overpass API.
+- Hole numbers are resolved from green tags or from numbered golf hole lines.
+- Resolved green centers are cached locally in the browser for field use.
+- Added visible GPS course-data status (for example 18/18 greens).
+- No Front/Back distances yet; Phase 2.0 intentionally tests Center only.
+- Preserved Scorecard Safety 1.0.0, Course Library 1.0.0 and existing GPS tracking.
 
-Notes:
-- No live-repository changes.
-- This package is intended for the test_tuloskortti development repository.
+Field-test target:
+- Porvoo Golf: compare Green Center distance with Garmin center distance.
+- Gumböle Golf: GPS data configuration prepared for the next test.
+
+Important:
+- OpenStreetMap is community-maintained data. Field verification is required.
+- If GPS course data shows fewer than 18/18 greens, do not treat missing-hole distances as verified.
