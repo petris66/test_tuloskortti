@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.6.1</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.6.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.6.1</h1>
+  <h1>GPS Builder 0.6.2</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -411,9 +411,11 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       courseLibraryStatus.textContent="Ladataan Course Library…";
       courseLibraryStatus.className="status";
 
-      const manifestUrl=new URL("../data/source/manifest.json", window.location.href);
-      manifestUrl.searchParams.set("v","builder061");
-      const manifestCandidates=[manifestUrl.href];
+      const base=repoBasePath();
+      const manifestCandidates=[
+        `${base}/data/source/manifest.json?v=builder062`,
+        `../data/source/manifest.json?v=builder062`
+      ];
 
       const manifestResult=await fetchJsonCandidates(manifestCandidates);
       const manifest=manifestResult.data;
@@ -423,9 +425,10 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         throw new Error(`Kenttää ${id} ei löytynyt Course Library manifestista`);
       }
 
-      const courseUrl=new URL(`../data/source/${entry.file}`, window.location.href);
-      courseUrl.searchParams.set("v","builder061");
-      const courseCandidates=[courseUrl.href];
+      const courseCandidates=[
+        `${base}/data/source/${entry.file}?v=builder062`,
+        `../data/source/${entry.file}?v=builder062`
+      ];
 
       const courseResult=await fetchJsonCandidates(courseCandidates);
       courseRows=courseResult.data;
