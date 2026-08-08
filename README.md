@@ -164,6 +164,17 @@ Poista vanha kotinäytön kuvake ja lisää sovellus Safari-valikosta uudelleen,
 - Jakokuvan korkeutta tiivistettiin poistuneen yhteenveto-osion verran.
 
 - ---
+## Field testing
+
+### Porvoo Golf – 2026-08-08
+
+- Scorecard and Stableford calculation tested during a full 18-hole round.
+- Final score and Stableford points matched GameBook exactly.
+- GPS Green Center distances compared with Garmin and course distance markers.
+- Typical GPS difference was approximately 1–2 metres.
+- On hole 9 (dogleg right), the app showed approximately 15–20 m shorter distance than Garmin. The app measures direct distance to the green center, which explains the difference on the dogleg.
+- GPS Phase 2 Green Center functionality confirmed working in field testing.
+- Tested on iPhone as a PWA.
 
 ## License
 
