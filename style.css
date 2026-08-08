@@ -2034,3 +2034,59 @@ body {
         font-size: 34px;
     }
 }
+
+
+/* --- GPS Front / Center / Back --- */
+.gps-green-fcb-box {
+    display: grid;
+    gap: 12px;
+}
+
+.gps-green-hole-heading {
+    display: flex !important;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.gps-green-fcb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+}
+
+.gps-green-fcb-grid > div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 6px;
+    border: 1px solid #bfd2ba;
+    border-radius: 14px;
+    background: #f7fbf4;
+    text-align: center;
+}
+
+.gps-green-fcb-grid small {
+    text-transform: uppercase;
+}
+
+.gps-green-fcb-grid .gps-green-distance {
+    min-width: 0;
+    font-size: 30px;
+    text-align: center;
+}
+
+@media (max-width: 500px) {
+    .gps-green-fcb-grid {
+        gap: 5px;
+    }
+
+    .gps-green-fcb-grid > div {
+        padding: 9px 3px;
+    }
+
+    .gps-green-fcb-grid .gps-green-distance {
+        font-size: 25px;
+    }
+}

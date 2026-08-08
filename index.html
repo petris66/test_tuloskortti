@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=gps201">
+    <link rel="stylesheet" href="style.css?v=gps202">
 
 </head>
 
@@ -214,12 +214,16 @@
                     <span>GPS-kenttädata</span>
                     <strong id="gpsCourseDataStatus">Ei ladattu</strong>
                 </div>
-                <div class="gps-green-center-box">
-                    <div>
-                        <span>Green Center</span>
+                <div class="gps-green-center-box gps-green-fcb-box">
+                    <div class="gps-green-hole-heading">
+                        <span>Green</span>
                         <small>Reikä <strong id="gpsGreenHole">1</strong></small>
                     </div>
-                    <strong class="gps-green-distance" id="gpsGreenCenterDistance">—</strong>
+                    <div class="gps-green-fcb-grid" aria-label="Green Front Center Back etäisyydet">
+                        <div><small>Front</small><strong class="gps-green-distance" id="gpsGreenFrontDistance">—</strong></div>
+                        <div><small>Center</small><strong class="gps-green-distance" id="gpsGreenCenterDistance">—</strong></div>
+                        <div><small>Back</small><strong class="gps-green-distance" id="gpsGreenBackDistance">—</strong></div>
+                    </div>
                 </div>
             </div>
 
@@ -489,7 +493,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sync();
 });
 </script>
-<script src="app.js?v=gps201" defer></script>
+<script src="app.js?v=gps202" defer></script>
 
 </body>
 </html>

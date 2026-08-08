@@ -88,13 +88,15 @@
         const gpsPositionAge = document.getElementById("gpsPositionAge");
         const gpsCourseDataStatus = document.getElementById("gpsCourseDataStatus");
         const gpsGreenHole = document.getElementById("gpsGreenHole");
+        const gpsGreenFrontDistance = document.getElementById("gpsGreenFrontDistance");
         const gpsGreenCenterDistance = document.getElementById("gpsGreenCenterDistance");
+        const gpsGreenBackDistance = document.getElementById("gpsGreenBackDistance");
 
 
         const GolfGPS = (() => {
             let manifest = null;
             let config = null;
-            let greenCenters = new Map();
+            let greens = new Map();
             let loadingCourseId = "";
 
             function radians(value) {
@@ -117,7 +119,7 @@
             async function loadManifest() {
                 if (manifest) return manifest;
 
-                const response = await fetch("data/gps/manifest.json?v=gps201", {
+                const response = await fetch("data/gps/manifest.json?v=gps202", {
                     cache: "no-store"
                 });
                 if (!response.ok) {
@@ -133,7 +135,7 @@
                 const entry = gpsManifest?.courses?.find(item => item.courseId === courseId);
                 if (!entry?.file) return null;
 
-                const response = await fetch(`data/gps/${entry.file}?v=gps201`, {
+                const response = await fetch(`data/gps/${entry.file}?v=gps202`, {
                     cache: "no-store"
                 });
                 if (!response.ok) {
@@ -143,23 +145,27 @@
                 return response.json();
             }
 
+            function pointFrom(value) {
+                const lat = Number(value?.lat);
+                const lon = Number(value?.lon);
+                return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+            }
+
             function holesToMap(courseConfig) {
                 const mapped = new Map();
 
                 (courseConfig?.holes || []).forEach(row => {
                     const hole = Number(row?.hole);
-                    const lat = Number(row?.greenCenter?.lat);
-                    const lon = Number(row?.greenCenter?.lon);
+                    if (!Number.isInteger(hole) || hole < 1 || hole > 18) return;
 
-                    if (
-                        Number.isInteger(hole) &&
-                        hole >= 1 &&
-                        hole <= 18 &&
-                        Number.isFinite(lat) &&
-                        Number.isFinite(lon)
-                    ) {
-                        mapped.set(hole, { lat, lon });
-                    }
+                    const center = pointFrom(row?.greenCenter);
+                    if (!center) return;
+
+                    mapped.set(hole, {
+                        front: pointFrom(row?.greenFront),
+                        center,
+                        back: pointFrom(row?.greenBack)
+                    });
                 });
 
                 return mapped;
@@ -168,7 +174,7 @@
             async function loadCourse(courseId) {
                 loadingCourseId = courseId;
                 config = null;
-                greenCenters = new Map();
+                greens = new Map();
 
                 if (!courseId) {
                     return { supported: false, count: 0 };
@@ -185,11 +191,11 @@
                 }
 
                 config = courseConfig;
-                greenCenters = holesToMap(courseConfig);
+                greens = holesToMap(courseConfig);
 
                 return {
-                    supported: greenCenters.size > 0,
-                    count: greenCenters.size,
+                    supported: greens.size > 0,
+                    count: greens.size,
                     partial: Boolean(courseConfig.partial),
                     unavailableHoles: Array.isArray(courseConfig.unavailableHoles)
                         ? courseConfig.unavailableHoles.map(Number).filter(Number.isFinite)
@@ -199,12 +205,16 @@
                 };
             }
 
+            function getGreen(hole) {
+                return greens.get(Number(hole)) || null;
+            }
+
             function getGreenCenter(hole) {
-                return greenCenters.get(Number(hole)) || null;
+                return getGreen(hole)?.center || null;
             }
 
             function getCount() {
-                return greenCenters.size;
+                return greens.size;
             }
 
             function getConfig() {
@@ -218,6 +228,7 @@
 
             return {
                 loadCourse,
+                getGreen,
                 getGreenCenter,
                 getCount,
                 getConfig,
@@ -429,33 +440,40 @@
 
         function resetGreenDistanceDisplay() {
             if (gpsGreenHole) gpsGreenHole.textContent = String(nextHole || 1);
+            if (gpsGreenFrontDistance) gpsGreenFrontDistance.textContent = "—";
             if (gpsGreenCenterDistance) gpsGreenCenterDistance.textContent = "—";
+            if (gpsGreenBackDistance) gpsGreenBackDistance.textContent = "—";
         }
 
         function updateGreenCenterDistance() {
             if (gpsGreenHole) gpsGreenHole.textContent = String(nextHole || 1);
 
             const position = GPS.getPosition();
-            const green = GolfGPS.getGreenCenter(nextHole);
+            const green = GolfGPS.getGreen(nextHole);
+            const unavailable = GolfGPS.isHoleUnavailable(nextHole);
+            const targets = [
+                [gpsGreenFrontDistance, green?.front],
+                [gpsGreenCenterDistance, green?.center],
+                [gpsGreenBackDistance, green?.back]
+            ];
 
-            if (!gpsGreenCenterDistance) return;
+            targets.forEach(([element, point]) => {
+                if (!element) return;
+                if (!position || !point) {
+                    element.textContent = unavailable ? "ei dataa" : "—";
+                    return;
+                }
 
-            if (!position || !green) {
-                gpsGreenCenterDistance.textContent =
-                    GolfGPS.isHoleUnavailable(nextHole) ? "ei dataa" : "—";
-                return;
-            }
-
-            const distance = GolfGPS.distanceMeters(
-                position.coords.latitude,
-                position.coords.longitude,
-                green.lat,
-                green.lon
-            );
-
-            gpsGreenCenterDistance.textContent = Number.isFinite(distance)
-                ? `${Math.round(distance)} m`
-                : "—";
+                const distance = GolfGPS.distanceMeters(
+                    position.coords.latitude,
+                    position.coords.longitude,
+                    point.lat,
+                    point.lon
+                );
+                element.textContent = Number.isFinite(distance)
+                    ? `${Math.round(distance)} m`
+                    : "—";
+            });
         }
 
         async function loadSelectedCourseGpsData(forceRefresh = false) {
