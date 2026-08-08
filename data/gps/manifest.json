@@ -3,10 +3,16 @@
   "country": "FI",
   "courses": [
     {
-      "courseId": "porvoogolf",
+      "courseId": "porvoolfg",
       "file": "FI/porvoogolf.json",
       "status": "field-test",
       "holes": 14
+    },
+    {
+      "courseId": "gumbole",
+      "file": "FI/gumbole.json",
+      "status": "field-test",
+      "holes": 18
     }
   ]
 }
