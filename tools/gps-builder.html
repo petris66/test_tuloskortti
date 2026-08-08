@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.6.2</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.6.3</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.6.2</h1>
+  <h1>GPS Builder 0.6.3</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -413,8 +413,8 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
       const base=repoBasePath();
       const manifestCandidates=[
-        `${base}/data/source/manifest.json?v=builder062`,
-        `../data/source/manifest.json?v=builder062`
+        `${base}/data/source/manifest.json?v=builder063`,
+        `../data/source/manifest.json?v=builder063`
       ];
 
       const manifestResult=await fetchJsonCandidates(manifestCandidates);
@@ -426,8 +426,8 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       }
 
       const courseCandidates=[
-        `${base}/data/source/${entry.file}?v=builder062`,
-        `../data/source/${entry.file}?v=builder062`
+        `${base}/data/source/${entry.file}?v=builder063`,
+        `../data/source/${entry.file}?v=builder063`
       ];
 
       const courseResult=await fetchJsonCandidates(courseCandidates);
@@ -768,6 +768,26 @@ out tags center geom;`;
     }
   }
 
+  function applyGumboleVerifiedMapping(){
+    if((courseId.value||"").trim()!=="gumbole") return false;
+    const verified={
+      1:1,2:22,3:23,4:24,5:25,6:26,7:27,8:28,9:2,
+      10:29,11:30,12:31,13:32,14:33,15:34,16:35,17:36,18:3
+    };
+    if(greens.length<36) return false;
+    greens.forEach(g=>{
+      g.hole=null; g.selected=false; g.extra=true;
+      g.autoAssigned=false; g.autoDistance=null;
+    });
+    for(const [hole,gNumber] of Object.entries(verified)){
+      const g=greens[gNumber-1];
+      if(!g) return false;
+      g.hole=Number(hole); g.selected=true; g.extra=false;
+      g.autoAssigned=false; g.autoDistance=null;
+    }
+    return true;
+  }
+
   function applyPorvooKnownChanges(){
     if((courseId.value||"").trim()!=="porvoogolf") return;
     greens.forEach(g=>{
@@ -837,6 +857,7 @@ out tags center geom;`;
 
         autoAssignGreens(golfHoles);
         applyPorvooKnownChanges();
+        const gumboleVerified=applyGumboleVerifiedMapping();
 
         render();
         renderMap();
@@ -846,8 +867,10 @@ out tags center geom;`;
         const safeCount=safeSet ? greens.filter(g=>safeSet.has(g.hole)).length : greens.filter(g=>g.hole).length;
 
         setStatus(
-          `Löytyi ${greens.length} greeniä. Automaattisesti yhdistetty ${autoCount}. ` +
-          (safeSet ? `Porvoon varmoja testireikiä ${safeCount}/14.` : `Numeroitu ${safeCount}/18.`),
+          gumboleVerified
+            ? `Löytyi ${greens.length} greeniä. Gumbölen 18/18 varmennettua greeniä yhdistetty automaattisesti; muut hakutulokset jätetty pois.`
+            : (`Löytyi ${greens.length} greeniä. Automaattisesti yhdistetty ${autoCount}. ` +
+               (safeSet ? `Porvoon varmoja testireikiä ${safeCount}/14.` : `Numeroitu ${safeCount}/18.`)),
           greens.length>=18?"ok":"warn"
         );
         fetchBtn.disabled=false;
