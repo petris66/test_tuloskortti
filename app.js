@@ -291,9 +291,16 @@
                 const tooOldForSession = timestamp < sessionStartedAt - 2000;
                 const duplicateMeasurement = latestTimestamp > 0 && timestamp <= latestTimestamp;
 
-                if (tooOldForSession || duplicateMeasurement) {
+                // watchPosition() ja getCurrentPosition() voivat palauttaa saman
+                // mittauksen samalla aikaleimalla. Tällainen duplikaatti ohitetaan
+                // hiljaa, koska se ei ole käyttäjän kannalta "vanha sijainti".
+                if (duplicateMeasurement && !tooOldForSession) {
+                    return;
+                }
+
+                if (tooOldForSession) {
                     staleHandler?.(position, {
-                        tooOldForSession,
+                        tooOldForSession: true,
                         duplicateMeasurement,
                         ageMs: Math.max(0, Date.now() - timestamp)
                     });
