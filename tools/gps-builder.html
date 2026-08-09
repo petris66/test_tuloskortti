@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.6.5</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.6.6</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.6.5</h1>
+  <h1>GPS Builder 0.6.6</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -91,7 +91,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
     </div>
     <div class="actions">
       <button class="primary" id="fetchBtn">Hae greenit OpenStreetMapista</button>
-      <button class="secondary" id="manualGreenBtn">Lisää green käsin</button>
+      <button class="secondary" id="manualGreenBtn">Lisää F/C/B käsin</button>
       <button class="secondary" id="porvooBtn">Porvoo-esiasetus</button>
       <button class="secondary" id="gumboleBtn">Gumböle-esiasetus</button>
       <button class="secondary" id="peurunkaBtn">Peurunka-esiasetus</button>
@@ -186,6 +186,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   let lastJson=null;
   let golfHoleWays=[];
   let manualGreenMode=false;
+  let manualGreenDraft=null;
 
   function setStatus(text,type=""){status.textContent=text;status.className="status"+(type?" "+type:"")}
   function setMapStatus(text,type=""){mapStatus.textContent=text;mapStatus.className="status"+(type?" "+type:"")}
@@ -228,26 +229,38 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
     markerLayer=L.layerGroup().addTo(map);
 
     map.on("click",e=>{
-      if(!manualGreenMode) return;
-      manualGreenMode=false;
-      const holeText=window.prompt("Mille reiälle tämä green kuuluu? Anna reikä 1–18.");
-      const hole=Number(holeText);
-      if(!Number.isInteger(hole)||hole<1||hole>18){
-        setMapStatus("Greenin lisäys peruttu: anna reiän numero 1–18.","warn");
+      if(!manualGreenMode || !manualGreenDraft) return;
+
+      const point={lat:+e.latlng.lat,lon:+e.latlng.lng};
+
+      if(!manualGreenDraft.front){
+        manualGreenDraft.front=point;
+        setMapStatus(`Reikä ${manualGreenDraft.hole}: Front tallennettu. Klikkaa nyt greenin CENTER.`,"warn");
         return;
       }
 
-      greens.forEach((other,i)=>{
-        if(other.hole===hole && !other.extra){
+      if(!manualGreenDraft.center){
+        manualGreenDraft.center=point;
+        setMapStatus(`Reikä ${manualGreenDraft.hole}: Center tallennettu. Klikkaa nyt greenin BACK.`,"warn");
+        return;
+      }
+
+      manualGreenDraft.back=point;
+      const draft=manualGreenDraft;
+      manualGreenMode=false;
+      manualGreenDraft=null;
+
+      greens.forEach(other=>{
+        if(other.hole===draft.hole && !other.extra){
           other.hole=null;
           other.selected=false;
         }
       });
 
       greens.push({
-        hole,
-        lat:+e.latlng.lat,
-        lon:+e.latlng.lng,
+        hole:draft.hole,
+        lat:draft.center.lat,
+        lon:draft.center.lon,
         geometry:[],
         type:"manual",
         id:`manual-${Date.now()}`,
@@ -256,12 +269,15 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         extra:false,
         autoAssigned:false,
         autoDistance:null,
-        manual:true
+        manual:true,
+        manualFront:draft.front,
+        manualCenter:draft.center,
+        manualBack:draft.back
       });
 
       render();
       renderMap();
-      setMapStatus(`Reiän ${hole} green lisätty käsin. Front / Back voidaan määrittää myöhemmin, center on nyt käytössä.`,"ok");
+      setMapStatus(`Reiän ${draft.hole} Front / Center / Back lisätty käsin. Valmis validointiin.`,"ok");
     });
 
     observeMapResize();
@@ -960,6 +976,14 @@ out tags center geom;`;
 
   function frontCenterBackForGreen(g){
     const center={lat:+g.lat,lon:+g.lon};
+    if(g.manual && g.manualFront && g.manualCenter && g.manualBack){
+      return {
+        front:{lat:+g.manualFront.lat,lon:+g.manualFront.lon},
+        center:{lat:+g.manualCenter.lat,lon:+g.manualCenter.lon},
+        back:{lat:+g.manualBack.lat,lon:+g.manualBack.lon},
+        method:'manual-front-center-back'
+      };
+    }
     if(g.manual) return {front:null,center,back:null,method:'manual-center-only'};
     const geom=(g.geometry||[]).filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lon));
     if(geom.length<2) return {front:null,center,back:null,method:'center-only'};
@@ -1077,8 +1101,17 @@ out tags center geom;`;
   fetchBtn.addEventListener("click",fetchData);
   $("manualGreenBtn").addEventListener("click",()=>{
     if(!initMap()) return;
+    const holeText=window.prompt("Mille reiälle lisätään Front / Center / Back? Anna reikä 1–18.");
+    const hole=Number(holeText);
+    if(!Number.isInteger(hole)||hole<1||hole>18){
+      manualGreenMode=false;
+      manualGreenDraft=null;
+      setMapStatus("Greenin lisäys peruttu: anna reiän numero 1–18.","warn");
+      return;
+    }
     manualGreenMode=true;
-    setMapStatus("Lisää green käsin: klikkaa kartalta greenin keskustaa. Sen jälkeen anna reiän numero 1–18.","warn");
+    manualGreenDraft={hole,front:null,center:null,back:null};
+    setMapStatus(`Reikä ${hole}: klikkaa ensin greenin FRONT-pistettä.`,"warn");
   });
   sortBtn.addEventListener("click",sortRows);
   clearBtn.addEventListener("click",()=>{
