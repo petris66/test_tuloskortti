@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.6.3</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.6.4</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.6.3</h1>
+  <h1>GPS Builder 0.6.4</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -93,6 +93,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       <button class="primary" id="fetchBtn">Hae greenit OpenStreetMapista</button>
       <button class="secondary" id="porvooBtn">Porvoo-esiasetus</button>
       <button class="secondary" id="gumboleBtn">Gumböle-esiasetus</button>
+      <button class="secondary" id="peurunkaBtn">Peurunka-esiasetus</button>
     </div>
     <div id="status" class="status">Valmis hakuun.</div>
   </section>
@@ -1042,6 +1043,7 @@ out tags center geom;`;
   downloadBtn.addEventListener("click",downloadJson);
   $("porvooBtn").addEventListener("click",()=>preset("Porvoo Golf","porvoogolf",60.4218,25.6952,3200));
   $("gumboleBtn").addEventListener("click",()=>preset("Gumböle Golf","gumbole",60.223967,24.611271,3200));
+  $("peurunkaBtn").addEventListener("click",()=>preset("Laukaan Peurunkagolf","peurunkagolf",62.434565,25.868707,3200));
 
   window.addEventListener("load",()=>{
     initMap();
