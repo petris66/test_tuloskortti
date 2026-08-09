@@ -3,6 +3,7 @@
         const STORAGE_KEY = "golfTuloslaskuriV2";
         const HISTORY_KEY = "golfTuloslaskuriHistory";
         const MAX_PLAYERS = 4;
+        const GPS_DISTANCE_ACCURACY_LIMIT_METERS = 15;
 
         let playerCount = 1;
         let roundSetupConfirmed = false;
@@ -457,6 +458,18 @@
                 [gpsGreenBackDistance, green?.back]
             ];
 
+            const accuracy = Number(position?.coords?.accuracy);
+            const accuracyReady =
+                Number.isFinite(accuracy) &&
+                accuracy <= GPS_DISTANCE_ACCURACY_LIMIT_METERS;
+
+            if (position && !accuracyReady) {
+                targets.forEach(([element]) => {
+                    if (element) element.textContent = "—";
+                });
+                return;
+            }
+
             targets.forEach(([element, point]) => {
                 if (!element) return;
                 if (!position || !point) {
@@ -520,14 +533,30 @@
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
+            const accuracyReady =
+                Number.isFinite(accuracy) &&
+                accuracy <= GPS_DISTANCE_ACCURACY_LIMIT_METERS;
 
-            setGpsBadge("on", "GPS käytössä");
+            if (accuracyReady) {
+                setGpsBadge("on", "GPS käytössä");
+                if (gpsStatus) gpsStatus.textContent = "GPS aktiivinen";
+                if (gpsMessage) {
+                    gpsMessage.textContent =
+                        "GPS-sijainti on riittävän tarkka. Front / Center / Back -etäisyydet ovat käytössä.";
+                }
+            } else {
+                setGpsBadge("waiting", "GPS tarkentaa sijaintia");
+                if (gpsStatus) gpsStatus.textContent = "Tarkennetaan sijaintia";
+                if (gpsMessage) {
+                    gpsMessage.textContent =
+                        `Odotetaan tarkkaa GPS-sijaintia… Etäisyydet näytetään, kun tarkkuus on ±${GPS_DISTANCE_ACCURACY_LIMIT_METERS} m tai parempi.`;
+                }
+            }
+
             if (gpsToggleButton) {
                 gpsToggleButton.textContent = "Poista GPS käytöstä";
                 gpsToggleButton.classList.add("gps-stop-button");
             }
-            if (gpsMessage) gpsMessage.textContent = "GPS-seuranta on aktiivinen. Näytössä käytetään vain uutta GPS-mittausta, ei selaimen vanhaa välimuistisijaintia.";
-            if (gpsStatus) gpsStatus.textContent = "GPS aktiivinen";
             if (gpsAccuracy) gpsAccuracy.textContent = Number.isFinite(accuracy) ? `±${Math.round(accuracy)} m` : "—";
             if (gpsLatitude) gpsLatitude.textContent = Number(latitude).toFixed(6);
             if (gpsLongitude) gpsLongitude.textContent = Number(longitude).toFixed(6);
