@@ -1,0 +1,433 @@
+{
+  "schemaVersion": "1.2",
+  "libraryVersion": "1.0.0",
+  "courseId": "peurunkagolf",
+  "course": "Laukaan Peurunkagolf",
+  "country": "FI",
+  "mode": "green-front-center-back",
+  "generatedAt": "2026-08-09T19:34:05.179Z",
+  "source": "OpenStreetMap / Overpass + Course Library",
+  "partial": false,
+  "unavailableHoles": [],
+  "fieldValidation": {
+    "status": "pending",
+    "referenceDevice": "Garmin",
+    "notes": "Verify Green Front / Center / Back distances on course before marking validated."
+  },
+  "holes": [
+    {
+      "hole": 1,
+      "greenFront": {
+        "lat": 62.4388214,
+        "lon": 25.8618287
+      },
+      "greenCenter": {
+        "lat": 62.4388764,
+        "lon": 25.8615447
+      },
+      "greenBack": {
+        "lat": 62.4389419,
+        "lon": 25.8613619
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878137546",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 1,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 2,
+      "greenFront": {
+        "lat": 62.4398896,
+        "lon": 25.8546473
+      },
+      "greenCenter": {
+        "lat": 62.4398775,
+        "lon": 25.8542624
+      },
+      "greenBack": {
+        "lat": 62.4399542,
+        "lon": 25.8540314
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878173771",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 6,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 3,
+      "greenFront": {
+        "lat": 62.4402172,
+        "lon": 25.8567305
+      },
+      "greenCenter": {
+        "lat": 62.4402445,
+        "lon": 25.8570997
+      },
+      "greenBack": {
+        "lat": 62.4402298,
+        "lon": 25.8574716
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878173777",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 3,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 4,
+      "greenFront": {
+        "lat": 62.4399216,
+        "lon": 25.8623729
+      },
+      "greenCenter": {
+        "lat": 62.4398781,
+        "lon": 25.8627211
+      },
+      "greenBack": {
+        "lat": 62.4398683,
+        "lon": 25.8630883
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878173785",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 3,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 5,
+      "greenFront": {
+        "lat": 62.4420643,
+        "lon": 25.8562115
+      },
+      "greenCenter": {
+        "lat": 62.4421341,
+        "lon": 25.8559935
+      },
+      "greenBack": {
+        "lat": 62.4421079,
+        "lon": 25.8557607
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878173795",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 1,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 6,
+      "greenFront": {
+        "lat": 62.4421565,
+        "lon": 25.8617919
+      },
+      "greenCenter": {
+        "lat": 62.4422028,
+        "lon": 25.8620391
+      },
+      "greenBack": {
+        "lat": 62.4422075,
+        "lon": 25.8622879
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878173799",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 1,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 7,
+      "greenFront": {
+        "lat": 62.4411462,
+        "lon": 25.8644459
+      },
+      "greenCenter": {
+        "lat": 62.4409856,
+        "lon": 25.8646168
+      },
+      "greenBack": {
+        "lat": 62.4407994,
+        "lon": 25.8647479
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878173805",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 2,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 8,
+      "greenFront": {
+        "lat": 62.4382566,
+        "lon": 25.8667887
+      },
+      "greenCenter": {
+        "lat": 62.4381581,
+        "lon": 25.8670232
+      },
+      "greenBack": {
+        "lat": 62.438036,
+        "lon": 25.8672505
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878173812",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 7,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 9,
+      "greenFront": {
+        "lat": 62.4357527,
+        "lon": 25.8698224
+      },
+      "greenCenter": {
+        "lat": 62.4356657,
+        "lon": 25.8700119
+      },
+      "greenBack": {
+        "lat": 62.435564,
+        "lon": 25.8701923
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878137551",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 2,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 10,
+      "greenFront": {
+        "lat": 62.4304557,
+        "lon": 25.8727086
+      },
+      "greenCenter": {
+        "lat": 62.4303811,
+        "lon": 25.8728776
+      },
+      "greenBack": {
+        "lat": 62.4302517,
+        "lon": 25.8729783
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878137558",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 6,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 11,
+      "greenFront": {
+        "lat": 62.4290793,
+        "lon": 25.8709106
+      },
+      "greenCenter": {
+        "lat": 62.4290216,
+        "lon": 25.8705308
+      },
+      "greenBack": {
+        "lat": 62.4289249,
+        "lon": 25.8701815
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878198944",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 8,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 12,
+      "greenFront": {
+        "lat": 62.4256316,
+        "lon": 25.8693947
+      },
+      "greenCenter": {
+        "lat": 62.4255043,
+        "lon": 25.8691177
+      },
+      "greenBack": {
+        "lat": 62.4253676,
+        "lon": 25.868812
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878198951",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 10,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 13,
+      "greenFront": {
+        "lat": 62.4222231,
+        "lon": 25.8709836
+      },
+      "greenCenter": {
+        "lat": 62.4220576,
+        "lon": 25.8710424
+      },
+      "greenBack": {
+        "lat": 62.4218763,
+        "lon": 25.8711249
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878198959",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 8,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 14,
+      "greenFront": {
+        "lat": 62.4254584,
+        "lon": 25.8654658
+      },
+      "greenCenter": {
+        "lat": 62.4255986,
+        "lon": 25.8654639
+      },
+      "greenBack": {
+        "lat": 62.4257251,
+        "lon": 25.865469
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878198965",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 2,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 15,
+      "greenFront": {
+        "lat": 62.428104346594786,
+        "lon": 25.86950016741362
+      },
+      "greenCenter": {
+        "lat": 62.42822104649396,
+        "lon": 25.869846271603645
+      },
+      "greenBack": {
+        "lat": 62.42832036519852,
+        "lon": 25.870117252403606
+      },
+      "source": {
+        "provider": "Manual",
+        "osmElement": null,
+        "assignedWith": "GPS Builder manual map click",
+        "matchDistanceMeters": null,
+        "edgeMethod": "manual-front-center-back",
+        "verified": false
+      }
+    },
+    {
+      "hole": 16,
+      "greenFront": {
+        "lat": 62.42994790349633,
+        "lon": 25.86995338304768
+      },
+      "greenCenter": {
+        "lat": 62.43012294238757,
+        "lon": 25.87020290002188
+      },
+      "greenBack": {
+        "lat": 62.43032280823796,
+        "lon": 25.870404123388173
+      },
+      "source": {
+        "provider": "Manual",
+        "osmElement": null,
+        "assignedWith": "GPS Builder manual map click",
+        "matchDistanceMeters": null,
+        "edgeMethod": "manual-front-center-back",
+        "verified": false
+      }
+    },
+    {
+      "hole": 17,
+      "greenFront": {
+        "lat": 62.4318354,
+        "lon": 25.864953
+      },
+      "greenCenter": {
+        "lat": 62.4318578,
+        "lon": 25.86464
+      },
+      "greenBack": {
+        "lat": 62.4318762,
+        "lon": 25.8642828
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878198987",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 6,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    },
+    {
+      "hole": 18,
+      "greenFront": {
+        "lat": 62.4337106,
+        "lon": 25.8674591
+      },
+      "greenCenter": {
+        "lat": 62.4338968,
+        "lon": 25.8675777
+      },
+      "greenBack": {
+        "lat": 62.4339971,
+        "lon": 25.867756
+      },
+      "source": {
+        "provider": "OpenStreetMap",
+        "osmElement": "way/878137566",
+        "assignedWith": "golf=hole auto-match",
+        "matchDistanceMeters": 2,
+        "edgeMethod": "green-geometry + golf-hole approach direction",
+        "verified": false
+      }
+    }
+  ]
+}
