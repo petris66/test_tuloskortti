@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.6</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.7</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.6</h1>
+  <h1>GPS Builder 0.7.7</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -124,13 +124,18 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
   <section class="card">
     <h2>3. Esteet kartalla — testi</h2>
-    <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Automaattisesti kohdistetut esteet ovat oletuksena mukana. Tarkistuksessa tarvitsee hylätä vain ylimääräiset bunkkerit ja vedet. Tarkistetut esteet voi ladata erilliseen JSON-tiedostoon jatkokäsittelyä varten.</p>
+    <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Automaattisesti kohdistetut esteet ovat oletuksena mukana. Jos samalla alueella on toisen kentän saman numeron väylä, voit näyttää reiän väyläehdokkaat ja lukita oikean väylägeometrian ennen estehakua. Tarkistuksessa tarvitsee hylätä vain jäljelle jäävät ylimääräiset esteet.</p>
     <div class="actions">
       <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
       <button class="secondary" id="reviewObstaclesBtn" disabled>Poista ylimääräiset esteet</button>
       <button class="secondary" id="downloadReviewedObstaclesBtn" disabled>Lataa tarkistetut esteet JSON</button>
       <button class="secondary" id="clearObstaclesBtn" disabled>Piilota esteet</button>
     </div>
+    <div class="actions">
+      <button class="secondary" id="showHoleCandidatesBtn" disabled>Näytä reiän väyläehdokkaat</button>
+      <button class="secondary" id="clearHoleLockBtn" disabled>Poista reiän väylälukitus</button>
+    </div>
+    <div id="holeCandidateStatus" class="small" style="margin-top:6px">Väylägeometriaa ei ole lukittu käsin.</div>
     <div class="actions">
       <label style="min-width:220px">Näytä reiän esteet
         <select id="obstacleHoleFilter">
@@ -218,7 +223,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         buildStatus=$("buildStatus"), output=$("output"),
         obstacleBtn=$("obstacleBtn"), reviewObstaclesBtn=$("reviewObstaclesBtn"), downloadReviewedObstaclesBtn=$("downloadReviewedObstaclesBtn"), clearObstaclesBtn=$("clearObstaclesBtn"),
         obstacleStatus=$("obstacleStatus"), obstacleSummary=$("obstacleSummary"),
-        obstacleHoleFilter=$("obstacleHoleFilter");
+        obstacleHoleFilter=$("obstacleHoleFilter"), showHoleCandidatesBtn=$("showHoleCandidatesBtn"), clearHoleLockBtn=$("clearHoleLockBtn"), holeCandidateStatus=$("holeCandidateStatus");
 
   let greens=[];
   let courseRows=[];
@@ -233,6 +238,9 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   let obstacles=[];
   let obstacleLayer=null;
   let obstacleReviewMode=false;
+  let obstacleHoleCandidates=[];
+  let lockedHoleWayIds={};
+  let holeCandidateLayer=null;
 
   function setStatus(text,type=""){status.textContent=text;status.className="status"+(type?" "+type:"")}
   function setMapStatus(text,type=""){mapStatus.textContent=text;mapStatus.className="status"+(type?" "+type:"")}
@@ -845,6 +853,73 @@ out tags center geom;`;
     return selected;
   }
 
+  function holeWayKey(h){
+    return `${h.osmType||"way"}/${h.id}`;
+  }
+
+  function applyLockedHoleWays(selected,rawHoleWays){
+    const byHole=new Map(selected.map(h=>[h.hole,h]));
+    for(const [holeStr,key] of Object.entries(lockedHoleWayIds)){
+      const hole=Number(holeStr);
+      const locked=rawHoleWays.find(h=>h.hole===hole && holeWayKey(h)===key);
+      if(locked) byHole.set(hole,locked);
+    }
+    return [...byHole.values()].sort((a,b)=>a.hole-b.hole);
+  }
+
+  function renderHoleCandidates(){
+    if(!map) initMap();
+    if(holeCandidateLayer) holeCandidateLayer.clearLayers();
+    else holeCandidateLayer=L.layerGroup().addTo(map);
+
+    const hole=Number(obstacleHoleFilter.value);
+    if(!Number.isInteger(hole)){
+      holeCandidateStatus.textContent="Valitse ensin yksittäinen reikä 1–18.";
+      return;
+    }
+
+    const candidates=obstacleHoleCandidates.filter(h=>h.hole===hole);
+    if(!candidates.length){
+      holeCandidateStatus.textContent=`Reiälle ${hole} ei löytynyt golf=hole-väyläehdokkaita.`;
+      return;
+    }
+
+    candidates.forEach((h,i)=>{
+      const pts=(h.geometry||[]).length?h.geometry:(h.endpoints||[]);
+      if(pts.length<2) return;
+      const key=holeWayKey(h);
+      const locked=lockedHoleWayIds[hole]===key;
+      const line=L.polyline(pts.map(p=>[p.lat,p.lon]),{
+        weight:locked?8:5,
+        opacity:locked?1:.75
+      }).addTo(holeCandidateLayer);
+
+      line.bindTooltip(`V${i+1}${locked?" ✓":""}`,{permanent:true,direction:"center"})
+        .bindPopup(
+          `<b>Reikä ${hole} – väyläehdokas V${i+1}</b><br>${key}<br>`+
+          `<button type="button" class="primary lock-hole-way" data-hole="${hole}" data-way-key="${key}" style="margin-top:8px">Valitse Saraksen väyläksi</button>`
+        );
+
+      line.on("popupopen",()=>{
+        document.querySelectorAll(".lock-hole-way").forEach(btn=>{
+          if(btn.dataset.wayKey===key){
+            btn.addEventListener("click",()=>{
+              lockedHoleWayIds[hole]=key;
+              map.closePopup();
+              holeCandidateStatus.textContent=`Reikä ${hole}: lukittu ${key}. Hae esteet uudelleen, jotta kohdistus käyttää tätä väylää.`;
+              clearHoleLockBtn.disabled=false;
+              renderHoleCandidates();
+            },{once:true});
+          }
+        });
+      });
+    });
+
+    holeCandidateStatus.textContent=lockedHoleWayIds[hole]
+      ? `Reikä ${hole}: väylä lukittu. Klikkaa viivaa vaihtaaksesi valintaa.`
+      : `Reikä ${hole}: ${candidates.length} väyläehdokasta. Klikkaa oikeaa Saraksen väyläviivaa ja valitse se.`;
+  }
+
   function assignObstaclesToHoles(holeWays, allHoleWays){
     const FAIRWAY_CORRIDOR_METERS=90;
     const OTHER_HOLE_MARGIN_METERS=15;
@@ -905,6 +980,7 @@ out tags center geom;`;
   function renderObstacles(){
     if(!map) initMap();
     if(obstacleLayer) obstacleLayer.clearLayers();
+    if(holeCandidateLayer) holeCandidateLayer.clearLayers();
     else obstacleLayer=L.layerGroup().addTo(map);
 
     const shown=visibleObstacles();
@@ -1040,13 +1116,16 @@ out tags center geom;`;
             endpoints:endpointsOf(e),
             geometry:Array.isArray(e.geometry)?e.geometry.filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lon)).map(p=>({lat:+p.lat,lon:+p.lon})):[],
             id:e.id,
+            osmType:e.type,
             tags:e.tags||{}
           }))
           .filter(h=>h.hole && (h.geometry.length || h.endpoints.length));
 
         const rawHoleWays=obstacleHoleWays.length?obstacleHoleWays:golfHoleWays;
+        obstacleHoleCandidates=rawHoleWays;
         const courseHoleWays=selectCourseHoleWays(rawHoleWays);
-        const holeWays=courseHoleWays.length>=14 ? courseHoleWays : rawHoleWays;
+        const autoHoleWays=courseHoleWays.length>=14 ? courseHoleWays : rawHoleWays;
+        const holeWays=applyLockedHoleWays(autoHoleWays,rawHoleWays);
 
         obstacles=(data.elements||[])
           .filter(e=>e.tags?.golf!=="hole")
@@ -1072,6 +1151,8 @@ out tags center geom;`;
           `Estehaku valmis. Valitun kentän väyliä ${selectedHoleCount}/18. ${assigned}/${obstacles.length} estettä kohdistettu. Muun väylägeometrian läheisyyden vuoksi hylätty ${rejectedOtherCourse}.`;
         obstacleStatus.className="status ok";
         obstacleBtn.disabled=false;
+        showHoleCandidatesBtn.disabled=false;
+        clearHoleLockBtn.disabled=Object.keys(lockedHoleWayIds).length===0;
         return;
       }catch(err){
         lastErr=err;
@@ -1518,6 +1599,18 @@ out tags center geom;`;
   buildBtn.addEventListener("click",buildJson);
   downloadBtn.addEventListener("click",downloadJson);
   obstacleBtn.addEventListener("click",fetchObstacles);
+  showHoleCandidatesBtn.addEventListener("click",renderHoleCandidates);
+  clearHoleLockBtn.addEventListener("click",()=>{
+    const hole=Number(obstacleHoleFilter.value);
+    if(Number.isInteger(hole) && lockedHoleWayIds[hole]){
+      delete lockedHoleWayIds[hole];
+      holeCandidateStatus.textContent=`Reikä ${hole}: väylälukitus poistettu.`;
+      clearHoleLockBtn.disabled=Object.keys(lockedHoleWayIds).length===0;
+      renderHoleCandidates();
+    }else{
+      holeCandidateStatus.textContent="Valitse yksittäinen reikä, jolla on väylälukitus.";
+    }
+  });
   reviewObstaclesBtn.addEventListener("click",()=>{
     if(!obstacles.length) return;
     obstacleReviewMode=true;
