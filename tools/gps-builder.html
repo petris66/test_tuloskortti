@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.3</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.4</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.3</h1>
+  <h1>GPS Builder 0.7.4</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -124,7 +124,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
   <section class="card">
     <h2>3. Esteet kartalla — testi</h2>
-    <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Jos este on selvästi lähempänä saman reikänumeron toisen kentän väylää, se jätetään pois. Tietoja ei vielä viedä GPS Library JSONiin.</p>
+    <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Jos este on selvästi lähempänä mitä tahansa muuta OSM:n golf-väylägeometriaa, se jätetään pois. Tietoja ei vielä viedä GPS Library JSONiin.</p>
     <div class="actions">
       <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
       <button class="secondary" id="clearObstaclesBtn" disabled>Piilota esteet</button>
@@ -844,7 +844,7 @@ out tags center geom;`;
 
   function assignObstaclesToHoles(holeWays, allHoleWays){
     const FAIRWAY_CORRIDOR_METERS=90;
-    const OTHER_COURSE_MARGIN_METERS=15;
+    const OTHER_HOLE_MARGIN_METERS=15;
 
     for(const o of obstacles){
       o.hole=null;
@@ -854,6 +854,7 @@ out tags center geom;`;
       let bestHole=null,bestDistance=Infinity;
       let bestWay=null;
 
+      // Ensin etäisyys valitun kentän 18 lukittuun väylägeometriaan.
       for(const h of holeWays){
         if(!Number.isInteger(h.hole) || h.hole<1 || h.hole>18) continue;
         const d=pointToHoleDistance(o.center,h);
@@ -866,22 +867,20 @@ out tags center geom;`;
 
       if(!bestHole || bestDistance>FAIRWAY_CORRIDOR_METERS) continue;
 
-      // Jos este on selvästi lähempänä saman numeron toisen kentän
-      // golf=hole-geometriaa, jätetään se pois valitun kentän tuloksista.
-      const alternateWays=(allHoleWays||[]).filter(h=>
-        h!==bestWay &&
-        h.hole===bestHole
-      );
+      // Vertaa estettä KAIKKIIN muihin OSM:n golf=hole-geometrioihin,
+      // ei enää vain samaan reikänumeroon. Jos jokin muu väylä kulkee
+      // selvästi lähempänä estettä, este jätetään pois valitulta reiältä.
+      const otherWays=(allHoleWays||[]).filter(h=>h!==bestWay);
 
-      let alternateDistance=Infinity;
-      for(const h of alternateWays){
+      let otherDistance=Infinity;
+      for(const h of otherWays){
         const d=pointToHoleDistance(o.center,h);
-        if(d<alternateDistance) alternateDistance=d;
+        if(d<otherDistance) otherDistance=d;
       }
 
       if(
-        Number.isFinite(alternateDistance) &&
-        alternateDistance + OTHER_COURSE_MARGIN_METERS < bestDistance
+        Number.isFinite(otherDistance) &&
+        otherDistance + OTHER_HOLE_MARGIN_METERS < bestDistance
       ){
         o.rejectedByOtherCourse=true;
         continue;
@@ -974,7 +973,7 @@ out tags center geom;`;
         const rejectedOtherCourse=obstacles.filter(o=>o.rejectedByOtherCourse).length;
         const selectedHoleCount=new Set(holeWays.map(h=>h.hole)).size;
         obstacleStatus.textContent=
-          `Estehaku valmis. Valitun kentän väyliä ${selectedHoleCount}/18. ${assigned}/${obstacles.length} estettä kohdistettu. Toisen kentän läheisyyden vuoksi hylätty ${rejectedOtherCourse}.`;
+          `Estehaku valmis. Valitun kentän väyliä ${selectedHoleCount}/18. ${assigned}/${obstacles.length} estettä kohdistettu. Muun väylägeometrian läheisyyden vuoksi hylätty ${rejectedOtherCourse}.`;
         obstacleStatus.className="status ok";
         obstacleBtn.disabled=false;
         return;
