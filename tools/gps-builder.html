@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.7</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.8</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.7</h1>
+  <h1>GPS Builder 0.7.8</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -123,7 +123,17 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   </section>
 
   <section class="card">
-    <h2>3. Esteet kartalla — testi</h2>
+    <h2>3. OSM-kenttärakenteen diagnostiikka</h2>
+    <p class="small">Tutkii valitun alueen golf course / relation / golf=hole -rakenteen ennen esteiden kohdistusta. Tarkoitus on selvittää, voidaanko Saras ja Kirkka erottaa automaattisesti OSM:n omilla tageilla ja jäsenyyksillä.</p>
+    <div class="actions">
+      <button class="secondary" id="courseDiagBtn">Tutki OSM-kenttärakenne</button>
+    </div>
+    <div id="courseDiagStatus" class="status">Diagnostiikkaa ei ole vielä ajettu.</div>
+    <textarea id="courseDiagOutput" spellcheck="false" style="min-height:220px"></textarea>
+  </section>
+
+  <section class="card">
+    <h2>4. Esteet kartalla — testi</h2>
     <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Automaattisesti kohdistetut esteet ovat oletuksena mukana. Jos samalla alueella on toisen kentän saman numeron väylä, voit näyttää reiän väyläehdokkaat ja lukita oikean väylägeometrian ennen estehakua. Tarkistuksessa tarvitsee hylätä vain jäljelle jäävät ylimääräiset esteet.</p>
     <div class="actions">
       <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
@@ -167,7 +177,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   </section>
 
   <section class="card">
-    <h2>4. Greenien validointi</h2>
+    <h2>5. Greenien validointi</h2>
     <div class="summary">
       <span class="pill" id="foundPill">Löytyi 0</span>
       <span class="pill" id="uniquePill">Uniikit reiät 0/18</span>
@@ -193,7 +203,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   </section>
 
   <section class="card">
-    <h2>5. Valmis GPS Library JSON</h2>
+    <h2>6. Valmis GPS Library JSON</h2>
     <p class="small">Normaalisti JSON muodostetaan 18/18 reiästä. Porvoossa Builder sallii testiexportin varmoille rei'ille 1–3 ja 8–18; muuttuneet reiät 4–7 jätetään pois.</p>
     <div class="actions">
       <button class="primary" id="buildBtn" disabled>Muodosta JSON</button>
@@ -223,7 +233,8 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         buildStatus=$("buildStatus"), output=$("output"),
         obstacleBtn=$("obstacleBtn"), reviewObstaclesBtn=$("reviewObstaclesBtn"), downloadReviewedObstaclesBtn=$("downloadReviewedObstaclesBtn"), clearObstaclesBtn=$("clearObstaclesBtn"),
         obstacleStatus=$("obstacleStatus"), obstacleSummary=$("obstacleSummary"),
-        obstacleHoleFilter=$("obstacleHoleFilter"), showHoleCandidatesBtn=$("showHoleCandidatesBtn"), clearHoleLockBtn=$("clearHoleLockBtn"), holeCandidateStatus=$("holeCandidateStatus");
+        obstacleHoleFilter=$("obstacleHoleFilter"), showHoleCandidatesBtn=$("showHoleCandidatesBtn"), clearHoleLockBtn=$("clearHoleLockBtn"), holeCandidateStatus=$("holeCandidateStatus"),
+        courseDiagBtn=$("courseDiagBtn"), courseDiagStatus=$("courseDiagStatus"), courseDiagOutput=$("courseDiagOutput");
 
   let greens=[];
   let courseRows=[];
@@ -754,6 +765,106 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   way["golf"="hole"](around:${r},${la},${lo});
 );
 out tags center geom;`;
+  }
+
+  function buildCourseDiagnosticQuery(){
+    const la=+lat.value,lo=+lon.value,r=Math.max(500,+radius.value||3000);
+    if(!Number.isFinite(la)||!Number.isFinite(lo)) throw new Error("Kentän latitude/longitude ei ole kelvollinen.");
+    return `[out:json][timeout:35];
+(
+  nwr["leisure"="golf_course"](around:${r},${la},${lo});
+  relation["golf"](around:${r},${la},${lo});
+  way["golf"="hole"](around:${r},${la},${lo});
+);
+out tags center geom;
+>;
+out tags;`;
+  }
+
+  function compactTags(tags={}){
+    const preferred=[
+      "name","ref","golf","leisure","type","route","operator",
+      "golf:course","course","holes","golf:holes","description"
+    ];
+    const out={};
+    for(const k of preferred){
+      if(tags[k]!=null) out[k]=tags[k];
+    }
+    for(const [k,v] of Object.entries(tags)){
+      if(out[k]!=null) continue;
+      if(k.startsWith("golf:") || k.startsWith("course:")) out[k]=v;
+    }
+    return out;
+  }
+
+  async function runCourseDiagnostics(){
+    courseDiagBtn.disabled=true;
+    courseDiagStatus.textContent="Haetaan OSM:n golf course / relation / hole -rakennetta…";
+    courseDiagStatus.className="status";
+    courseDiagOutput.value="";
+    const query=buildCourseDiagnosticQuery();
+    let lastErr=null;
+
+    for(const endpoint of endpoints){
+      try{
+        const data=await fetchOverpassWithFallback(endpoint,query);
+        const elements=data.elements||[];
+
+        const courses=elements.filter(e=>e.tags?.leisure==="golf_course");
+        const relations=elements.filter(e=>e.type==="relation" && (e.tags?.golf || e.tags?.leisure==="golf_course" || e.tags?.type));
+        const holes=elements.filter(e=>e.tags?.golf==="hole");
+
+        const holeGroups={};
+        for(const h of holes){
+          const hole=parseHole(h.tags);
+          if(!holeGroups[hole||"?"]) holeGroups[hole||"?"]=[];
+          holeGroups[hole||"?"].push({
+            osm:`${h.type}/${h.id}`,
+            tags:compactTags(h.tags)
+          });
+        }
+
+        const result={
+          selectedCourse:{
+            courseId:courseId.value.trim(),
+            courseName:courseName.value.trim(),
+            center:{lat:+lat.value,lon:+lon.value},
+            radiusMeters:+radius.value
+          },
+          summary:{
+            golfCourseObjects:courses.length,
+            relations:relations.length,
+            golfHoleWays:holes.length,
+            duplicateHoleNumbers:Object.entries(holeGroups)
+              .filter(([k,v])=>k!=="?" && v.length>1)
+              .map(([k,v])=>({hole:Number(k),count:v.length}))
+          },
+          golfCourses:courses.map(e=>({
+            osm:`${e.type}/${e.id}`,
+            tags:compactTags(e.tags),
+            center:centerOf(e)
+          })),
+          relations:relations.map(e=>({
+            osm:`${e.type}/${e.id}`,
+            tags:compactTags(e.tags)
+          })),
+          holesByNumber:holeGroups
+        };
+
+        courseDiagOutput.value=JSON.stringify(result,null,2);
+        courseDiagStatus.textContent=
+          `Diagnostiikka valmis: golf course -kohteita ${courses.length}, relaatioita ${relations.length}, golf=hole -väyliä ${holes.length}.`;
+        courseDiagStatus.className="status ok";
+        courseDiagBtn.disabled=false;
+        return;
+      }catch(err){
+        lastErr=err;
+      }
+    }
+
+    courseDiagStatus.textContent=`Diagnostiikka epäonnistui: ${lastErr?.message||"tuntematon virhe"}`;
+    courseDiagStatus.className="status err";
+    courseDiagBtn.disabled=false;
   }
 
   function buildObstacleQuery(){
@@ -1598,6 +1709,7 @@ out tags center geom;`;
   });
   buildBtn.addEventListener("click",buildJson);
   downloadBtn.addEventListener("click",downloadJson);
+  courseDiagBtn.addEventListener("click",runCourseDiagnostics);
   obstacleBtn.addEventListener("click",fetchObstacles);
   showHoleCandidatesBtn.addEventListener("click",renderHoleCandidates);
   clearHoleLockBtn.addEventListener("click",()=>{
