@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.8</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.9</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -72,11 +72,19 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   table{font-size:12px}
   th:nth-child(5),td:nth-child(5){display:none}
 }
+
+    .hole-mapper-overlay{position:fixed;inset:0;z-index:5000;background:#f7faf7;display:none;flex-direction:column}
+    .hole-mapper-overlay.open{display:flex}
+    .hole-mapper-toolbar{padding:10px 14px;background:#fff;border-bottom:1px solid #ccd8cc;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .hole-mapper-toolbar select{min-width:120px}
+    .hole-mapper-status{font-size:14px;flex:1;min-width:280px}
+    #holeMapperMap{flex:1;min-height:500px}
+    .hole-mapper-footer{padding:8px 14px;background:#fff;border-top:1px solid #ccd8cc;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.8</h1>
+  <h1>GPS Builder 0.7.9</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -130,6 +138,9 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
     </div>
     <div id="courseDiagStatus" class="status">Diagnostiikkaa ei ole vielä ajettu.</div>
     <textarea id="courseDiagOutput" spellcheck="false" style="min-height:220px"></textarea>
+    <div class="actions">
+      <button class="secondary" id="openHoleMapperBtn">Avaa iso väylämapping-kartta</button>
+    </div>
   </section>
 
   <section class="card">
@@ -234,7 +245,10 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         obstacleBtn=$("obstacleBtn"), reviewObstaclesBtn=$("reviewObstaclesBtn"), downloadReviewedObstaclesBtn=$("downloadReviewedObstaclesBtn"), clearObstaclesBtn=$("clearObstaclesBtn"),
         obstacleStatus=$("obstacleStatus"), obstacleSummary=$("obstacleSummary"),
         obstacleHoleFilter=$("obstacleHoleFilter"), showHoleCandidatesBtn=$("showHoleCandidatesBtn"), clearHoleLockBtn=$("clearHoleLockBtn"), holeCandidateStatus=$("holeCandidateStatus"),
-        courseDiagBtn=$("courseDiagBtn"), courseDiagStatus=$("courseDiagStatus"), courseDiagOutput=$("courseDiagOutput");
+        courseDiagBtn=$("courseDiagBtn"), courseDiagStatus=$("courseDiagStatus"), courseDiagOutput=$("courseDiagOutput"),
+        openHoleMapperBtn=$("openHoleMapperBtn"), holeMapperOverlay=$("holeMapperOverlay"), holeMapperHole=$("holeMapperHole"),
+        holeMapperPrev=$("holeMapperPrev"), holeMapperNext=$("holeMapperNext"), holeMapperStatus=$("holeMapperStatus"),
+        holeMapperClose=$("holeMapperClose"), holeMapperProgress=$("holeMapperProgress"), downloadHoleMappingBtn=$("downloadHoleMappingBtn");
 
   let greens=[];
   let courseRows=[];
@@ -252,6 +266,9 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   let obstacleHoleCandidates=[];
   let lockedHoleWayIds={};
   let holeCandidateLayer=null;
+  let diagnosticHoleWays=[];
+  let holeMapperMap=null;
+  let holeMapperLayer=null;
 
   function setStatus(text,type=""){status.textContent=text;status.className="status"+(type?" "+type:"")}
   function setMapStatus(text,type=""){mapStatus.textContent=text;mapStatus.className="status"+(type?" "+type:"")}
@@ -813,6 +830,15 @@ out tags;`;
         const courses=elements.filter(e=>e.tags?.leisure==="golf_course");
         const relations=elements.filter(e=>e.type==="relation" && (e.tags?.golf || e.tags?.leisure==="golf_course" || e.tags?.type));
         const holes=elements.filter(e=>e.tags?.golf==="hole");
+        diagnosticHoleWays=holes
+          .map(e=>({
+            hole:parseHole(e.tags),
+            id:e.id,
+            osmType:e.type,
+            tags:e.tags||{},
+            geometry:Array.isArray(e.geometry)?e.geometry.filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lon)).map(p=>({lat:+p.lat,lon:+p.lon})):[]
+          }))
+          .filter(h=>Number.isInteger(h.hole) && h.hole>=1 && h.hole<=18 && h.geometry.length>=2);
 
         const holeGroups={};
         for(const h of holes){
@@ -865,6 +891,109 @@ out tags;`;
     courseDiagStatus.textContent=`Diagnostiikka epäonnistui: ${lastErr?.message||"tuntematon virhe"}`;
     courseDiagStatus.className="status err";
     courseDiagBtn.disabled=false;
+  }
+
+  function initHoleMapper(){
+    if(holeMapperMap) return;
+    holeMapperMap=L.map("holeMapperMap").setView([+lat.value,+lon.value],15);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+      maxZoom:20,attribution:"&copy; OpenStreetMap contributors"
+    }).addTo(holeMapperMap);
+    holeMapperLayer=L.layerGroup().addTo(holeMapperMap);
+    holeMapperHole.innerHTML=Array.from({length:18},(_,i)=>`<option value="${i+1}">Reikä ${i+1}</option>`).join("");
+  }
+
+  function updateHoleMapperProgress(){
+    const count=Object.keys(lockedHoleWayIds).filter(k=>Number(k)>=1&&Number(k)<=18).length;
+    holeMapperProgress.textContent=`Valittu ${count}/18 väylää.`;
+  }
+
+  function renderHoleMapper(){
+    initHoleMapper();
+    holeMapperLayer.clearLayers();
+    const hole=Number(holeMapperHole.value||1);
+    const candidates=diagnosticHoleWays.filter(h=>h.hole===hole);
+
+    if(!candidates.length){
+      holeMapperStatus.textContent=`Reiälle ${hole} ei löytynyt väyläehdokkaita.`;
+      updateHoleMapperProgress();
+      return;
+    }
+
+    const bounds=[];
+    candidates.forEach((h,i)=>{
+      const key=holeWayKey(h);
+      const selected=lockedHoleWayIds[hole]===key;
+      const latlngs=h.geometry.map(p=>[p.lat,p.lon]);
+      bounds.push(...latlngs);
+      const line=L.polyline(latlngs,{
+        weight:selected?10:6,
+        opacity:selected?1:.75
+      }).addTo(holeMapperLayer);
+
+      const center=latlngs[Math.floor(latlngs.length/2)];
+      L.marker(center,{opacity:0.9})
+        .bindTooltip(`V${i+1}${selected?" ✓":""}`,{permanent:true,direction:"top"})
+        .addTo(holeMapperLayer);
+
+      line.bindPopup(
+        `<b>Reikä ${hole} — V${i+1}</b><br>${key}<br>`+
+        `<button type="button" class="primary mapper-select-way" data-hole="${hole}" data-key="${key}" style="margin-top:8px">Valitse Saraksen väyläksi</button>`
+      );
+      line.on("popupopen",()=>{
+        document.querySelectorAll(".mapper-select-way").forEach(btn=>{
+          if(btn.dataset.key===key){
+            btn.addEventListener("click",()=>{
+              lockedHoleWayIds[hole]=key;
+              holeMapperMap.closePopup();
+              renderHoleMapper();
+            },{once:true});
+          }
+        });
+      });
+    });
+
+    if(bounds.length) holeMapperMap.fitBounds(bounds,{padding:[50,50],maxZoom:17});
+    const chosen=lockedHoleWayIds[hole];
+    holeMapperStatus.textContent=chosen
+      ? `Reikä ${hole}: valittu ${chosen}. Ehdokkaita ${candidates.length}.`
+      : `Reikä ${hole}: ehdokkaita ${candidates.length}. Klikkaa oikeaa Saraksen väylälinjaa.`;
+    updateHoleMapperProgress();
+  }
+
+  function openHoleMapper(){
+    if(!diagnosticHoleWays.length){
+      courseDiagStatus.textContent="Aja ensin Tutki OSM-kenttärakenne.";
+      courseDiagStatus.className="status err";
+      return;
+    }
+    holeMapperOverlay.classList.add("open");
+    initHoleMapper();
+    setTimeout(()=>{
+      holeMapperMap.invalidateSize();
+      renderHoleMapper();
+    },50);
+  }
+
+  function downloadHoleMapping(){
+    const mapping={};
+    for(let h=1;h<=18;h++){
+      if(lockedHoleWayIds[h]) mapping[h]=lockedHoleWayIds[h];
+    }
+    const data={
+      schemaVersion:"0.1.0",
+      courseId:courseId.value.trim(),
+      courseName:courseName.value.trim(),
+      generatedAt:new Date().toISOString(),
+      holeWays:mapping
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`${courseId.value.trim()||"course"}-hole-mapping.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
 
   function buildObstacleQuery(){
@@ -1710,6 +1839,18 @@ out tags center geom;`;
   buildBtn.addEventListener("click",buildJson);
   downloadBtn.addEventListener("click",downloadJson);
   courseDiagBtn.addEventListener("click",runCourseDiagnostics);
+  openHoleMapperBtn.addEventListener("click",openHoleMapper);
+  holeMapperClose.addEventListener("click",()=>holeMapperOverlay.classList.remove("open"));
+  holeMapperHole.addEventListener("change",renderHoleMapper);
+  holeMapperPrev.addEventListener("click",()=>{
+    const h=Math.max(1,Number(holeMapperHole.value)-1);
+    holeMapperHole.value=String(h); renderHoleMapper();
+  });
+  holeMapperNext.addEventListener("click",()=>{
+    const h=Math.min(18,Number(holeMapperHole.value)+1);
+    holeMapperHole.value=String(h); renderHoleMapper();
+  });
+  downloadHoleMappingBtn.addEventListener("click",downloadHoleMapping);
   obstacleBtn.addEventListener("click",fetchObstacles);
   showHoleCandidatesBtn.addEventListener("click",renderHoleCandidates);
   clearHoleLockBtn.addEventListener("click",()=>{
@@ -1755,5 +1896,24 @@ out tags center geom;`;
   });
 })();
 </script>
+
+  <div id="holeMapperOverlay" class="hole-mapper-overlay">
+    <div class="hole-mapper-toolbar">
+      <strong>Keimola Saras — väylämapping</strong>
+      <label>Reikä
+        <select id="holeMapperHole"></select>
+      </label>
+      <button class="secondary" id="holeMapperPrev">← Edellinen</button>
+      <button class="secondary" id="holeMapperNext">Seuraava →</button>
+      <span id="holeMapperStatus" class="hole-mapper-status">Hae ensin OSM-kenttärakenne.</span>
+      <button class="secondary" id="holeMapperClose">Sulje</button>
+    </div>
+    <div id="holeMapperMap"></div>
+    <div class="hole-mapper-footer">
+      <span id="holeMapperProgress">Valittu 0/18 väylää.</span>
+      <button class="secondary" id="downloadHoleMappingBtn">Lataa väylämapping JSON</button>
+      <span class="small">Kartalla näkyvät vain valitun reikänumeron OSM-väyläehdokkaat. Klikkaa oikeaa Saraksen linjaa ja valitse se.</span>
+    </div>
+  </div>
 </body>
 </html>
