@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.6.8</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.6.9</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.6.8</h1>
+  <h1>GPS Builder 0.6.9</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -123,7 +123,18 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   </section>
 
   <section class="card">
-    <h2>3. Greenien validointi</h2>
+    <h2>3. Esteet kartalla — testi</h2>
+    <p class="small">Ensimmäinen kartoitustesti. Hakee OpenStreetMapista bunkkerit sekä golf-vesiesteet ja vesialueet nykyisellä hakusäteellä. Tietoja ei vielä viedä GPS Library JSONiin.</p>
+    <div class="actions">
+      <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
+      <button class="secondary" id="clearObstaclesBtn" disabled>Piilota esteet</button>
+    </div>
+    <div id="obstacleStatus" class="status">Esteitä ei ole vielä haettu.</div>
+    <div id="obstacleSummary" class="small" style="margin-top:8px"></div>
+  </section>
+
+  <section class="card">
+    <h2>4. Greenien validointi</h2>
     <div class="summary">
       <span class="pill" id="foundPill">Löytyi 0</span>
       <span class="pill" id="uniquePill">Uniikit reiät 0/18</span>
@@ -149,7 +160,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   </section>
 
   <section class="card">
-    <h2>4. Valmis GPS Library JSON</h2>
+    <h2>5. Valmis GPS Library JSON</h2>
     <p class="small">Normaalisti JSON muodostetaan 18/18 reiästä. Porvoossa Builder sallii testiexportin varmoille rei'ille 1–3 ja 8–18; muuttuneet reiät 4–7 jätetään pois.</p>
     <div class="actions">
       <button class="primary" id="buildBtn" disabled>Muodosta JSON</button>
@@ -176,7 +187,9 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         duplicatePill=$("duplicatePill"), missingPill=$("missingPill"), extraPill=$("extraPill"),
         validationStatus=$("validationStatus"), fetchBtn=$("fetchBtn"), sortBtn=$("sortBtn"),
         clearBtn=$("clearBtn"), buildBtn=$("buildBtn"), downloadBtn=$("downloadBtn"),
-        buildStatus=$("buildStatus"), output=$("output");
+        buildStatus=$("buildStatus"), output=$("output"),
+        obstacleBtn=$("obstacleBtn"), clearObstaclesBtn=$("clearObstaclesBtn"),
+        obstacleStatus=$("obstacleStatus"), obstacleSummary=$("obstacleSummary");
 
   let greens=[];
   let courseRows=[];
@@ -188,6 +201,8 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   let golfHoleWays=[];
   let manualGreenMode=false;
   let manualGreenDraft=null;
+  let obstacles=[];
+  let obstacleLayer=null;
 
   function setStatus(text,type=""){status.textContent=text;status.className="status"+(type?" "+type:"")}
   function setMapStatus(text,type=""){mapStatus.textContent=text;mapStatus.className="status"+(type?" "+type:"")}
@@ -703,6 +718,88 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 out tags center geom;`;
   }
 
+  function buildObstacleQuery(){
+    const la=+lat.value,lo=+lon.value,r=Math.max(500,+radius.value||3000);
+    if(!Number.isFinite(la)||!Number.isFinite(lo)) throw new Error("Kentän latitude/longitude ei ole kelvollinen.");
+    return `[out:json][timeout:35];
+(
+  node["golf"="bunker"](around:${r},${la},${lo});
+  way["golf"="bunker"](around:${r},${la},${lo});
+  relation["golf"="bunker"](around:${r},${la},${lo});
+  node["golf"="water_hazard"](around:${r},${la},${lo});
+  way["golf"="water_hazard"](around:${r},${la},${lo});
+  relation["golf"="water_hazard"](around:${r},${la},${lo});
+  node["golf"="lateral_water_hazard"](around:${r},${la},${lo});
+  way["golf"="lateral_water_hazard"](around:${r},${la},${lo});
+  relation["golf"="lateral_water_hazard"](around:${r},${la},${lo});
+  way["natural"="water"](around:${r},${la},${lo});
+  relation["natural"="water"](around:${r},${la},${lo});
+);
+out tags center geom;`;
+  }
+
+  function obstacleType(e){
+    const g=e.tags?.golf;
+    if(g==="bunker") return "bunker";
+    if(g==="water_hazard" || g==="lateral_water_hazard") return "water";
+    if(e.tags?.natural==="water") return "water";
+    return "other";
+  }
+
+  function renderObstacles(){
+    if(!map) initMap();
+    if(obstacleLayer) obstacleLayer.clearLayers();
+    else obstacleLayer=L.layerGroup().addTo(map);
+
+    let bunkers=0, waters=0;
+    obstacles.forEach((o,index)=>{
+      if(o.kind==="bunker") bunkers++;
+      if(o.kind==="water") waters++;
+      const c=o.center;
+      if(!c) return;
+      const label=o.kind==="bunker" ? `B${bunkers}` : `W${waters}`;
+      const fill=o.kind==="bunker" ? "#d99b2b" : "#2f80ed";
+      L.circleMarker([c.lat,c.lon],{
+        radius:7,color:"#ffffff",weight:2,fillColor:fill,fillOpacity:.95
+      }).bindTooltip(label,{permanent:true,direction:"center",className:"green-label"})
+        .bindPopup(`<b>${o.kind==="bunker"?"Bunkkeri":"Vesi"}</b><br>${o.osmType}/${o.id}`)
+        .addTo(obstacleLayer);
+    });
+    obstacleSummary.textContent=`Bunkkereita ${bunkers} · Vesiä ${waters} · Yhteensä ${obstacles.length}`;
+    clearObstaclesBtn.disabled=obstacles.length===0;
+  }
+
+  async function fetchObstacles(){
+    obstacleBtn.disabled=true;
+    obstacleStatus.textContent="Haetaan bunkkereita ja vesiesteitä OpenStreetMapista…";
+    obstacleStatus.className="status";
+    const query=buildObstacleQuery();
+    let lastErr=null;
+    for(const endpoint of endpoints){
+      try{
+        const data=await fetchOverpassWithFallback(endpoint,query);
+        obstacles=(data.elements||[]).map(e=>({
+          id:e.id,
+          osmType:e.type,
+          tags:e.tags||{},
+          kind:obstacleType(e),
+          center:centerOf(e),
+          geometry:Array.isArray(e.geometry)?e.geometry:[]
+        })).filter(o=>o.kind!=="other" && o.center);
+        renderObstacles();
+        obstacleStatus.textContent=`Estehaku valmis. Kartalla ${obstacles.length} kohdetta.`;
+        obstacleStatus.className="status ok";
+        obstacleBtn.disabled=false;
+        return;
+      }catch(err){
+        lastErr=err;
+      }
+    }
+    obstacleStatus.textContent=`Estehaku epäonnistui: ${lastErr?.message||"tuntematon virhe"}`;
+    obstacleStatus.className="status err";
+    obstacleBtn.disabled=false;
+  }
+
   async function fetchOverpassWithFallback(endpoint,query){
     const attempts=[
       async()=>{
@@ -1138,6 +1235,16 @@ out tags center geom;`;
   });
   buildBtn.addEventListener("click",buildJson);
   downloadBtn.addEventListener("click",downloadJson);
+  obstacleBtn.addEventListener("click",fetchObstacles);
+  clearObstaclesBtn.addEventListener("click",()=>{
+    obstacles=[];
+    if(obstacleLayer) obstacleLayer.clearLayers();
+    obstacleSummary.textContent="";
+    obstacleStatus.textContent="Esteet piilotettu.";
+    obstacleStatus.className="status";
+    clearObstaclesBtn.disabled=true;
+  });
+
   $("porvooBtn").addEventListener("click",()=>preset("Porvoo Golf","porvoogolf",60.4218,25.6952,3200));
   $("gumboleBtn").addEventListener("click",()=>preset("Gumböle Golf","gumbole",60.223967,24.611271,3200));
   $("peurunkaBtn").addEventListener("click",()=>preset("Laukaan Peurunkagolf","peurunkagolf",62.434565,25.868707,3200));
