@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.0</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.1</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.0</h1>
+  <h1>GPS Builder 0.7.1</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -124,7 +124,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
   <section class="card">
     <h2>3. Esteet kartalla — testi</h2>
-    <p class="small">Ensimmäinen kartoitustesti. Hakee OpenStreetMapista bunkkerit sekä golf-vesiesteet ja vesialueet nykyisellä hakusäteellä. Tietoja ei vielä viedä GPS Library JSONiin.</p>
+    <p class="small">Kenttäkohtainen kartoitustesti. Builder erottaa saman alueen päällekkäiset reikänumerot valittujen greenien avulla ja kohdistaa bunkkerit sekä vedet vain valitun kentän väyliin. Tietoja ei vielä viedä GPS Library JSONiin.</p>
     <div class="actions">
       <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
       <button class="secondary" id="clearObstaclesBtn" disabled>Piilota esteet</button>
@@ -785,6 +785,32 @@ out tags center geom;`;
     return best;
   }
 
+  function selectCourseHoleWays(holeWays){
+    // OSM can contain two courses with the same hole numbers (e.g. Keimola Saras + Kirkka).
+    // Use the already validated Course Library green centers as anchors and choose, for
+    // each hole 1–18, the golf=hole geometry nearest that hole's selected green.
+    const selected=[];
+    for(let hole=1;hole<=18;hole++){
+      const green=greens.find(g=>g.use && g.hole===hole && g.center);
+      const candidates=holeWays.filter(h=>h.hole===hole);
+      if(!green || !candidates.length) continue;
+
+      let best=null,bestDistance=Infinity;
+      for(const h of candidates){
+        const d=pointToHoleDistance(green.center,h);
+        if(d<bestDistance){
+          bestDistance=d;
+          best=h;
+        }
+      }
+      // Generous guard only prevents obviously unrelated duplicate-course geometry.
+      if(best && bestDistance<=350){
+        selected.push(best);
+      }
+    }
+    return selected;
+  }
+
   function assignObstaclesToHoles(holeWays){
     for(const o of obstacles){
       o.hole=null;
@@ -864,7 +890,9 @@ out tags center geom;`;
           }))
           .filter(h=>h.hole && (h.geometry.length || h.endpoints.length));
 
-        const holeWays=obstacleHoleWays.length?obstacleHoleWays:golfHoleWays;
+        const rawHoleWays=obstacleHoleWays.length?obstacleHoleWays:golfHoleWays;
+        const courseHoleWays=selectCourseHoleWays(rawHoleWays);
+        const holeWays=courseHoleWays.length>=14 ? courseHoleWays : rawHoleWays;
 
         obstacles=(data.elements||[])
           .filter(e=>e.tags?.golf!=="hole")
@@ -883,8 +911,9 @@ out tags center geom;`;
         renderObstacles();
 
         const assigned=obstacles.filter(o=>Number.isInteger(o.hole)).length;
+        const selectedHoleCount=new Set(holeWays.map(h=>h.hole)).size;
         obstacleStatus.textContent=
-          `Estehaku valmis. ${assigned}/${obstacles.length} kohdetta osui enintään 120 m päähän numeroidusta väylästä.`;
+          `Estehaku valmis. Valitun kentän väyliä ${selectedHoleCount}/18. ${assigned}/${obstacles.length} estettä osui enintään 120 m päähän niistä.`;
         obstacleStatus.className="status ok";
         obstacleBtn.disabled=false;
         return;
