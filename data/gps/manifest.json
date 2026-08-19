@@ -19,6 +19,12 @@
   "file": "FI/peurunkagolf.json",
   "status": "field-test",
   "holes": 18
+},
+{
+  "courseId": "keimola-saras",
+  "file": "FI/keimola-saras.json",
+  "status": "field-test",
+  "holes": 18
 }
   ]
 }
