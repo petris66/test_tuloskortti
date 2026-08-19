@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.5</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.6</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.5</h1>
+  <h1>GPS Builder 0.7.6</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -124,10 +124,11 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
   <section class="card">
     <h2>3. Esteet kartalla — testi</h2>
-    <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Automaattisen kohdistuksen jälkeen voit tarkistaa reiän esteet käsin ja hyväksyä tai hylätä yksittäiset bunkkerit ja vedet. Tietoja ei vielä viedä GPS Library JSONiin.</p>
+    <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Automaattisesti kohdistetut esteet ovat oletuksena mukana. Tarkistuksessa tarvitsee hylätä vain ylimääräiset bunkkerit ja vedet. Tarkistetut esteet voi ladata erilliseen JSON-tiedostoon jatkokäsittelyä varten.</p>
     <div class="actions">
       <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
-      <button class="secondary" id="reviewObstaclesBtn" disabled>Tarkista reiän esteet</button>
+      <button class="secondary" id="reviewObstaclesBtn" disabled>Poista ylimääräiset esteet</button>
+      <button class="secondary" id="downloadReviewedObstaclesBtn" disabled>Lataa tarkistetut esteet JSON</button>
       <button class="secondary" id="clearObstaclesBtn" disabled>Piilota esteet</button>
     </div>
     <div class="actions">
@@ -215,7 +216,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         validationStatus=$("validationStatus"), fetchBtn=$("fetchBtn"), sortBtn=$("sortBtn"),
         clearBtn=$("clearBtn"), buildBtn=$("buildBtn"), downloadBtn=$("downloadBtn"),
         buildStatus=$("buildStatus"), output=$("output"),
-        obstacleBtn=$("obstacleBtn"), reviewObstaclesBtn=$("reviewObstaclesBtn"), clearObstaclesBtn=$("clearObstaclesBtn"),
+        obstacleBtn=$("obstacleBtn"), reviewObstaclesBtn=$("reviewObstaclesBtn"), downloadReviewedObstaclesBtn=$("downloadReviewedObstaclesBtn"), clearObstaclesBtn=$("clearObstaclesBtn"),
         obstacleStatus=$("obstacleStatus"), obstacleSummary=$("obstacleSummary"),
         obstacleHoleFilter=$("obstacleHoleFilter");
 
@@ -896,15 +897,7 @@ out tags center geom;`;
   function visibleObstacles(){
     const value=obstacleHoleFilter?.value||"assigned";
     if(value==="all") return obstacles;
-    if(value==="assigned") return obstacles.filter(o=>Number.isInteger(o.hole));
-    const hole=Number(value);
-    return obstacles.filter(o=>o.hole===hole);
-  }
-
-  function visibleObstacles(){
-    const value=obstacleHoleFilter?.value||"assigned";
-    if(value==="all") return obstacles;
-    if(value==="assigned") return obstacles.filter(o=>Number.isInteger(o.hole));
+    if(value==="assigned") return obstacles.filter(o=>Number.isInteger(o.hole) && o.review!=="rejected");
     const hole=Number(value);
     return obstacles.filter(o=>o.hole===hole);
   }
@@ -915,32 +908,23 @@ out tags center geom;`;
     else obstacleLayer=L.layerGroup().addTo(map);
 
     const shown=visibleObstacles();
-    let bunkers=0, waters=0, accepted=0, rejected=0, pending=0;
+    let bunkers=0, waters=0, rejected=0;
 
     shown.forEach(o=>{
       if(o.kind==="bunker") bunkers++;
       if(o.kind==="water") waters++;
-
-      if(o.review==="accepted") accepted++;
-      else if(o.review==="rejected") rejected++;
-      else pending++;
+      if(o.review==="rejected") rejected++;
 
       const c=o.center;
       if(!c) return;
 
       const label=o.kind==="bunker" ? `B${bunkers}` : `W${waters}`;
-      const fill=o.review==="accepted"
-        ? "#2f6b3a"
-        : o.review==="rejected"
-          ? "#b91c1c"
-          : (o.kind==="bunker" ? "#d99b2b" : "#2f80ed");
+      const fill=o.review==="rejected"
+        ? "#b91c1c"
+        : (o.kind==="bunker" ? "#d99b2b" : "#2f80ed");
 
       const holeText=Number.isInteger(o.hole)?`Reikä ${o.hole}`:"Ei kohdistettu";
-      const reviewText=o.review==="accepted"
-        ? "Hyväksytty"
-        : o.review==="rejected"
-          ? "Hylätty"
-          : "Tarkistamatta";
+      const reviewText=o.review==="rejected" ? "Hylätty" : "Mukana";
 
       const marker=L.circleMarker([c.lat,c.lon],{
         radius:8,color:"#ffffff",weight:2,fillColor:fill,fillOpacity:.95
@@ -952,8 +936,9 @@ out tags center geom;`;
           `<br>Tila: <b>${reviewText}</b>` +
           (Number.isInteger(o.hole)
             ? `<div style="display:flex;gap:6px;margin-top:8px">
-                 <button type="button" class="primary obstacle-accept" data-obstacle-id="${o.osmType}/${o.id}">Hyväksy</button>
-                 <button type="button" class="danger obstacle-reject" data-obstacle-id="${o.osmType}/${o.id}">Hylkää</button>
+                 ${o.review==="rejected"
+                   ? `<button type="button" class="primary obstacle-restore" data-obstacle-id="${o.osmType}/${o.id}">Palauta mukaan</button>`
+                   : `<button type="button" class="danger obstacle-reject" data-obstacle-id="${o.osmType}/${o.id}">Hylkää ylimääräinen</button>`}
                </div>`
             : "")
         )
@@ -961,15 +946,6 @@ out tags center geom;`;
 
       marker.on("popupopen",()=>{
         const key=`${o.osmType}/${o.id}`;
-        document.querySelectorAll(".obstacle-accept").forEach(btn=>{
-          if(btn.dataset.obstacleId===key){
-            btn.addEventListener("click",()=>{
-              o.review="accepted";
-              map.closePopup();
-              renderObstacles();
-            },{once:true});
-          }
-        });
         document.querySelectorAll(".obstacle-reject").forEach(btn=>{
           if(btn.dataset.obstacleId===key){
             btn.addEventListener("click",()=>{
@@ -979,18 +955,72 @@ out tags center geom;`;
             },{once:true});
           }
         });
+        document.querySelectorAll(".obstacle-restore").forEach(btn=>{
+          if(btn.dataset.obstacleId===key){
+            btn.addEventListener("click",()=>{
+              o.review=null;
+              map.closePopup();
+              renderObstacles();
+            },{once:true});
+          }
+        });
       });
     });
 
     const assigned=obstacles.filter(o=>Number.isInteger(o.hole)).length;
+    const totalRejected=obstacles.filter(o=>Number.isInteger(o.hole) && o.review==="rejected").length;
+    const kept=assigned-totalRejected;
     const unassigned=obstacles.length-assigned;
+
     obstacleSummary.textContent=
       `Näytetään ${shown.length} · Bunkkereita ${bunkers} · Vesiä ${waters} · ` +
-      `Hyväksytty ${accepted} · Hylätty ${rejected} · Tarkistamatta ${pending} · ` +
+      `Mukana ${kept} · Hylätty ${totalRejected} · ` +
       `Kohdistettu väylille ${assigned}/${obstacles.length} · Kohdistamatta ${unassigned}`;
 
     clearObstaclesBtn.disabled=obstacles.length===0;
     reviewObstaclesBtn.disabled=obstacles.length===0;
+    downloadReviewedObstaclesBtn.disabled=kept===0;
+  }
+
+  function buildReviewedObstacleJson(){
+    const kept=obstacles
+      .filter(o=>Number.isInteger(o.hole) && o.review!=="rejected")
+      .sort((a,b)=>a.hole-b.hole || a.kind.localeCompare(b.kind))
+      .map(o=>({
+        hole:o.hole,
+        type:o.kind,
+        point:{lat:+o.center.lat,lon:+o.center.lon},
+        source:{
+          type:"openstreetmap",
+          osmType:o.osmType,
+          osmId:o.id
+        }
+      }));
+
+    return {
+      schemaVersion:"0.1.0",
+      courseId:courseId.value.trim(),
+      courseName:courseName.value.trim(),
+      generatedAt:new Date().toISOString(),
+      reviewMode:"reject-extras",
+      obstacles:kept
+    };
+  }
+
+  function downloadReviewedObstacles(){
+    const data=buildReviewedObstacleJson();
+    const json=JSON.stringify(data,null,2);
+    const blob=new Blob([json],{type:"application/json;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    const id=courseId.value.trim()||"course";
+    a.href=url;
+    a.download=`${id}-obstacles.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    setMapStatus(`Tarkistetut esteet ladattu: ${data.obstacles.length} kohdetta.`,"ok");
   }
 
   async function fetchObstacles(){
@@ -1492,9 +1522,10 @@ out tags center geom;`;
     if(!obstacles.length) return;
     obstacleReviewMode=true;
     if(obstacleHoleFilter.value==="assigned") obstacleHoleFilter.value="1";
-    setMapStatus("Esteiden tarkistus: valitse reikä pudotusvalikosta ja klikkaa B/W-merkkiä. Hyväksy oikeat esteet ja hylkää väärät.","warn");
+    setMapStatus("Esteiden tarkistus: kaikki automaattisesti kohdistetut esteet ovat oletuksena mukana. Valitse reikä ja hylkää vain ylimääräiset B/W-merkinnät.","warn");
     renderObstacles();
   });
+  downloadReviewedObstaclesBtn.addEventListener("click",downloadReviewedObstacles);
   obstacleHoleFilter.addEventListener("change",renderObstacles);
   clearObstaclesBtn.addEventListener("click",()=>{
     obstacles=[];
