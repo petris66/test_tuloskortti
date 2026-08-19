@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.6.9</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.6.9</h1>
+  <h1>GPS Builder 0.7.0</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -128,6 +128,32 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
     <div class="actions">
       <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
       <button class="secondary" id="clearObstaclesBtn" disabled>Piilota esteet</button>
+    </div>
+    <div class="actions">
+      <label style="min-width:220px">Näytä reiän esteet
+        <select id="obstacleHoleFilter">
+          <option value="assigned">Kaikki väylille kohdistetut</option>
+          <option value="all">Kaikki löydetyt</option>
+          <option value="1">Reikä 1</option>
+          <option value="2">Reikä 2</option>
+          <option value="3">Reikä 3</option>
+          <option value="4">Reikä 4</option>
+          <option value="5">Reikä 5</option>
+          <option value="6">Reikä 6</option>
+          <option value="7">Reikä 7</option>
+          <option value="8">Reikä 8</option>
+          <option value="9">Reikä 9</option>
+          <option value="10">Reikä 10</option>
+          <option value="11">Reikä 11</option>
+          <option value="12">Reikä 12</option>
+          <option value="13">Reikä 13</option>
+          <option value="14">Reikä 14</option>
+          <option value="15">Reikä 15</option>
+          <option value="16">Reikä 16</option>
+          <option value="17">Reikä 17</option>
+          <option value="18">Reikä 18</option>
+        </select>
+      </label>
     </div>
     <div id="obstacleStatus" class="status">Esteitä ei ole vielä haettu.</div>
     <div id="obstacleSummary" class="small" style="margin-top:8px"></div>
@@ -189,7 +215,8 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
         clearBtn=$("clearBtn"), buildBtn=$("buildBtn"), downloadBtn=$("downloadBtn"),
         buildStatus=$("buildStatus"), output=$("output"),
         obstacleBtn=$("obstacleBtn"), clearObstaclesBtn=$("clearObstaclesBtn"),
-        obstacleStatus=$("obstacleStatus"), obstacleSummary=$("obstacleSummary");
+        obstacleStatus=$("obstacleStatus"), obstacleSummary=$("obstacleSummary"),
+        obstacleHoleFilter=$("obstacleHoleFilter");
 
   let greens=[];
   let courseRows=[];
@@ -734,6 +761,7 @@ out tags center geom;`;
   relation["golf"="lateral_water_hazard"](around:${r},${la},${lo});
   way["natural"="water"](around:${r},${la},${lo});
   relation["natural"="water"](around:${r},${la},${lo});
+  way["golf"="hole"](around:${r},${la},${lo});
 );
 out tags center geom;`;
   }
@@ -746,48 +774,117 @@ out tags center geom;`;
     return "other";
   }
 
+  function pointToHoleDistance(point,holeWay){
+    const pts=[...(holeWay.geometry||[]),...(holeWay.endpoints||[])];
+    if(!pts.length) return Infinity;
+    let best=Infinity;
+    for(const p of pts){
+      const d=haversineMeters(point.lat,point.lon,p.lat,p.lon);
+      if(d<best) best=d;
+    }
+    return best;
+  }
+
+  function assignObstaclesToHoles(holeWays){
+    for(const o of obstacles){
+      o.hole=null;
+      o.holeDistance=null;
+      let bestHole=null,bestDistance=Infinity;
+      for(const h of holeWays){
+        if(!Number.isInteger(h.hole) || h.hole<1 || h.hole>18) continue;
+        const d=pointToHoleDistance(o.center,h);
+        if(d<bestDistance){
+          bestDistance=d;
+          bestHole=h.hole;
+        }
+      }
+      // Ensimmäinen prototyyppiraja: esteen keskipiste korkeintaan 120 m väylägeometriasta.
+      if(bestHole && bestDistance<=120){
+        o.hole=bestHole;
+        o.holeDistance=Math.round(bestDistance);
+      }
+    }
+  }
+
+  function visibleObstacles(){
+    const value=obstacleHoleFilter?.value||"assigned";
+    if(value==="all") return obstacles;
+    if(value==="assigned") return obstacles.filter(o=>Number.isInteger(o.hole));
+    const hole=Number(value);
+    return obstacles.filter(o=>o.hole===hole);
+  }
+
   function renderObstacles(){
     if(!map) initMap();
     if(obstacleLayer) obstacleLayer.clearLayers();
     else obstacleLayer=L.layerGroup().addTo(map);
 
+    const shown=visibleObstacles();
     let bunkers=0, waters=0;
-    obstacles.forEach((o,index)=>{
+    shown.forEach(o=>{
       if(o.kind==="bunker") bunkers++;
       if(o.kind==="water") waters++;
       const c=o.center;
       if(!c) return;
       const label=o.kind==="bunker" ? `B${bunkers}` : `W${waters}`;
       const fill=o.kind==="bunker" ? "#d99b2b" : "#2f80ed";
+      const holeText=Number.isInteger(o.hole)?`Reikä ${o.hole}`:"Ei kohdistettu";
       L.circleMarker([c.lat,c.lon],{
         radius:7,color:"#ffffff",weight:2,fillColor:fill,fillOpacity:.95
       }).bindTooltip(label,{permanent:true,direction:"center",className:"green-label"})
-        .bindPopup(`<b>${o.kind==="bunker"?"Bunkkeri":"Vesi"}</b><br>${o.osmType}/${o.id}`)
+        .bindPopup(`<b>${o.kind==="bunker"?"Bunkkeri":"Vesi"}</b><br>${holeText}<br>${o.osmType}/${o.id}${o.holeDistance!=null?`<br>Etäisyys väylästä ${o.holeDistance} m`:""}`)
         .addTo(obstacleLayer);
     });
-    obstacleSummary.textContent=`Bunkkereita ${bunkers} · Vesiä ${waters} · Yhteensä ${obstacles.length}`;
+
+    const assigned=obstacles.filter(o=>Number.isInteger(o.hole)).length;
+    const unassigned=obstacles.length-assigned;
+    obstacleSummary.textContent=
+      `Näytetään ${shown.length} · Bunkkereita ${bunkers} · Vesiä ${waters} · Kohdistettu väylille ${assigned}/${obstacles.length} · Kohdistamatta ${unassigned}`;
     clearObstaclesBtn.disabled=obstacles.length===0;
   }
 
   async function fetchObstacles(){
     obstacleBtn.disabled=true;
-    obstacleStatus.textContent="Haetaan bunkkereita ja vesiesteitä OpenStreetMapista…";
+    obstacleStatus.textContent="Haetaan bunkkereita, vesiesteitä ja väylägeometriaa OpenStreetMapista…";
     obstacleStatus.className="status";
     const query=buildObstacleQuery();
     let lastErr=null;
     for(const endpoint of endpoints){
       try{
         const data=await fetchOverpassWithFallback(endpoint,query);
-        obstacles=(data.elements||[]).map(e=>({
-          id:e.id,
-          osmType:e.type,
-          tags:e.tags||{},
-          kind:obstacleType(e),
-          center:centerOf(e),
-          geometry:Array.isArray(e.geometry)?e.geometry:[]
-        })).filter(o=>o.kind!=="other" && o.center);
+
+        const obstacleHoleWays=(data.elements||[])
+          .filter(e=>e.tags?.golf==="hole")
+          .map(e=>({
+            hole:parseHole(e.tags),
+            endpoints:endpointsOf(e),
+            geometry:Array.isArray(e.geometry)?e.geometry.filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lon)).map(p=>({lat:+p.lat,lon:+p.lon})):[],
+            id:e.id,
+            tags:e.tags||{}
+          }))
+          .filter(h=>h.hole && (h.geometry.length || h.endpoints.length));
+
+        const holeWays=obstacleHoleWays.length?obstacleHoleWays:golfHoleWays;
+
+        obstacles=(data.elements||[])
+          .filter(e=>e.tags?.golf!=="hole")
+          .map(e=>({
+            id:e.id,
+            osmType:e.type,
+            tags:e.tags||{},
+            kind:obstacleType(e),
+            center:centerOf(e),
+            geometry:Array.isArray(e.geometry)?e.geometry:[]
+          }))
+          .filter(o=>o.kind!=="other" && o.center);
+
+        assignObstaclesToHoles(holeWays);
+        obstacleHoleFilter.value="assigned";
         renderObstacles();
-        obstacleStatus.textContent=`Estehaku valmis. Kartalla ${obstacles.length} kohdetta.`;
+
+        const assigned=obstacles.filter(o=>Number.isInteger(o.hole)).length;
+        obstacleStatus.textContent=
+          `Estehaku valmis. ${assigned}/${obstacles.length} kohdetta osui enintään 120 m päähän numeroidusta väylästä.`;
         obstacleStatus.className="status ok";
         obstacleBtn.disabled=false;
         return;
@@ -1236,10 +1333,12 @@ out tags center geom;`;
   buildBtn.addEventListener("click",buildJson);
   downloadBtn.addEventListener("click",downloadJson);
   obstacleBtn.addEventListener("click",fetchObstacles);
+  obstacleHoleFilter.addEventListener("change",renderObstacles);
   clearObstaclesBtn.addEventListener("click",()=>{
     obstacles=[];
     if(obstacleLayer) obstacleLayer.clearLayers();
     obstacleSummary.textContent="";
+    obstacleHoleFilter.value="assigned";
     obstacleStatus.textContent="Esteet piilotettu.";
     obstacleStatus.className="status";
     clearObstaclesBtn.disabled=true;
