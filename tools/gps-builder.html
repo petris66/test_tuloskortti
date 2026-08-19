@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.1</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -76,7 +76,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.1</h1>
+  <h1>GPS Builder 0.7.2</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -124,7 +124,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
   <section class="card">
     <h2>3. Esteet kartalla — testi</h2>
-    <p class="small">Kenttäkohtainen kartoitustesti. Builder erottaa saman alueen päällekkäiset reikänumerot valittujen greenien avulla ja kohdistaa bunkkerit sekä vedet vain valitun kentän väyliin. Tietoja ei vielä viedä GPS Library JSONiin.</p>
+    <p class="small">Kenttäkohtainen kartoitustesti. Builder valitsee jokaiselle reiälle oikean golf=hole-väylägeometrian validoidun greenin avulla ja kohdistaa bunkkerit sekä vedet koko väylän matkalta tiiltä greenille. Tietoja ei vielä viedä GPS Library JSONiin.</p>
     <div class="actions">
       <button class="secondary" id="obstacleBtn">Hae bunkkerit ja vedet</button>
       <button class="secondary" id="clearObstaclesBtn" disabled>Piilota esteet</button>
@@ -785,26 +785,57 @@ out tags center geom;`;
     return best;
   }
 
+  function pointToSegmentDistanceMeters(point,a,b){
+    const origin=point;
+    const A=localXY(a,origin);
+    const B=localXY(b,origin);
+    const vx=B.x-A.x, vy=B.y-A.y;
+    const wx=-A.x, wy=-A.y;
+    const vv=vx*vx+vy*vy;
+    if(vv<=0.0001) return Math.hypot(A.x,A.y);
+    let t=(wx*vx+wy*vy)/vv;
+    t=Math.max(0,Math.min(1,t));
+    const px=A.x+t*vx, py=A.y+t*vy;
+    return Math.hypot(px,py);
+  }
+
+  function pointToHoleDistance(point,holeWay){
+    const pts=(holeWay.geometry||[]).length ? holeWay.geometry : (holeWay.endpoints||[]);
+    if(!pts.length) return Infinity;
+    if(pts.length===1){
+      return haversineMeters(point.lat,point.lon,pts[0].lat,pts[0].lon);
+    }
+    let best=Infinity;
+    for(let i=0;i<pts.length-1;i++){
+      const d=pointToSegmentDistanceMeters(point,pts[i],pts[i+1]);
+      if(d<best) best=d;
+    }
+    return best;
+  }
+
   function selectCourseHoleWays(holeWays){
-    // OSM can contain two courses with the same hole numbers (e.g. Keimola Saras + Kirkka).
-    // Use the already validated Course Library green centers as anchors and choose, for
-    // each hole 1–18, the golf=hole geometry nearest that hole's selected green.
+    // Saras ja Kirkka käyttävät samoja reikänumeroita.
+    // Valitaan jokaiselle reiälle se golf=hole-geometria,
+    // joka kulkee lähimpänä jo validoitua green-keskusta.
     const selected=[];
+
     for(let hole=1;hole<=18;hole++){
-      const green=greens.find(g=>g.use && g.hole===hole && g.center);
+      const green=greens.find(g=>!g.extra && g.selected && g.hole===hole);
       const candidates=holeWays.filter(h=>h.hole===hole);
       if(!green || !candidates.length) continue;
 
+      const greenPoint={lat:+green.lat,lon:+green.lon};
       let best=null,bestDistance=Infinity;
+
       for(const h of candidates){
-        const d=pointToHoleDistance(green.center,h);
+        const d=pointToHoleDistance(greenPoint,h);
         if(d<bestDistance){
           bestDistance=d;
           best=h;
         }
       }
-      // Generous guard only prevents obviously unrelated duplicate-course geometry.
-      if(best && bestDistance<=350){
+
+      if(best && bestDistance<=120){
         selected.push(best);
       }
     }
@@ -812,9 +843,12 @@ out tags center geom;`;
   }
 
   function assignObstaclesToHoles(holeWays){
+    const FAIRWAY_CORRIDOR_METERS=90;
+
     for(const o of obstacles){
       o.hole=null;
       o.holeDistance=null;
+
       let bestHole=null,bestDistance=Infinity;
       for(const h of holeWays){
         if(!Number.isInteger(h.hole) || h.hole<1 || h.hole>18) continue;
@@ -824,8 +858,10 @@ out tags center geom;`;
           bestHole=h.hole;
         }
       }
-      // Ensimmäinen prototyyppiraja: esteen keskipiste korkeintaan 120 m väylägeometriasta.
-      if(bestHole && bestDistance<=120){
+
+      // Este hyväksytään vain, jos se on lähellä valitun reiän
+      // koko golf=hole-geometriaa tiiltä greenille.
+      if(bestHole && bestDistance<=FAIRWAY_CORRIDOR_METERS){
         o.hole=bestHole;
         o.holeDistance=Math.round(bestDistance);
       }
