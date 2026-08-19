@@ -1,8 +1,28 @@
-Version 0.5.4.12
+Golf Voice Scorecard AI
+Development Repository
 
+Version:
+GPS Phase 2.0.1
 
-- shared scorecard now contains two PNG images
-- first image mirrors the application stroke-play scorecard
-- second image mirrors the application Stableford points table
-- both images include all 18 holes, nine totals and round total
-- no player, tee, course or voice-scoring logic changes
+Base Version:
+GPS Phase 2.0.0 / v0.6.1 development milestone
+
+Date:
+2026-08-07
+
+Status:
+Sofa test before Porvoo field test
+
+Changes:
+- Removed live Overpass dependency from the player-facing application.
+- GPS data is loaded from the local GPS Library under data/gps/.
+- Added Porvoo Golf 14-hole Green Center field-test dataset.
+- Included holes 1-3 and 8-18.
+- Holes 4-7 intentionally show no GPS data because the course layout changed.
+- Active scorecard hole controls the displayed Green Center distance.
+- GPS distance is calculated locally from the phone/browser position.
+- GPS Library status shows the partial Porvoo field-test coverage.
+
+Field test:
+- Compare Green Center against Garmin Center on holes 1-3 and 8-18.
+- Do not use holes 4-7 for distance validation yet.

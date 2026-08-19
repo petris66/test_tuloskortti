@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.10</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.11</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -288,6 +288,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
   let diagnosticHoleWays=[];
   let holeMapperMap=null;
   let holeMapperLayer=null;
+  let courseBoundaries=[];
 
   function setStatus(text,type=""){status.textContent=text;status.className="status"+(type?" "+type:"")}
   function setMapStatus(text,type=""){mapStatus.textContent=text;mapStatus.className="status"+(type?" "+type:"")}
@@ -1179,6 +1180,23 @@ out tags center geom;`;
       : `Reikä ${hole}: ${candidates.length} väyläehdokasta. Klikkaa oikeaa Saraksen väyläviivaa ja valitse se.`;
   }
 
+  function pointInPolygon(point, polygon){
+    let inside=false;
+    for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+      const xi=polygon[i].lon, yi=polygon[i].lat;
+      const xj=polygon[j].lon, yj=polygon[j].lat;
+      const intersect=((yi>point.lat)!=(yj>point.lat)) &&
+        (point.lon < (xj-xi)*(point.lat-yi)/(yj-yi)+xi);
+      if(intersect) inside=!inside;
+    }
+    return inside;
+  }
+
+  function isInsideCourseBoundary(point){
+    if(!courseBoundaries.length) return true;
+    return courseBoundaries.some(poly=>poly.length>=3 && pointInPolygon(point,poly));
+  }
+
   function assignObstaclesToHoles(holeWays, allHoleWays){
     const FAIRWAY_CORRIDOR_METERS=90;
     const OTHER_HOLE_MARGIN_METERS=15;
@@ -1187,6 +1205,11 @@ out tags center geom;`;
       o.hole=null;
       o.holeDistance=null;
       o.rejectedByOtherCourse=false;
+
+      if(!isInsideCourseBoundary(o.center)){
+        o.rejectedByOtherCourse=true;
+        continue;
+      }
 
       let bestHole=null,bestDistance=Infinity;
       let bestWay=null;
@@ -1367,6 +1390,11 @@ out tags center geom;`;
     for(const endpoint of endpoints){
       try{
         const data=await fetchOverpassWithFallback(endpoint,query);
+
+        courseBoundaries=(data.elements||[])
+          .filter(e=>e.tags?.leisure==="golf_course" && Array.isArray(e.geometry))
+          .map(e=>e.geometry.filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lon)).map(p=>({lat:+p.lat,lon:+p.lon})))
+          .filter(p=>p.length>=3);
 
         const obstacleHoleWays=(data.elements||[])
           .filter(e=>e.tags?.golf==="hole")
