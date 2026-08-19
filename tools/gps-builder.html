@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.9</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.10</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -84,7 +84,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.9</h1>
+  <h1>GPS Builder 0.7.10</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -224,6 +224,25 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
     <textarea id="output" spellcheck="false"></textarea>
   </section>
 </main>
+
+  <div id="holeMapperOverlay" class="hole-mapper-overlay">
+    <div class="hole-mapper-toolbar">
+      <strong>Keimola Saras — väylämapping</strong>
+      <label>Reikä
+        <select id="holeMapperHole"></select>
+      </label>
+      <button class="secondary" id="holeMapperPrev">← Edellinen</button>
+      <button class="secondary" id="holeMapperNext">Seuraava →</button>
+      <span id="holeMapperStatus" class="hole-mapper-status">Hae ensin OSM-kenttärakenne.</span>
+      <button class="secondary" id="holeMapperClose">Sulje</button>
+    </div>
+    <div id="holeMapperMap"></div>
+    <div class="hole-mapper-footer">
+      <span id="holeMapperProgress">Valittu 0/18 väylää.</span>
+      <button class="secondary" id="downloadHoleMappingBtn">Lataa väylämapping JSON</button>
+      <span class="small">Kartalla näkyvät vain valitun reikänumeron OSM-väyläehdokkaat. Klikkaa oikeaa Saraksen linjaa ja valitse se.</span>
+    </div>
+  </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=1.9.4"></script>
 <script>
@@ -1897,23 +1916,5 @@ out tags center geom;`;
 })();
 </script>
 
-  <div id="holeMapperOverlay" class="hole-mapper-overlay">
-    <div class="hole-mapper-toolbar">
-      <strong>Keimola Saras — väylämapping</strong>
-      <label>Reikä
-        <select id="holeMapperHole"></select>
-      </label>
-      <button class="secondary" id="holeMapperPrev">← Edellinen</button>
-      <button class="secondary" id="holeMapperNext">Seuraava →</button>
-      <span id="holeMapperStatus" class="hole-mapper-status">Hae ensin OSM-kenttärakenne.</span>
-      <button class="secondary" id="holeMapperClose">Sulje</button>
-    </div>
-    <div id="holeMapperMap"></div>
-    <div class="hole-mapper-footer">
-      <span id="holeMapperProgress">Valittu 0/18 väylää.</span>
-      <button class="secondary" id="downloadHoleMappingBtn">Lataa väylämapping JSON</button>
-      <span class="small">Kartalla näkyvät vain valitun reikänumeron OSM-väyläehdokkaat. Klikkaa oikeaa Saraksen linjaa ja valitse se.</span>
-    </div>
-  </div>
 </body>
 </html>
