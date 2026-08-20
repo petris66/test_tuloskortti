@@ -83,6 +83,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </style>
 </head>
 <body>
+<div style="font-size:12px;color:#666">Build: 0.7.11-course-fetch-fix</div>
 <main>
   <h1>GPS Builder 0.7.11</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
@@ -622,8 +623,10 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
       const base=repoBasePath();
       const manifestCandidates=[
-        `${base}/data/source/manifest.json?v=builder063`,
-        `../data/source/manifest.json?v=builder063`
+        `${base}/data/source/manifest.json?v=builder064`,
+        `../data/source/manifest.json?v=builder064`,
+        `${base}/data/gps/manifest.json?v=builder064`,
+        `../data/gps/manifest.json?v=builder064`
       ];
 
       const manifestResult=await fetchJsonCandidates(manifestCandidates);
