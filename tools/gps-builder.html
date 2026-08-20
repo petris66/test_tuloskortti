@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.17</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.18</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -84,7 +84,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.17</h1>
+  <h1>GPS Builder 0.7.18</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -1987,7 +1987,27 @@ out tags center geom;`;
   function finishManualWater(){
     if(manualWaterPoints.length<3){setMapStatus("Tarvitaan vähintään 3 pistettä vesiesteelle.","err");return;}
     const hole=Number(obstacleHoleFilter.value);
-    manualWaters.push({type:"water",hole:Number.isInteger(hole)?hole:null,manual:true,geometry:manualWaterPoints.slice(),id:"manual-water-"+Date.now()});
+    const manualId="manual-water-"+Date.now();
+    const manualWater={
+      type:"water",
+      kind:"water",
+      hole:Number.isInteger(hole)?hole:null,
+      manual:true,
+      geometry:manualWaterPoints.slice(),
+      id:manualId,
+      osmType:"manual"
+    };
+    manualWaters.push(manualWater);
+    obstacles.push({
+      kind:"water",
+      hole:manualWater.hole,
+      id:manualId,
+      osmType:"manual",
+      manual:true,
+      geometry:manualWater.geometry,
+      center:centerOf({geometry:manualWater.geometry}),
+      tags:{source:"manual"}
+    });
     if(!manualWaterLayer) manualWaterLayer=L.layerGroup().addTo(map);
     manualWaterMode=false;
     setMapStatus("Käsin lisätty vesi tallennettu.","ok");
