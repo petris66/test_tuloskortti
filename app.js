@@ -92,6 +92,7 @@
         const gpsGreenFrontDistance = document.getElementById("gpsGreenFrontDistance");
         const gpsGreenCenterDistance = document.getElementById("gpsGreenCenterDistance");
         const gpsGreenBackDistance = document.getElementById("gpsGreenBackDistance");
+        const gpsObstacleInfo = document.getElementById("gpsObstacleInfo");
 
 
         const GolfGPS = (() => {
@@ -453,6 +454,45 @@
             if (gpsGreenBackDistance) gpsGreenBackDistance.textContent = "—";
         }
 
+        function updateObstacleInfo() {
+            if (!gpsObstacleInfo) return;
+
+            const position = GPS.getPosition();
+            const config = GolfGPS.getConfig();
+            const obstacles = Array.isArray(config?.obstacles)
+                ? config.obstacles.filter(item => item.type === "bunker")
+                : [];
+
+            if (!position || obstacles.length === 0) {
+                gpsObstacleInfo.textContent = obstacles.length ? "GPS odottaa sijaintia" : "Ei este-dataa";
+                return;
+            }
+
+            const distances = obstacles
+                .map(item => {
+                    const point = item.point;
+                    if (!point) return null;
+                    return {
+                        hole: item.hole,
+                        distance: GolfGPS.distanceMeters(
+                            position.coords.latitude,
+                            position.coords.longitude,
+                            point.lat,
+                            point.lon
+                        )
+                    };
+                })
+                .filter(Boolean)
+                .sort((a,b) => a.distance - b.distance);
+
+            const nearest = distances.slice(0, 2);
+            gpsObstacleInfo.innerHTML = nearest.length
+                ? nearest.map((item, index) =>
+                    `${index + 1}. bunkkeri (reikä ${item.hole})<br><strong>${Math.round(item.distance)} m</strong>`
+                  ).join("<br><br>")
+                : "Ei bunkkereita";
+        }
+
         function updateGreenCenterDistance() {
             if (gpsGreenHole) gpsGreenHole.textContent = String(nextHole || 1);
 
@@ -531,6 +571,7 @@
                 }
 
                 updateGreenCenterDistance();
+            updateObstacleInfo();
             } catch (error) {
                 console.error("GPS-kenttädatan lataus epäonnistui:", error);
                 gpsCourseDataStatus.textContent = "Kenttädatan haku epäonnistui";
@@ -576,6 +617,7 @@
             }
             updateGpsPositionAge();
             updateGreenCenterDistance();
+            updateObstacleInfo();
         }
 
         function getGpsErrorMessage(error) {
@@ -3062,6 +3104,7 @@
             }
 
             updateGreenCenterDistance();
+            updateObstacleInfo();
         }
 
         function updateRoundLayout() {

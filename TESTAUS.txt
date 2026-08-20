@@ -1,8 +1,0 @@
-PAKETTI 2 – TESTAUS
-
-1. Avaa sovellus GitHub Pagesissa.
-2. Varmista, että Kierroksen asetuksissa näkyy kenttävalinta.
-3. Valitse kenttä, pelaajaryhmä ja tii.
-4. Varmista, että tuloskortin Par- ja HCP-sarakkeet päivittyvät.
-5. Päivitä sivu ja varmista, että valinta säilyy.
-6. Kirjaa yksi tulos puheella ja varmista, että nykyinen toiminta säilyy.

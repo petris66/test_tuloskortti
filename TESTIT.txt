@@ -1,8 +1,0 @@
-FEATURE 1.4.3 – Aloitusreiän ysi näkyviin heti
-
-Testaa:
-1. Valitse aloitusreikä 1–9: tuloskortti näyttää heti etuysin.
-2. Valitse aloitusreikä 10–18: tuloskortti näyttää heti takaysin.
-3. Ensimmäistä tulosta ei tarvitse kirjata ennen näkymän vaihtumista.
-4. Puhekirjaus nimellä ja pelkillä luvuilla toimii edelleen.
-5. Kesken kierroksen Näytä etuysi / Näytä takaysi toimii edelleen.
