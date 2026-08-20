@@ -476,20 +476,26 @@
             }
 
             const distances = obstacles.map(item => {
-                const point = item.point;
-                if (!point) return null;
+                const points = Array.isArray(item.points) && item.points.length
+                    ? item.points
+                    : (item.point ? [item.point] : []);
 
-                const distance = GolfGPS.distanceMeters(
-                    position.coords.latitude,
-                    position.coords.longitude,
-                    point.lat,
-                    point.lon
-                );
+                if (points.length === 0) return null;
+
+                const pointDistances = points.map(point => ({
+                    point,
+                    distance: GolfGPS.distanceMeters(
+                        position.coords.latitude,
+                        position.coords.longitude,
+                        point.lat,
+                        point.lon
+                    )
+                })).sort((a, b) => a.distance - b.distance);
 
                 return {
-                    distance,
-                    front: Math.round(distance),
-                    back: Math.round(distance)
+                    distance: pointDistances[0].distance,
+                    front: Math.round(pointDistances[0].distance),
+                    back: Math.round(pointDistances[pointDistances.length - 1].distance)
                 };
             }).filter(Boolean).sort((a, b) => a.distance - b.distance);
 
