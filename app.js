@@ -475,28 +475,31 @@
                 return;
             }
 
-            const distances = obstacles
-                .map(item => {
-                    const point = item.point;
-                    if (!point) return null;
+            const distances = obstacles.map(item => {
+                const point = item.point;
+                if (!point) return null;
 
-                    return {
-                        distance: GolfGPS.distanceMeters(
-                            position.coords.latitude,
-                            position.coords.longitude,
-                            point.lat,
-                            point.lon
-                        )
-                    };
-                })
-                .filter(Boolean)
-                .sort((a,b) => a.distance - b.distance);
+                const distance = GolfGPS.distanceMeters(
+                    position.coords.latitude,
+                    position.coords.longitude,
+                    point.lat,
+                    point.lon
+                );
+
+                return {
+                    distance,
+                    front: Math.round(distance),
+                    back: Math.round(distance)
+                };
+            }).filter(Boolean).sort((a, b) => a.distance - b.distance);
 
             const nearest = distances.slice(0, 2);
 
             gpsObstacleInfo.innerHTML = nearest.length
                 ? nearest.map((item, index) =>
-                    `${index + 1}. bunkkeri<br><strong>${Math.round(item.distance)} m</strong>`
+                    `${index + 1}. bunkkeri<br>` +
+                    `Eteen: <strong>${item.front} m</strong><br>` +
+                    `Taakse: <strong>${item.back} m</strong>`
                   ).join("<br><br>")
                 : "Ei bunkkereita";
         }
