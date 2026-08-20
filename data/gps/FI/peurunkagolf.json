@@ -429,5 +429,428 @@
         "verified": false
       }
     }
-  ]
+  ],
+  "obstacles": [
+    {
+      "hole": 1,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43708910454545,
+        "lon": 25.865306877272726
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137542
+      }
+    },
+    {
+      "hole": 1,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43822193600001,
+        "lon": 25.86263541199999
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137543
+      }
+    },
+    {
+      "hole": 1,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43843889999999,
+        "lon": 25.86251766111111
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137544
+      }
+    },
+    {
+      "hole": 1,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43897007368422,
+        "lon": 25.86181218947368
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137545
+      }
+    },
+    {
+      "hole": 2,
+      "type": "bunker",
+      "point": {
+        "lat": 62.439781999999994,
+        "lon": 25.854613569999998
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173769
+      }
+    },
+    {
+      "hole": 2,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43976373333332,
+        "lon": 25.854240053333335
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173770
+      }
+    },
+    {
+      "hole": 3,
+      "type": "bunker",
+      "point": {
+        "lat": 62.44037389411765,
+        "lon": 25.85695740588235
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173776
+      }
+    },
+    {
+      "hole": 4,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43979503076922,
+        "lon": 25.86110241153846
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173782
+      }
+    },
+    {
+      "hole": 4,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43979589999998,
+        "lon": 25.86238237916667
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173783
+      }
+    },
+    {
+      "hole": 4,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43974560909092,
+        "lon": 25.862853372727272
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173784
+      }
+    },
+    {
+      "hole": 5,
+      "type": "bunker",
+      "point": {
+        "lat": 62.4419370090909,
+        "lon": 25.855969854545457
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173792
+      }
+    },
+    {
+      "hole": 5,
+      "type": "bunker",
+      "point": {
+        "lat": 62.44218467272728,
+        "lon": 25.855714463636364
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173793
+      }
+    },
+    {
+      "hole": 5,
+      "type": "bunker",
+      "point": {
+        "lat": 62.442322787500004,
+        "lon": 25.856068043750003
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173794
+      }
+    },
+    {
+      "hole": 7,
+      "type": "bunker",
+      "point": {
+        "lat": 62.441013031818194,
+        "lon": 25.864840209090904
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173804
+      }
+    },
+    {
+      "hole": 8,
+      "type": "bunker",
+      "point": {
+        "lat": 62.4391435,
+        "lon": 25.865221868181823
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173810
+      }
+    },
+    {
+      "hole": 8,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43816393333332,
+        "lon": 25.86668366666667
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878173811
+      }
+    },
+    {
+      "hole": 9,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43516414166666,
+        "lon": 25.870432225000002
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878234512
+      }
+    },
+    {
+      "hole": 10,
+      "type": "bunker",
+      "point": {
+        "lat": 62.430644694736834,
+        "lon": 25.87216201842105
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137556
+      }
+    },
+    {
+      "hole": 10,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43031086428573,
+        "lon": 25.87258628928571
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137557
+      }
+    },
+    {
+      "hole": 11,
+      "type": "bunker",
+      "point": {
+        "lat": 62.429209676470585,
+        "lon": 25.87080379411764
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198943
+      }
+    },
+    {
+      "hole": 12,
+      "type": "water",
+      "point": {
+        "lat": 62.42587398800001,
+        "lon": 25.869058692000003
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198952
+      }
+    },
+    {
+      "hole": 13,
+      "type": "water",
+      "point": {
+        "lat": 62.424024717647065,
+        "lon": 25.870531629411765
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198958
+      }
+    },
+    {
+      "hole": 14,
+      "type": "bunker",
+      "point": {
+        "lat": 62.42480248260869,
+        "lon": 25.86717339130434
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198963
+      }
+    },
+    {
+      "hole": 14,
+      "type": "water",
+      "point": {
+        "lat": 62.42530326086956,
+        "lon": 25.866269169565207
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198964
+      }
+    },
+    {
+      "hole": 15,
+      "type": "water",
+      "point": {
+        "lat": 62.426327,
+        "lon": 25.866679268749998
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198974
+      }
+    },
+    {
+      "hole": 17,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43173186956521,
+        "lon": 25.864811743478253
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198985
+      }
+    },
+    {
+      "hole": 17,
+      "type": "bunker",
+      "point": {
+        "lat": 62.431867808333344,
+        "lon": 25.865329820833335
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198986
+      }
+    },
+    {
+      "hole": 17,
+      "type": "water",
+      "point": {
+        "lat": 62.43169771904765,
+        "lon": 25.868458119047617
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878198990
+      }
+    },
+    {
+      "hole": 18,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43291476666668,
+        "lon": 25.86737530740741
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137562
+      }
+    },
+    {
+      "hole": 18,
+      "type": "bunker",
+      "point": {
+        "lat": 62.433076195238094,
+        "lon": 25.867458466666665
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137563
+      }
+    },
+    {
+      "hole": 18,
+      "type": "bunker",
+      "point": {
+        "lat": 62.433780180769226,
+        "lon": 25.86729676153846
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137564
+      }
+    },
+    {
+      "hole": 18,
+      "type": "bunker",
+      "point": {
+        "lat": 62.43395783333334,
+        "lon": 25.86731715555556
+      },
+      "source": {
+        "type": "openstreetmap",
+        "osmType": "way",
+        "osmId": 878137565
+      }
+    }
+  ],
+  "obstacleReview": {
+    "source": "GPS Builder manual review",
+    "reviewMode": "reject-extras",
+    "generatedAt": "2026-08-20T18:40:42.488Z"
+  }
 }
