@@ -460,6 +460,7 @@
             const position = GPS.getPosition();
             const config = GolfGPS.getConfig();
             const currentHole = Number(nextHole || 1);
+            const green = GolfGPS.getGreenCenter(currentHole);
 
             const obstacles = Array.isArray(config?.obstacles)
                 ? config.obstacles.filter(item =>
@@ -468,34 +469,68 @@
                 )
                 : [];
 
-            if (!position || obstacles.length === 0) {
+            if (!position || !green || obstacles.length === 0) {
                 gpsObstacleInfo.textContent = obstacles.length
                     ? "GPS odottaa sijaintia"
                     : "Ei bunkkereita tällä reiällä";
                 return;
             }
 
+            const player = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            };
+
+            const lineVector = {
+                lat: Number(green.lat) - player.lat,
+                lon: Number(green.lon) - player.lon
+            };
+
+            const vectorLength = Math.sqrt(
+                lineVector.lat * lineVector.lat +
+                lineVector.lon * lineVector.lon
+            ) || 1;
+
             const distances = obstacles.map(item => {
                 const points = Array.isArray(item.points) && item.points.length
                     ? item.points
                     : (item.point ? [item.point] : []);
 
-                if (points.length === 0) return null;
+                if (!points.length) return null;
 
-                const pointDistances = points.map(point => ({
-                    point,
-                    distance: GolfGPS.distanceMeters(
-                        position.coords.latitude,
-                        position.coords.longitude,
-                        point.lat,
-                        point.lon
-                    )
-                })).sort((a, b) => a.distance - b.distance);
+                const projected = points.map(point => {
+                    const relative = {
+                        lat: Number(point.lat) - player.lat,
+                        lon: Number(point.lon) - player.lon
+                    };
+
+                    const progress =
+                        (relative.lat * lineVector.lat +
+                         relative.lon * lineVector.lon) / vectorLength;
+
+                    return {
+                        point,
+                        progress,
+                        distance: GolfGPS.distanceMeters(
+                            player.lat,
+                            player.lon,
+                            point.lat,
+                            point.lon
+                        )
+                    };
+                });
+
+                const onCoursePoints = projected.sort((a, b) =>
+                    a.progress - b.progress
+                );
+
+                const frontPoint = onCoursePoints[0];
+                const backPoint = onCoursePoints[onCoursePoints.length - 1];
 
                 return {
-                    distance: pointDistances[0].distance,
-                    front: Math.round(pointDistances[0].distance),
-                    back: Math.round(pointDistances[pointDistances.length - 1].distance)
+                    distance: frontPoint.distance,
+                    front: Math.round(frontPoint.distance),
+                    back: Math.round(backPoint.distance)
                 };
             }).filter(Boolean).sort((a, b) => a.distance - b.distance);
 
@@ -504,8 +539,8 @@
             gpsObstacleInfo.innerHTML = nearest.length
                 ? nearest.map((item, index) =>
                     `${index + 1}. bunkkeri<br>` +
-                    `Eteen: <strong>${item.front} m</strong><br>` +
-                    `Taakse: <strong>${item.back} m</strong>`
+                    `Alkaa: <strong>${item.front} m</strong><br>` +
+                    `Loppuu: <strong>${item.back} m</strong>`
                   ).join("<br><br>")
                 : "Ei bunkkereita";
         }
