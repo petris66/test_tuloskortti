@@ -459,12 +459,19 @@
 
             const position = GPS.getPosition();
             const config = GolfGPS.getConfig();
+            const currentHole = Number(nextHole || 1);
+
             const obstacles = Array.isArray(config?.obstacles)
-                ? config.obstacles.filter(item => item.type === "bunker")
+                ? config.obstacles.filter(item =>
+                    item.type === "bunker" &&
+                    Number(item.hole) === currentHole
+                )
                 : [];
 
             if (!position || obstacles.length === 0) {
-                gpsObstacleInfo.textContent = obstacles.length ? "GPS odottaa sijaintia" : "Ei este-dataa";
+                gpsObstacleInfo.textContent = obstacles.length
+                    ? "GPS odottaa sijaintia"
+                    : "Ei bunkkereita tällä reiällä";
                 return;
             }
 
@@ -472,8 +479,8 @@
                 .map(item => {
                     const point = item.point;
                     if (!point) return null;
+
                     return {
-                        hole: item.hole,
                         distance: GolfGPS.distanceMeters(
                             position.coords.latitude,
                             position.coords.longitude,
@@ -486,9 +493,10 @@
                 .sort((a,b) => a.distance - b.distance);
 
             const nearest = distances.slice(0, 2);
+
             gpsObstacleInfo.innerHTML = nearest.length
                 ? nearest.map((item, index) =>
-                    `${index + 1}. bunkkeri (reikä ${item.hole})<br><strong>${Math.round(item.distance)} m</strong>`
+                    `${index + 1}. bunkkeri<br><strong>${Math.round(item.distance)} m</strong>`
                   ).join("<br><br>")
                 : "Ei bunkkereita";
         }
@@ -678,6 +686,9 @@
             GPS.stop();
             resetGpsDisplay(message);
             resetGreenDistanceDisplay();
+            if (gpsObstacleInfo) {
+                gpsObstacleInfo.textContent = "GPS ei ole käytössä";
+            }
         }
 
         function toggleGps() {
