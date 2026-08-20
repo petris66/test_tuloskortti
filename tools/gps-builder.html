@@ -569,10 +569,17 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       }).filter(g=>Number.isInteger(g.hole)&&g.hole>=1&&g.hole<=18&&Number.isFinite(g.lat)&&Number.isFinite(g.lon));
 
       if(existing.length){
-        greens=existing;
+        greens=existing.map(g=>({
+          ...g,
+          hole:Number(g.hole),
+          selected:true,
+          extra:false,
+          manual:true
+        }));
         render();
         renderMap();
-        setStatus(`GPS Library ladattu: ${existing.length}/18 greeniä. Voit jatkaa esteiden tarkistusta.`,"ok");
+        renderCourseHoles();
+        setStatus(`GPS Library ladattu: ${greens.length}/18 greeniä. Voit jatkaa esteiden tarkistusta.`,"ok");
       }
     }catch(err){
       console.warn("GPS Libraryn greenien lataus ohitettiin:",err);
