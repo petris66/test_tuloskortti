@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.7.16</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.7.11</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -84,7 +84,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.7.16</h1>
+  <h1>GPS Builder 0.7.12 - Peurunka JSON Green Import Fix</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -246,7 +246,6 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=1.9.4"></script>
 <script>
-// GPS Builder 0.7.16 - Peurunka obstacle correction build
 (() => {
   const endpoints = [
     "https://overpass-api.de/api/interpreter",
@@ -1262,12 +1261,9 @@ out tags center geom;`;
 
   function renderObstacles(){
     if(!map) initMap();
-    if(obstacleLayer) {
-      obstacleLayer.clearLayers();
-    } else {
-      obstacleLayer=L.layerGroup().addTo(map);
-    }
+    if(obstacleLayer) obstacleLayer.clearLayers();
     if(holeCandidateLayer) holeCandidateLayer.clearLayers();
+    else obstacleLayer=L.layerGroup().addTo(map);
 
     const shown=visibleObstacles();
     let bunkers=0, waters=0, rejected=0;
@@ -1856,41 +1852,6 @@ out tags center geom;`;
     a.href=url;a.download=`${safe}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   }
 
-
-  async function loadGpsGreenLibrary(id){
-    if(id!=="peurunkagolf") return;
-    try{
-      const candidates=[
-        `${repoBasePath()}/data/gps/FI/peurunkagolf.json?v=0.7.14`,
-        `../data/gps/FI/peurunkagolf.json?v=0.7.14`
-      ];
-      const result=await fetchJsonCandidates(candidates);
-      const data=result.data;
-      const holes=Array.isArray(data.holes)?data.holes:[];
-      greens=holes.map((h,i)=>({
-        hole:Number(h.hole),
-        lat:Number(h.greenCenter.lat),
-        lon:Number(h.greenCenter.lon),
-        geometry:[],
-        type:"course-library",
-        id:`peurunka-${h.hole}`,
-        tags:{},
-        selected:true,
-        extra:false,
-        autoAssigned:true,
-        autoDistance:null,
-        manualFront:h.greenFront,
-        manualCenter:h.greenCenter,
-        manualBack:h.greenBack
-      })).filter(g=>Number.isFinite(g.lat)&&Number.isFinite(g.lon));
-      render();
-      renderMap();
-      setStatus(`Peurunka GPS Library ladattu: ${greens.length}/18 greeniä`,"ok");
-    }catch(err){
-      console.warn("Peurunka GPS Library lataus epäonnistui",err);
-    }
-  }
-
   function preset(name,id,la,lo,r=3200){
     courseName.value=name;courseId.value=id;lat.value=la;lon.value=lo;radius.value=r;
     greens=[];lastJson=null;output.value="";downloadBtn.disabled=true;
@@ -1900,7 +1861,7 @@ out tags center geom;`;
     if(initMap()) map.setView([la,lo],14);
     renderMap();
     loadCourseLibrary();
-    loadGpsGreenLibrary(id);
+    importExistingGpsGreens(id);
   }
 
   fetchBtn.addEventListener("click",fetchData);
@@ -1970,6 +1931,49 @@ out tags center geom;`;
     obstacleStatus.className="status";
     clearObstaclesBtn.disabled=true;
   });
+
+
+  async function importExistingGpsGreens(course){
+    if(course!=="peurunkagolf") return;
+    try{
+      const paths=[
+        `../data/gps/FI/${course}.json`,
+        `./data/gps/FI/${course}.json`,
+        `/data/gps/FI/${course}.json`
+      ];
+      const res=await fetchJsonCandidates(paths);
+      const data=res.data;
+      const holes=Array.isArray(data?.holes)?data.holes:[];
+      const imported=[];
+      holes.forEach(h=>{
+        const c=h.greenCenter||h.greenFront||h.greenBack;
+        if(!c || !Number.isFinite(Number(c.lat)) || !Number.isFinite(Number(c.lon))) return;
+        imported.push({
+          hole:Number(h.hole),
+          lat:Number(c.lat),
+          lon:Number(c.lon),
+          geometry:[],
+          type:"gps-library",
+          id:`${course}-green-${h.hole}`,
+          tags:{},
+          selected:true,
+          extra:false,
+          manual:true,
+          manualFront:h.greenFront||c,
+          manualCenter:h.greenCenter||c,
+          manualBack:h.greenBack||c
+        });
+      });
+      if(imported.length){
+        greens=imported;
+        render();
+        renderMap();
+        setStatus(`Peurunka GPS Library ladattu: ${imported.length} griiniä`,"ok");
+      }
+    }catch(err){
+      console.warn("GPS green import failed",err);
+    }
+  }
 
   $("porvooBtn").addEventListener("click",()=>preset("Porvoo Golf","porvoogolf",60.4218,25.6952,3200));
   $("gumboleBtn").addEventListener("click",()=>preset("Gumböle Golf","gumbole",60.223967,24.611271,3200));
