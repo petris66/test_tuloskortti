@@ -103,6 +103,7 @@
             let shotLine = null;
             let shotStartPoint = null;
             let activeHole = 1;
+            let obstacleLayers = [];
 
 
             function updateShotLine() {
@@ -154,6 +155,10 @@
 
             async function loadPeurunka(holeNumber = activeHole) {
                 try {
+                    obstacleLayers.forEach(layer => {
+                        if (map) map.removeLayer(layer);
+                    });
+                    obstacleLayers = [];
                     const r = await fetch("data/gps/FI/peurunkagolf.json?v=map2");
                     const d = await r.json();
                     const h = d.holes.find(x => Number(x.hole) === Number(holeNumber));
@@ -182,6 +187,8 @@
                                 [point.lat, point.lon],
                                 { radius: 4 }
                             ).addTo(map).bindPopup("Bunkkeri");
+                            const layer = map._layers[Object.keys(map._layers).pop()];
+                            if (layer) obstacleLayers.push(layer);
                             boundsPoints.push(point);
                         }
                     });
@@ -2646,7 +2653,6 @@
 
             calculateScores();
             nextHole = findNextIncompleteHole();
-            CourseMap.setHole?.(nextHole);
             roundSetupConfirmed = true;
             updateNextHole();
             CourseMap.setHole?.(nextHole);
@@ -3419,7 +3425,6 @@
                 playerCount = Number(state.playerCount) || 1;
                 roundSetupConfirmed = Boolean(state.roundSetupConfirmed);
                 startHole = Number(state.startHole) || 1;
-                CourseMap.setHole?.(startHole);
                 roundHoleCount = Number(state.roundHoleCount) === 9 ? 9 : 18;
                 nextHole = Number(state.nextHole) || 1;
 
