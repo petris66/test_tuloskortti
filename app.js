@@ -102,7 +102,7 @@
             function init() {
                 const el = document.getElementById("courseMap");
                 if (!el || typeof L === "undefined") return;
-                map = L.map(el).setView([62.4388,25.8615], 17);
+                map = L.map(el);
                 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
                 loadPeurunka();
             }
@@ -121,7 +121,7 @@
                             boundsPoints.push(o.point);
                         }
                     });
-                    map.fitBounds(boundsPoints.map(p=>[p.lat,p.lon]), {padding:[40,40], maxZoom: 15});
+                    map.fitBounds(boundsPoints.map(p=>[p.lat,p.lon]), {padding:[80,80], maxZoom: 16});
                 } catch(e) { console.warn("Course map",e); }
             }
             return {init};
