@@ -102,6 +102,7 @@
             let shotTargetMarker = null;
             let shotLine = null;
             let shotStartPoint = null;
+            let activeHole = 1;
 
 
             function updateShotLine() {
@@ -148,14 +149,14 @@
                     updateGpsDistanceReadout();
                 });
 
-                loadPeurunka();
+                loadPeurunka(activeHole);
             }
 
-            async function loadPeurunka() {
+            async function loadPeurunka(holeNumber = activeHole) {
                 try {
                     const r = await fetch("data/gps/FI/peurunkagolf.json?v=map2");
                     const d = await r.json();
-                    const h = d.holes.find(x => Number(x.hole) === 1);
+                    const h = d.holes.find(x => Number(x.hole) === Number(holeNumber));
                     if (!h) return;
 
                     // Green-pisteitä ei piirretä näkyviin.
@@ -172,7 +173,7 @@
 
                     boundsPoints.push(...tees);
 
-                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === 1);
+                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === Number(holeNumber));
 
                     obs.forEach(o => {
                         const point = o.point || (Array.isArray(o.points) ? o.points[0] : null);
@@ -200,7 +201,16 @@
                 return shotTargetMarker ? shotTargetMarker.getLatLng() : null;
             }
 
-            return {init, getShotTarget};
+            function setHole(holeNumber) {
+                const value = Number(holeNumber);
+                if (!Number.isInteger(value) || value < 1 || value > 18) return;
+                activeHole = value;
+                if (map) {
+                    loadPeurunka(activeHole);
+                }
+            }
+
+            return {init, getShotTarget, setHole};
         })();
         window.CourseMap = CourseMap;
 
