@@ -150,7 +150,7 @@
                             L.circleMarker(
                                 [point.lat, point.lon],
                                 { radius: 4 }
-                            ).addTo(map).bindPopup("Bunkkeri"));
+                            ).addTo(map).bindPopup("Bunkkeri");
                             boundsPoints.push(point);
                         }
                     });
