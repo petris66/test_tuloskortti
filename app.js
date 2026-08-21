@@ -111,9 +111,12 @@
                 const target = shotTargetMarker.getLatLng();
 
                 if (!shotLine) {
-                    shotLine = L.polyline([shotStartPoint || map.getCenter(), target], { color: '#ffffff', weight: 3 }).addTo(map);
+                    if (!shotStartPoint) return;
+                    shotLine = L.polyline([shotStartPoint, target], { color: '#ffffff', weight: 3 }).addTo(map);
                 } else {
-                    shotLine.setLatLngs([shotStartPoint || map.getCenter(), target]);
+                    if (shotStartPoint) {
+                        shotLine.setLatLngs([shotStartPoint, target]);
+                    }
                 }
             }
 
@@ -204,9 +207,12 @@
             }
 
             function setShotStartPoint(point) {
-                if (point && Number.isFinite(point.lat) && Number.isFinite(point.lon)) {
-                    shotStartPoint = L.latLng(point.lat, point.lon);
-                    if (shotLine) updateShotLine();
+                if (!point) return;
+                const lat = Number(point.lat);
+                const lon = Number(point.lon);
+                if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                    shotStartPoint = L.latLng(lat, lon);
+                    updateShotLine();
                 }
             }
 
@@ -786,6 +792,11 @@
 
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
+
+            CourseMap.setShotStartPoint?.({
+                lat: latitude,
+                lon: longitude
+            });
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
             const accuracyReady =
                 Number.isFinite(accuracy) &&
@@ -821,11 +832,6 @@
                     second: "2-digit"
                 });
             }
-            CourseMap.setShotStartPoint?.({
-                lat: latitude,
-                lon: longitude
-            });
-
             updateGpsPositionAge();
             updateGpsDistanceReadout();
             updateGreenCenterDistance();
