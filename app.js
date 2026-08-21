@@ -87,6 +87,7 @@
         const gpsLongitude = document.getElementById("gpsLongitude");
         const gpsUpdatedAt = document.getElementById("gpsUpdatedAt");
         const gpsPositionAge = document.getElementById("gpsPositionAge");
+        const gpsDistanceReadout = document.getElementById("gpsDistanceReadout");
         const gpsCourseDataStatus = document.getElementById("gpsCourseDataStatus");
         const gpsGreenHole = document.getElementById("gpsGreenHole");
         const gpsGreenFrontDistance = document.getElementById("gpsGreenFrontDistance");
@@ -100,6 +101,7 @@
             let map = null;
             let shotTargetMarker = null;
             let shotLine = null;
+            let shotStartPoint = null;
 
 
             function updateShotLine() {
@@ -108,9 +110,9 @@
                 const target = shotTargetMarker.getLatLng();
 
                 if (!shotLine) {
-                    shotLine = L.polyline([map.getCenter(), target]).addTo(map);
+                    shotLine = L.polyline([shotStartPoint || map.getCenter(), target], { color: '#ffffff', weight: 3 }).addTo(map);
                 } else {
-                    shotLine.setLatLngs([map.getCenter(), target]);
+                    shotLine.setLatLngs([shotStartPoint || map.getCenter(), target]);
                 }
             }
 
@@ -122,12 +124,12 @@
                         draggable: true
                     }).addTo(map);
 
-                    shotTargetMarker.on("drag", () => updateShotLine());
+                    shotTargetMarker.on("drag", () => { updateShotLine(); updateGpsDistanceReadout(); });
                 }
 
                 const icon = L.divIcon({
                     className: "shot-target-icon",
-                    html: "<div style='width:24px;height:24px;border:2px solid white;border-radius:50%;position:relative;background:transparent'><span style='position:absolute;left:50%;top:0;width:2px;height:100%;background:white;transform:translateX(-50%)'></span><span style='position:absolute;top:50%;left:0;width:100%;height:2px;background:white;transform:translateY(-50%)'></span></div>",
+                    html: "<div style='width:24px;height:24px;border:2px solid #1976d2;border-radius:50%;position:relative;background:transparent'><span style='position:absolute;left:50%;top:0;width:2px;height:100%;background:#1976d2;transform:translateX(-50%)'></span><span style='position:absolute;top:50%;left:0;width:100%;height:2px;background:#1976d2;transform:translateY(-50%)'></span></div>",
                     iconSize: [24,24],
                     iconAnchor: [12,12]
                 });
@@ -143,6 +145,7 @@
                 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
                 map.on("click", (event) => {
                     createShotTarget(event.latlng);
+                    updateGpsDistanceReadout();
                 });
 
                 loadPeurunka();
@@ -193,7 +196,11 @@
                 }
             }
 
-            return {init};
+            function getShotTarget() {
+                return shotTargetMarker ? shotTargetMarker.getLatLng() : null;
+            }
+
+            return {init, getShotTarget};
         })();
         window.CourseMap = CourseMap;
 
@@ -732,6 +739,28 @@
             }
         }
 
+        function updateGpsDistanceReadout() {
+            if (!gpsDistanceReadout) return;
+            const position = GPS.getPosition();
+            const target = CourseMap.getShotTarget?.();
+
+            if (!position || !target) {
+                gpsDistanceReadout.textContent = "—";
+                return;
+            }
+
+            const distance = GolfGPS.distanceMeters(
+                position.coords.latitude,
+                position.coords.longitude,
+                target.lat,
+                target.lng
+            );
+
+            gpsDistanceReadout.textContent = Number.isFinite(distance)
+                ? `${Math.round(distance)} m`
+                : "—";
+        }
+
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
@@ -770,6 +799,7 @@
                 });
             }
             updateGpsPositionAge();
+            updateGpsDistanceReadout();
             updateGreenCenterDistance();
             updateObstacleInfo();
         }
