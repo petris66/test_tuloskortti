@@ -142,7 +142,7 @@
 
                     const boundsPoints = [...teePoints, ...pts];
 
-                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === 1);
+                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === activeHole);
 
                     obs.forEach(o => {
                         const point = o.point || (Array.isArray(o.points) ? o.points[0] : null);
