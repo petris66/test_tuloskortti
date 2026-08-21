@@ -104,27 +104,6 @@
             let shotStartPoint = null;
             let activeHole = 1;
             let obstacleLayers = [];
-            let currentGpsPoint = null;
-
-            function syncCourseMapTitle(holeNumber) {
-                const title = document.getElementById("courseMapTitle");
-                if (title) {
-                    title.textContent = `Peurunka väylä ${holeNumber} karttanäkymä`;
-                }
-            }
-
-            function updateCourseMapTitle(holeNumber) {
-                const title = document.getElementById("courseMapTitle")
-                    || document.getElementById("gpsCourseTitle")
-                    || document.querySelector("#courseMap h2")
-                    || document.querySelector("#courseMap .course-map-title");
-                if (title) {
-                    title.textContent = `Peurunka väylä ${holeNumber} karttanäkymä`;
-                }
-            } karttanäkymä`;
-                }
-            }
-
 
             function updateShotLine() {
                 if (!shotTargetMarker || !map) return;
@@ -132,11 +111,7 @@
                 const target = shotTargetMarker.getLatLng();
 
                 if (!shotLine) {
-                    const startPoint = currentGpsPoint
-                        ? [currentGpsPoint.lat, currentGpsPoint.lon]
-                        : (shotStartPoint || map.getCenter());
-
-                    shotLine = L.polyline([startPoint, target], { color: '#ffffff', weight: 3 }).addTo(map);
+                    shotLine = L.polyline([shotStartPoint || map.getCenter(), target], { color: '#ffffff', weight: 3 }).addTo(map);
                 } else {
                     shotLine.setLatLngs([shotStartPoint || map.getCenter(), target]);
                 }
@@ -186,7 +161,6 @@
                     const r = await fetch("data/gps/FI/peurunkagolf.json?v=map2");
                     const d = await r.json();
                     const h = d.holes.find(x => Number(x.hole) === Number(holeNumber));
-                    updateCourseMapTitle(holeNumber);
                     if (!h) return;
 
                     // Green-pisteitä ei piirretä näkyviin.
@@ -229,12 +203,6 @@
                 }
             }
 
-            function setGpsPoint(point) {
-                if (point && Number.isFinite(point.lat) && Number.isFinite(point.lon)) {
-                    currentGpsPoint = point;
-                }
-            }
-
             function getShotTarget() {
                 return shotTargetMarker ? shotTargetMarker.getLatLng() : null;
             }
@@ -248,7 +216,7 @@
                 }
             }
 
-            return {init, getShotTarget, setHole, setGpsPoint};
+            return {init, getShotTarget, setHole};
         })();
         window.CourseMap = CourseMap;
 
@@ -810,10 +778,6 @@
         }
 
         function handleGpsPosition(position) {
-            CourseMap.setGpsPoint?.({
-                lat: position.coords.latitude,
-                lon: position.coords.longitude
-            });
             const { latitude, longitude, accuracy } = position.coords;
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
             const accuracyReady =
@@ -2691,7 +2655,6 @@
             roundSetupConfirmed = true;
             updateNextHole();
             CourseMap.setHole?.(nextHole);
-            syncCourseMapTitle(nextHole);
             updateRoundCompleteState();
             updateRoundLayout();
             saveState();
@@ -2766,7 +2729,6 @@
             nextHole = preservedNextHole;
             updateNextHole();
             CourseMap.setHole?.(nextHole);
-            syncCourseMapTitle(nextHole);
             updateRoundCompleteState();
             updateRoundLayout();
             saveState();
@@ -5031,7 +4993,6 @@
 
             updateNextHole();
             CourseMap.setHole?.(nextHole);
-            syncCourseMapTitle(nextHole);
             updateRoundCompleteState();
             calculateScores();
             updateRoundLayout();
@@ -5163,7 +5124,6 @@
                     nextHole = 1;
                     updateNextHole();
                     CourseMap.setHole?.(nextHole);
-            syncCourseMapTitle(nextHole);
                     updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
@@ -5176,7 +5136,6 @@
                     nextHole = value;
                     updateNextHole();
                     CourseMap.setHole?.(nextHole);
-            syncCourseMapTitle(nextHole);
                     updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
