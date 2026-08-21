@@ -105,7 +105,6 @@
             let activeHole = 1;
             let obstacleLayers = [];
 
-
             function updateShotLine() {
                 if (!shotTargetMarker || !map) return;
 
