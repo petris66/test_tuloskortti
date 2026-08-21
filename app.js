@@ -102,7 +102,7 @@
             function init() {
                 const el = document.getElementById("courseMap");
                 if (!el || typeof L === "undefined") return;
-                map = L.map(el);
+                map = L.map(el, { zoomControl: false });
                 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
                 loadPeurunka();
             }
@@ -117,15 +117,16 @@
                     // Green-pisteitä ei piirretä näkyviin.
                     // Käytetään niitä vain rajaukseen.
                     const pts = [h.greenFront, h.greenCenter, h.greenBack].filter(Boolean);
+                    const boundsPoints = [...pts];
 
-                    // Käytetään tiitä rajaukseen jos kenttädata sisältää sen.
-                    const teePoints = [
+                    const tees = [
                         h.tee,
-                        h.teePoint,
-                        h.teePosition
+                        h.teeFront,
+                        h.teeCenter,
+                        h.teeBack
                     ].filter(Boolean);
 
-                    const boundsPoints = [...teePoints, ...pts];
+                    boundsPoints.push(...tees);
 
                     const obs = (d.obstacles || []).filter(o => Number(o.hole) === 1);
 
@@ -143,7 +144,7 @@
                     if (boundsPoints.length) {
                         map.fitBounds(
                             boundsPoints.map(p => [p.lat, p.lon]),
-                            { padding: [25, 25], maxZoom: 17 }
+                            { padding: [30, 30], maxZoom: 17 }
                         );
                     }
                 } catch(e) {
