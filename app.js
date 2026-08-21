@@ -98,27 +98,21 @@
 
         const CourseMap = (() => {
             let map = null;
-            let selectedPointMarker = null;
 
             function init() {
                 const el = document.getElementById("courseMap");
                 if (!el || typeof L === "undefined") return;
                 map = L.map(el, { zoomControl: false });
                 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-
                 map.on("click", (event) => {
                     const point = event.latlng;
-
                     if (selectedPointMarker) {
                         selectedPointMarker.setLatLng(point);
                     } else {
                         selectedPointMarker = L.marker(point).addTo(map);
                     }
-
-                    const gpsPosition = navigator.geolocation ? null : null;
-
                     selectedPointMarker.bindPopup(
-                        `Valittu piste<br>Lat: ${point.lat.toFixed(6)}<br>Lon: ${point.lng.toFixed(6)}`
+                        `<strong>Valittu piste</strong><br>Lat: ${point.lat.toFixed(6)}<br>Lon: ${point.lng.toFixed(6)}`
                     ).openPopup();
                 });
                 loadPeurunka();
