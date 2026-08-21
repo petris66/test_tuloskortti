@@ -114,8 +114,14 @@
                     const pts=[h.greenFront,h.greenCenter,h.greenBack];
                     pts.forEach((p,i)=>L.marker([p.lat,p.lon]).addTo(map).bindPopup(["Front","Center","Back"][i]));
                     const obs=(d.obstacles||[]).filter(o=>o.hole===1);
-                    obs.forEach(o=>{ if(o.point) L.circleMarker([o.point.lat,o.point.lon]).addTo(map).bindPopup("Bunkkeri");});
-                    map.fitBounds(pts.map(p=>[p.lat,p.lon]));
+                    const boundsPoints = [...pts];
+                    obs.forEach(o=>{
+                        if(o.point){
+                            L.circleMarker([o.point.lat,o.point.lon]).addTo(map).bindPopup("Bunkkeri");
+                            boundsPoints.push(o.point);
+                        }
+                    });
+                    map.fitBounds(boundsPoints.map(p=>[p.lat,p.lon]), {padding:[40,40]});
                 } catch(e) { console.warn("Course map",e); }
             }
             return {init};
