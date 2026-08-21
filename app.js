@@ -203,6 +203,13 @@
                 }
             }
 
+            function setShotStartPoint(point) {
+                if (point && Number.isFinite(point.lat) && Number.isFinite(point.lon)) {
+                    shotStartPoint = L.latLng(point.lat, point.lon);
+                    if (shotLine) updateShotLine();
+                }
+            }
+
             function getShotTarget() {
                 return shotTargetMarker ? shotTargetMarker.getLatLng() : null;
             }
@@ -216,7 +223,7 @@
                 }
             }
 
-            return {init, getShotTarget, setHole};
+            return {init, getShotTarget, setHole, setShotStartPoint};
         })();
         window.CourseMap = CourseMap;
 
@@ -814,6 +821,11 @@
                     second: "2-digit"
                 });
             }
+            CourseMap.setShotStartPoint?.({
+                lat: latitude,
+                lon: longitude
+            });
+
             updateGpsPositionAge();
             updateGpsDistanceReadout();
             updateGreenCenterDistance();
