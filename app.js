@@ -2646,8 +2646,10 @@
 
             calculateScores();
             nextHole = findNextIncompleteHole();
+            CourseMap.setHole?.(nextHole);
             roundSetupConfirmed = true;
             updateNextHole();
+            CourseMap.setHole?.(nextHole);
             updateRoundCompleteState();
             updateRoundLayout();
             saveState();
@@ -2721,6 +2723,7 @@
             // Korjaustoiminto ei muuta kierroksen varsinaista etenemiskohtaa.
             nextHole = preservedNextHole;
             updateNextHole();
+            CourseMap.setHole?.(nextHole);
             updateRoundCompleteState();
             updateRoundLayout();
             saveState();
@@ -3416,6 +3419,7 @@
                 playerCount = Number(state.playerCount) || 1;
                 roundSetupConfirmed = Boolean(state.roundSetupConfirmed);
                 startHole = Number(state.startHole) || 1;
+                CourseMap.setHole?.(startHole);
                 roundHoleCount = Number(state.roundHoleCount) === 9 ? 9 : 18;
                 nextHole = Number(state.nextHole) || 1;
 
@@ -4984,6 +4988,7 @@
             });
 
             updateNextHole();
+            CourseMap.setHole?.(nextHole);
             updateRoundCompleteState();
             calculateScores();
             updateRoundLayout();
@@ -5114,6 +5119,7 @@
                     startHole = 1;
                     nextHole = 1;
                     updateNextHole();
+                    CourseMap.setHole?.(nextHole);
                     updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
@@ -5125,6 +5131,7 @@
                     startHole = value;
                     nextHole = value;
                     updateNextHole();
+                    CourseMap.setHole?.(nextHole);
                     updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
