@@ -87,6 +87,7 @@
         const gpsLongitude = document.getElementById("gpsLongitude");
         const gpsUpdatedAt = document.getElementById("gpsUpdatedAt");
         const gpsPositionAge = document.getElementById("gpsPositionAge");
+        const gpsDistanceReadout = document.getElementById("gpsDistanceReadout");
         const gpsCourseDataStatus = document.getElementById("gpsCourseDataStatus");
         const gpsGreenHole = document.getElementById("gpsGreenHole");
         const gpsGreenFrontDistance = document.getElementById("gpsGreenFrontDistance");
@@ -98,51 +99,80 @@
 
         const CourseMap = (() => {
             let map = null;
-            let mapLayers = [];
+            let shotTargetMarker = null;
+            let shotLine = null;
+            let shotStartPoint = null;
 
-            function clearLayers() {
-                mapLayers.forEach(layer => map.removeLayer(layer));
-                mapLayers = [];
+
+            function updateShotLine() {
+                if (!shotTargetMarker || !map) return;
+
+                const target = shotTargetMarker.getLatLng();
+
+                if (!shotLine) {
+                    shotLine = L.polyline([shotStartPoint || map.getCenter(), target], { color: '#ffffff', weight: 3 }).addTo(map);
+                } else {
+                    shotLine.setLatLngs([shotStartPoint || map.getCenter(), target]);
+                }
             }
 
-            function addLayer(layer) {
-                mapLayers.push(layer);
-                return layer;
+            function createShotTarget(latlng) {
+                if (shotTargetMarker) {
+                    shotTargetMarker.setLatLng(latlng);
+                } else {
+                    shotTargetMarker = L.marker(latlng, {
+                        draggable: true
+                    }).addTo(map);
+
+                    shotTargetMarker.on("drag", () => { updateShotLine(); updateGpsDistanceReadout(); });
+                }
+
+                const icon = L.divIcon({
+                    className: "shot-target-icon",
+                    html: "<div style='width:24px;height:24px;border:2px solid #1976d2;border-radius:50%;position:relative;background:transparent'><span style='position:absolute;left:50%;top:0;width:2px;height:100%;background:#1976d2;transform:translateX(-50%)'></span><span style='position:absolute;top:50%;left:0;width:100%;height:2px;background:#1976d2;transform:translateY(-50%)'></span></div>",
+                    iconSize: [24,24],
+                    iconAnchor: [12,12]
+                });
+
+                shotTargetMarker.setIcon(icon);
+                updateShotLine();
             }
 
             function init() {
                 const el = document.getElementById("courseMap");
                 if (!el || typeof L === "undefined") return;
-                map = L.map(el);
+                map = L.map(el, { zoomControl: false });
                 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+                map.on("click", (event) => {
+                    createShotTarget(event.latlng);
+                    updateGpsDistanceReadout();
+                });
+
                 loadPeurunka();
             }
 
             async function loadPeurunka() {
                 try {
-                    if (!map) return;
-                    clearLayers();
-
-                    const r = await fetch("data/gps/FI/peurunkagolf.json?v=map3");
+                    const r = await fetch("data/gps/FI/peurunkagolf.json?v=map2");
                     const d = await r.json();
-                    const activeHole = Number(nextHole) || 1;
-                    const h = d.holes.find(x => Number(x.hole) === activeHole);
+                    const h = d.holes.find(x => Number(x.hole) === 1);
                     if (!h) return;
 
                     // Green-pisteitä ei piirretä näkyviin.
                     // Käytetään niitä vain rajaukseen.
                     const pts = [h.greenFront, h.greenCenter, h.greenBack].filter(Boolean);
+                    const boundsPoints = [...pts];
 
-                    // Käytetään tiitä rajaukseen jos kenttädata sisältää sen.
-                    const teePoints = [
+                    const tees = [
                         h.tee,
-                        h.teePoint,
-                        h.teePosition
+                        h.teeFront,
+                        h.teeCenter,
+                        h.teeBack
                     ].filter(Boolean);
 
-                    const boundsPoints = [...teePoints, ...pts];
+                    boundsPoints.push(...tees);
 
-                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === activeHole);
+                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === 1);
 
                     obs.forEach(o => {
                         const point = o.point || (Array.isArray(o.points) ? o.points[0] : null);
@@ -158,7 +188,7 @@
                     if (boundsPoints.length) {
                         map.fitBounds(
                             boundsPoints.map(p => [p.lat, p.lon]),
-                            { padding: [25, 25], maxZoom: 17 }
+                            { padding: [30, 30], maxZoom: 17 }
                         );
                     }
                 } catch(e) {
@@ -166,7 +196,11 @@
                 }
             }
 
-            return {init, refresh: loadPeurunka};
+            function getShotTarget() {
+                return shotTargetMarker ? shotTargetMarker.getLatLng() : null;
+            }
+
+            return {init, getShotTarget};
         })();
         window.CourseMap = CourseMap;
 
@@ -705,6 +739,28 @@
             }
         }
 
+        function updateGpsDistanceReadout() {
+            if (!gpsDistanceReadout) return;
+            const position = GPS.getPosition();
+            const target = CourseMap.getShotTarget?.();
+
+            if (!position || !target) {
+                gpsDistanceReadout.textContent = "—";
+                return;
+            }
+
+            const distance = GolfGPS.distanceMeters(
+                position.coords.latitude,
+                position.coords.longitude,
+                target.lat,
+                target.lng
+            );
+
+            gpsDistanceReadout.textContent = Number.isFinite(distance)
+                ? `${Math.round(distance)} m`
+                : "—";
+        }
+
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
@@ -743,6 +799,7 @@
                 });
             }
             updateGpsPositionAge();
+            updateGpsDistanceReadout();
             updateGreenCenterDistance();
             updateObstacleInfo();
         }
@@ -3214,9 +3271,6 @@
         function updateNextHole() {
             nextHoleElement.textContent = nextHole;
             compactNextHoleElement.textContent = nextHole;
-            if (window.CourseMap?.refresh) {
-                window.CourseMap.refresh();
-            }
 
             const roundIsActive = roundSetupConfirmed && !roundComplete;
 
