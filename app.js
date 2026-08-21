@@ -121,7 +121,7 @@
                             boundsPoints.push(o.point);
                         }
                     });
-                    map.fitBounds(boundsPoints.map(p=>[p.lat,p.lon]), {padding:[40,40]});
+                    map.fitBounds(boundsPoints.map(p=>[p.lat,p.lon]), {padding:[40,40], maxZoom: 15});
                 } catch(e) { console.warn("Course map",e); }
             }
             return {init};
