@@ -117,7 +117,15 @@
                     // Green-pisteitä ei piirretä näkyviin.
                     // Käytetään niitä vain rajaukseen.
                     const pts = [h.greenFront, h.greenCenter, h.greenBack].filter(Boolean);
-                    const boundsPoints = [...pts];
+
+                    // Käytetään tiitä rajaukseen jos kenttädata sisältää sen.
+                    const teePoints = [
+                        h.tee,
+                        h.teePoint,
+                        h.teePosition
+                    ].filter(Boolean);
+
+                    const boundsPoints = [...teePoints, ...pts];
 
                     const obs = (d.obstacles || []).filter(o => Number(o.hole) === 1);
 
@@ -135,7 +143,7 @@
                     if (boundsPoints.length) {
                         map.fitBounds(
                             boundsPoints.map(p => [p.lat, p.lon]),
-                            { padding: [60, 60], maxZoom: 16 }
+                            { padding: [25, 25], maxZoom: 17 }
                         );
                     }
                 } catch(e) {
