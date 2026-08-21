@@ -98,6 +98,43 @@
 
         const CourseMap = (() => {
             let map = null;
+            let shotTargetMarker = null;
+            let shotLine = null;
+
+
+            function updateShotLine() {
+                if (!shotTargetMarker || !map) return;
+
+                const target = shotTargetMarker.getLatLng();
+
+                if (!shotLine) {
+                    shotLine = L.polyline([map.getCenter(), target]).addTo(map);
+                } else {
+                    shotLine.setLatLngs([map.getCenter(), target]);
+                }
+            }
+
+            function createShotTarget(latlng) {
+                if (shotTargetMarker) {
+                    shotTargetMarker.setLatLng(latlng);
+                } else {
+                    shotTargetMarker = L.marker(latlng, {
+                        draggable: true
+                    }).addTo(map);
+
+                    shotTargetMarker.on("drag", () => updateShotLine());
+                }
+
+                const icon = L.divIcon({
+                    className: "shot-target-icon",
+                    html: "<div style='width:24px;height:24px;border:2px solid white;border-radius:50%;position:relative;background:transparent'><span style='position:absolute;left:50%;top:0;width:2px;height:100%;background:white;transform:translateX(-50%)'></span><span style='position:absolute;top:50%;left:0;width:100%;height:2px;background:white;transform:translateY(-50%)'></span></div>",
+                    iconSize: [24,24],
+                    iconAnchor: [12,12]
+                });
+
+                shotTargetMarker.setIcon(icon);
+                updateShotLine();
+            }
 
             function init() {
                 const el = document.getElementById("courseMap");
@@ -105,16 +142,9 @@
                 map = L.map(el, { zoomControl: false });
                 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
                 map.on("click", (event) => {
-                    const point = event.latlng;
-                    if (selectedPointMarker) {
-                        selectedPointMarker.setLatLng(point);
-                    } else {
-                        selectedPointMarker = L.marker(point).addTo(map);
-                    }
-                    selectedPointMarker.bindPopup(
-                        `<strong>Valittu piste</strong><br>Lat: ${point.lat.toFixed(6)}<br>Lon: ${point.lng.toFixed(6)}`
-                    ).openPopup();
+                    createShotTarget(event.latlng);
                 });
+
                 loadPeurunka();
             }
 
