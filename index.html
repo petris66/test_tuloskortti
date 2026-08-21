@@ -18,6 +18,7 @@
     <title>Golf Voice Scorecard AI</title>
 
     <link rel="stylesheet" href="style.css?v=gps202">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 </head>
 
@@ -259,6 +260,12 @@
             </div>
         </section>
 
+        <section class="card gps-map-card" id="gpsMapCard">
+<h2 class="section-title">COURSE MAP TEST</h2>
+<p class="section-help">Peurunka väylä 1 karttanäkymä</p>
+<div id="courseMap" style="height:420px;border-radius:16px;"></div>
+</section>
+
         <section class="card scorecard-card">
             <h2 class="section-title">TULOSKORTTI</h2>
             <div class="table-wrap">
@@ -497,6 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sync();
 });
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="app.js?v=gps202" defer></script>
 
 </body>

@@ -95,6 +95,33 @@
         const gpsObstacleInfo = document.getElementById("gpsObstacleInfo");
 
 
+
+        const CourseMap = (() => {
+            let map = null;
+            let markers = [];
+            function init() {
+                const el = document.getElementById("courseMap");
+                if (!el || typeof L === "undefined") return;
+                map = L.map(el).setView([62.4388,25.8615], 17);
+                L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+                loadPeurunka();
+            }
+            async function loadPeurunka(){
+                try {
+                    const r = await fetch("peurunkagolf.json?v=map1");
+                    const d = await r.json();
+                    const h = d.holes.find(x => x.hole === 1);
+                    const pts=[h.greenFront,h.greenCenter,h.greenBack];
+                    pts.forEach((p,i)=>L.marker([p.lat,p.lon]).addTo(map).bindPopup(["Front","Center","Back"][i]));
+                    const obs=(d.obstacles||[]).filter(o=>o.hole===1);
+                    obs.forEach(o=>{ if(o.point) L.circleMarker([o.point.lat,o.point.lon]).addTo(map).bindPopup("Bunkkeri");});
+                    map.fitBounds(pts.map(p=>[p.lat,p.lon]));
+                } catch(e) { console.warn("Course map",e); }
+            }
+            return {init};
+        })();
+        window.CourseMap = CourseMap;
+
         const GolfGPS = (() => {
             let manifest = null;
             let config = null;
@@ -744,6 +771,8 @@
         }
 
         window.toggleGps = toggleGps;
+
+        document.addEventListener("DOMContentLoaded", () => CourseMap.init());
 
         function keepStartHoleInputVisible() {
             if (!startHoleInput) return;

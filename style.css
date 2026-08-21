@@ -2103,3 +2103,5 @@ body {
     margin-bottom: 8px;
     color: var(--forest-2);
 }
+
+#courseMap { overflow:hidden; }
