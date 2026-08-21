@@ -216,6 +216,14 @@
                 }
             }
 
+            function clearShotStartPoint() {
+                shotStartPoint = null;
+                if (shotLine && map) {
+                    map.removeLayer(shotLine);
+                    shotLine = null;
+                }
+            }
+
             function getShotTarget() {
                 return shotTargetMarker ? shotTargetMarker.getLatLng() : null;
             }
@@ -229,7 +237,7 @@
                 }
             }
 
-            return {init, getShotTarget, setHole, setShotStartPoint};
+            return {init, getShotTarget, setHole, setShotStartPoint, clearShotStartPoint};
         })();
         window.CourseMap = CourseMap;
 
@@ -894,6 +902,7 @@
 
         function stopGps(message = "GPS ei ole käytössä. Sijaintia ei tallenneta.") {
             GPS.stop();
+            CourseMap.clearShotStartPoint?.();
             resetGpsDisplay(message);
             resetGreenDistanceDisplay();
             if (gpsObstacleInfo) {
