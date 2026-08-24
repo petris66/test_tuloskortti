@@ -31,6 +31,12 @@
       "file": "FI/tuusulangolf.json",
       "status": "field-test",
       "holes": 18
-    }
+    },
+    {
+  "courseId": "hyvigolf",
+  "file": "FI/hyvigolf.json",
+  "status": "field-test",
+  "holes": 18
+}
   ]
 }

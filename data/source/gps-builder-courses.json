@@ -38,5 +38,13 @@
     "lat": 60.415512,
     "lon": 25.049838,
     "radius": 3200
-  }
+  },
+  {
+  "name": "Hyvinkää Golf",
+  "courseId": "hyvigolf",
+  "country": "FI",
+  "lat": 60.657279,
+  "lon": 24.817359,
+  "radius": 3200
+}
 ]
