@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Porvoo Golf",
+    "courseId": "porvoogolf",
+    "country": "FI",
+    "lat": 60.4218,
+    "lon": 25.6952,
+    "radius": 3200
+  },
+  {
+    "name": "Gumböle Golf",
+    "courseId": "gumbole",
+    "country": "FI",
+    "lat": 60.236,
+    "lon": 24.615,
+    "radius": 3200
+  },
+  {
+    "name": "Peurunka Golf",
+    "courseId": "peurunkagolf",
+    "country": "FI",
+    "lat": 62.405,
+    "lon": 25.925,
+    "radius": 3200
+  },
+  {
+    "name": "Keimola Saras",
+    "courseId": "keimola-saras",
+    "country": "FI",
+    "lat": 60.306,
+    "lon": 24.778,
+    "radius": 3200
+  },
+  {
+    "name": "Tuusulan Golfklubi",
+    "courseId": "tuusulangolf",
+    "country": "FI",
+    "lat": 60.415512,
+    "lon": 25.049838,
+    "radius": 3200
+  }
+]
