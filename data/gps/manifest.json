@@ -3,7 +3,7 @@
   "country": "FI",
   "courses": [
     {
-      "courseId": "porvoolfg",
+      "courseId": "porvoogolf",
       "file": "FI/porvoogolf.json",
       "status": "field-test",
       "holes": 14
@@ -27,7 +27,7 @@
       "holes": 18
     },
     {
-      "courseId": "tuusulangolf",
+      "courseId": "tuusula",
       "file": "FI/tuusulangolf.json",
       "status": "field-test",
       "holes": 18
