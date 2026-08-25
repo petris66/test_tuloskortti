@@ -46,5 +46,53 @@
   "lat": 60.657279,
   "lon": 24.817359,
   "radius": 3200
+},
+{
+  "name": "Nurmijärvi AB",
+  "courseId": "nurmijarvi-ab",
+  "country": "FI",
+  "lat": 60.5008,
+  "lon": 24.5737,
+  "radius": 3200
+},
+{
+  "name": "Nurmijärvi AC",
+  "courseId": "nurmijarvi-ac",
+  "country": "FI",
+  "lat": 60.5008,
+  "lon": 24.5737,
+  "radius": 3200
+},
+{
+  "name": "Nurmijärvi BA",
+  "courseId": "nurmijarvi-ba",
+  "country": "FI",
+  "lat": 60.5008,
+  "lon": 24.5737,
+  "radius": 3200
+},
+{
+  "name": "Nurmijärvi BC",
+  "courseId": "nurmijarvi-bc",
+  "country": "FI",
+  "lat": 60.5008,
+  "lon": 24.5737,
+  "radius": 3200
+},
+{
+  "name": "Nurmijärvi CA",
+  "courseId": "nurmijarvi-ca",
+  "country": "FI",
+  "lat": 60.5008,
+  "lon": 24.5737,
+  "radius": 3200
+},
+{
+  "name": "Nurmijärvi CB",
+  "courseId": "nurmijarvi-cb",
+  "country": "FI",
+ "lat": 60.5008,
+  "lon": 24.5737,
+  "radius": 3200
 }
 ]
