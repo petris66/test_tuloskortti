@@ -5188,7 +5188,16 @@
 
             document.querySelectorAll(".score-input").forEach(input => {
                 input.value = "";
+                input.classList.remove(
+                    "selected-score",
+                    "score-par",
+                    "score-bogey",
+                    "score-double-plus",
+                    "score-birdie"
+                );
             });
+
+            selectedScoreInput = null;
 
             nextHole = 1;
             roundComplete = false;
