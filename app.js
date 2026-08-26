@@ -1475,6 +1475,15 @@
                         ).every(scoreInput => normalizeScoreValue(scoreInput?.value) !== "");
 
                         if (holeComplete) {
+                            if (announceStandings) {
+                                const standingsMessage = buildStandingsMessage();
+                                if (standingsMessage) {
+                                    window.setTimeout(() => {
+                                        speakMessage(standingsMessage);
+                                    }, 120);
+                                }
+                            }
+
                             nextHole = findNextIncompleteHole();
                             roundSetupConfirmed = true;
                             updateNextHole();
