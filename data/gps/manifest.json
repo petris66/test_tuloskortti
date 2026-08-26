@@ -55,6 +55,13 @@
   "file": "FI/kytaja-se.json",
   "status": "field-test",
   "holes": 18
+},
+{
+  "courseId": "kytaja-nw",
+  "course": "Kytäjä North West",
+  "country": "FI",
+  "file": "FI/kytaja-nw.json",
+  "status": "pending"
 }
   ]
 }

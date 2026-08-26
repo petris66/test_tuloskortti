@@ -102,5 +102,13 @@
   "lat": 60.6088793,
   "lon": 24.6208438,
   "radius": 3200
+},
+{
+  "name": "Kytäjä North West",
+  "courseId": "kytaja-nw",
+  "country": "FI",
+  "lat": 60.6088793,
+  "lon": 24.6208438,
+  "radius": 3200
 }
 ]

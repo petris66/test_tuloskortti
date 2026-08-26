@@ -134,6 +134,13 @@
       "country": "FI",
       "file": "FI/kytaja-se.json",
       "status": "verified_from_header"
+    },
+    {
+      "courseId": "kytaja-nw",
+      "course": "Kytäjä North West",
+      "country": "FI",
+      "file": "FI/kytaja-nw.json",
+      "status": "verified_from_header"
     }
   ]
 }

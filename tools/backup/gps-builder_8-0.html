@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.8.1</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.8.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -84,7 +84,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.8.1</h1>
+  <h1>GPS Builder 0.8.0</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -253,7 +253,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=1.9.4"></script>
 <script>
-// GPS Builder 0.8.1 - Peurunka bunker cleanup
+// GPS Builder 0.8.0 - Peurunka bunker cleanup
 (() => {
   const endpoints = [
     "https://overpass-api.de/api/interpreter",
@@ -1562,44 +1562,6 @@ out tags center geom;`;
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
   }
 
-  async function excludeKytajaSeGreensForNw(){
-    if((courseId.value||"").trim()!=="kytaja-nw") return 0;
-
-    const candidates=[
-      `${repoBasePath()}/data/gps/FI/kytaja-se.json?v=builder081`,
-      `../data/gps/FI/kytaja-se.json?v=builder081`
-    ];
-
-    try{
-      const result=await fetchJsonCandidates(candidates);
-      const holes=Array.isArray(result.data?.holes)?result.data.holes:[];
-      const seOsmIds=new Set(
-        holes
-          .map(h=>h?.source?.osmElement)
-          .filter(Boolean)
-          .map(v=>String(v))
-      );
-
-      let excluded=0;
-      greens.forEach(g=>{
-        const key=`${g.type}/${g.id}`;
-        if(seOsmIds.has(key)){
-          g.hole=null;
-          g.selected=false;
-          g.extra=true;
-          g.autoAssigned=false;
-          g.autoDistance=null;
-          excluded++;
-        }
-      });
-
-      return excluded;
-    }catch(err){
-      console.warn("Kytäjä SE greenien poissulku epäonnistui",err);
-      return 0;
-    }
-  }
-
   function autoAssignGreens(golfHoles){
     greens.forEach(g=>{
       g.autoAssigned=false;
@@ -1731,7 +1693,6 @@ out tags center geom;`;
             };
           }).filter(Boolean);
 
-        const kytajaSeExcluded=await excludeKytajaSeGreensForNw();
         autoAssignGreens(golfHoles);
         applyPorvooKnownChanges();
         const gumboleVerified=applyGumboleVerifiedMapping();
@@ -1761,10 +1722,8 @@ out tags center geom;`;
         setStatus(
           gumboleVerified
             ? `Löytyi ${greens.length} greeniä. Gumbölen 18/18 varmennettua greeniä yhdistetty automaattisesti; muut hakutulokset jätetty pois.`
-            : (kytajaSeExcluded
-                ? `Löytyi ${greens.length} greeniä. Kytäjä SE:n ${kytajaSeExcluded} tunnettua greeniä merkitty ylimääräisiksi. Automaattisesti yhdistetty ${autoCount}; numeroitu ${safeCount}/18.`
-                : (`Löytyi ${greens.length} greeniä. Automaattisesti yhdistetty ${autoCount}. ` +
-                   (safeSet ? `Porvoon varmoja testireikiä ${safeCount}/14.` : `Numeroitu ${safeCount}/18.`))),
+            : (`Löytyi ${greens.length} greeniä. Automaattisesti yhdistetty ${autoCount}. ` +
+               (safeSet ? `Porvoon varmoja testireikiä ${safeCount}/14.` : `Numeroitu ${safeCount}/18.`)),
           greens.length>=18?"ok":"warn"
         );
         fetchBtn.disabled=false;
