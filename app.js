@@ -160,6 +160,62 @@
         })();
         window.CourseMap = CourseMap;
 
+        let courseMapInitialized = false;
+
+        function setCourseMapExpanded(expanded) {
+            const card = document.getElementById("gpsMapCard");
+            const button = document.getElementById("courseMapToggleButton");
+            const text = document.getElementById("courseMapToggleText");
+            const isExpanded = Boolean(expanded);
+
+            if (card) {
+                card.classList.toggle("map-expanded", isExpanded);
+            }
+
+            if (button) {
+                button.classList.toggle("is-on", isExpanded);
+                button.setAttribute("aria-pressed", isExpanded ? "true" : "false");
+                button.setAttribute(
+                    "aria-label",
+                    isExpanded
+                        ? "Väyläkartta näkyvissä. Piilota väyläkartta."
+                        : "Väyläkartta piilossa. Näytä väyläkartta."
+                );
+            }
+
+            if (text) {
+                text.textContent = isExpanded ? "Päällä" : "Pois";
+            }
+
+            if (isExpanded) {
+                if (!courseMapInitialized) {
+                    CourseMap.init();
+                    courseMapInitialized = true;
+                } else {
+                    window.setTimeout(() => {
+                        const mapElement = document.getElementById("courseMap");
+                        if (mapElement && mapElement._leaflet_id && window.L) {
+                            window.dispatchEvent(new Event("resize"));
+                        }
+                    }, 80);
+                }
+            }
+        }
+
+        function toggleCourseMap() {
+            const card = document.getElementById("gpsMapCard");
+            const expanded = !card?.classList.contains("map-expanded");
+            setCourseMapExpanded(expanded);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const button = document.getElementById("courseMapToggleButton");
+            if (button) {
+                button.addEventListener("click", toggleCourseMap);
+            }
+            setCourseMapExpanded(false);
+        });
+
         const GolfGPS = (() => {
             let manifest = null;
             let config = null;
@@ -839,7 +895,7 @@
 
         window.toggleGps = toggleGps;
 
-        document.addEventListener("DOMContentLoaded", () => CourseMap.init());
+
 
         function keepStartHoleInputVisible() {
             if (!startHoleInput) return;
@@ -1384,6 +1440,7 @@
 
             updateHandicapStrokePlayStatus();
             updateStablefordScorecard();
+            updateScoreVisualClasses();
         }
 
         function syncPlayerRoundSettingsFromInputs() {
@@ -1835,6 +1892,42 @@
                     display.classList.add("handicap-status-even");
                 }
             }
+        }
+
+        function updateScoreVisualClasses() {
+            document.querySelectorAll(".score-input").forEach(input => {
+                input.classList.remove(
+                    "score-par",
+                    "score-bogey",
+                    "score-double-plus",
+                    "score-birdie"
+                );
+
+                const value = normalizeScoreValue(input.value);
+                if (value === "" || value === "-") {
+                    return;
+                }
+
+                const hole = Number(input.dataset.hole);
+                const holeData = getHoleData(hole);
+                const par = Number(holeData?.par);
+
+                if (!Number.isFinite(par) || !Number.isFinite(Number(value))) {
+                    return;
+                }
+
+                const difference = Number(value) - par;
+
+                if (difference === -1) {
+                    input.classList.add("score-birdie");
+                } else if (difference === 0) {
+                    input.classList.add("score-par");
+                } else if (difference === 1) {
+                    input.classList.add("score-bogey");
+                } else if (difference >= 2) {
+                    input.classList.add("score-double-plus");
+                }
+            });
         }
 
         function calculateScores() {

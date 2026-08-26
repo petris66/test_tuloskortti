@@ -250,11 +250,27 @@
             </div>
         </section>
 
-        <section class="card gps-map-card" id="gpsMapCard">
-<h2 class="section-title">COURSE MAP TEST</h2>
-<p class="section-help">Peurunka väylä 1 karttanäkymä</p>
-<div id="courseMap" style="height:420px;border-radius:16px;"></div>
-</section>
+        <section class="card gps-map-card course-map-card" id="gpsMapCard">
+            <div class="course-map-heading-row">
+                <div class="course-map-toggle-group">
+                    <h2 class="section-title">VÄYLÄKARTTA</h2>
+                    <span class="course-map-toggle-text" id="courseMapToggleText">Pois</span>
+                    <button
+                        type="button"
+                        class="course-map-toggle-switch"
+                        id="courseMapToggleButton"
+                        aria-pressed="false"
+                        aria-label="Väyläkartta pois käytöstä. Näytä väyläkartta."
+                        title="Väyläkartta päälle / pois"
+                    ></button>
+                </div>
+            </div>
+
+            <div class="course-map-details" id="courseMapDetails">
+                <p class="section-help">Peurunka väylä 1 karttanäkymä</p>
+                <div id="courseMap" style="height:420px;border-radius:16px;"></div>
+            </div>
+        </section>
 
         <section class="card scorecard-card">
             <h2 class="section-title">TULOSKORTTI</h2>
