@@ -1900,7 +1900,8 @@
                     "score-par",
                     "score-bogey",
                     "score-double-plus",
-                    "score-birdie"
+                    "score-birdie",
+                    "score-eagle"
                 );
 
                 const value = normalizeScoreValue(input.value);
@@ -1918,7 +1919,9 @@
 
                 const difference = Number(value) - par;
 
-                if (difference === -1) {
+                if (difference <= -2) {
+                    input.classList.add("score-eagle");
+                } else if (difference === -1) {
                     input.classList.add("score-birdie");
                 } else if (difference === 0) {
                     input.classList.add("score-par");
@@ -1948,6 +1951,7 @@
 
             updateHandicapStrokePlayStatus();
             updateStablefordScorecard();
+            updateScoreVisualClasses();
         }
 
         function getStablefordPoints(playerIndex, hole) {
@@ -5193,7 +5197,8 @@
                     "score-par",
                     "score-bogey",
                     "score-double-plus",
-                    "score-birdie"
+                    "score-birdie",
+                    "score-eagle"
                 );
             });
 

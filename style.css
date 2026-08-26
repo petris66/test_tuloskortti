@@ -2600,3 +2600,77 @@ body.manual-entry-active {
         font-size: 12px;
     }
 }
+
+
+/* --- Score colour live/readability fix --- */
+.score-input.score-birdie {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 4px 2px !important;
+    color: #111111 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-align: center;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+/* Red golf-score circle without hiding the number. */
+.score-input.score-birdie {
+    background-image: radial-gradient(
+        circle at center,
+        transparent 0,
+        transparent 12px,
+        #c62828 12px,
+        #c62828 14px,
+        transparent 14px
+    ) !important;
+}
+
+.score-input.score-bogey {
+    color: #111111 !important;
+    background: #d7ebf8 !important;
+}
+
+.score-input.score-double-plus {
+    color: #ffffff !important;
+    background: #2f5f91 !important;
+}
+
+.score-input.score-par {
+    color: #111111 !important;
+    background: transparent !important;
+}
+
+
+/* Eagle / two under par: red double circle */
+.score-input.score-eagle {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 4px 2px !important;
+    color: #111111 !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    text-align: center;
+    font-weight: 900;
+    background-image:
+        radial-gradient(
+            circle at center,
+            transparent 0,
+            transparent 10px,
+            #c62828 10px,
+            #c62828 12px,
+            transparent 12px,
+            transparent 14px,
+            #c62828 14px,
+            #c62828 16px,
+            transparent 16px
+        ) !important;
+}
