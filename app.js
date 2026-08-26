@@ -1356,8 +1356,28 @@
                 input.addEventListener("click", () => selectScoreInput(input));
 
                 input.addEventListener("input", () => {
+                    const editedHole = Number(input.dataset.hole);
+                    const wasActiveHole = editedHole === nextHole;
+
                     normalizeManualScoreInput(input);
                     calculateScores();
+
+                    if (wasActiveHole) {
+                        const holeComplete = Array.from(
+                            { length: playerCount },
+                            (_, index) => document.querySelector(
+                                `.p${index + 1}[data-hole="${editedHole}"]`
+                            )
+                        ).every(scoreInput => normalizeScoreValue(scoreInput?.value) !== "");
+
+                        if (holeComplete) {
+                            nextHole = findNextIncompleteHole();
+                            roundSetupConfirmed = true;
+                            updateNextHole();
+                            updateRoundCompleteState();
+                        }
+                    }
+
                     saveState();
                     updateRoundLayout();
                     checkFrontNineCompletion();
@@ -4922,6 +4942,7 @@
 
         document.querySelectorAll("#playerCountButtons button").forEach(button => {
             button.addEventListener("click", () => {
+                primeSpeechSynthesis();
                 setPlayerCount(Number(button.dataset.count));
                 applyPrimaryPlayerTeeToScorecard();
                 updateRoundLayout();
@@ -5026,7 +5047,10 @@
             };
 
             startHoleInput.addEventListener("focus", selectStartHoleValue);
-            startHoleInput.addEventListener("click", selectStartHoleValue);
+            startHoleInput.addEventListener("click", () => {
+                primeSpeechSynthesis();
+                selectStartHoleValue();
+            });
 
             const applyStartHole = () => {
                 if (startHoleInput.value === "") {
