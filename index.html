@@ -197,76 +197,81 @@
         </section>
 
         <section class="card gps-card" id="gpsCard" aria-labelledby="gpsTitle">
-            <div class="gps-heading-row">
+            <div class="gps-heading-row gps-compact-heading">
                 <h2 class="section-title" id="gpsTitle">GPS</h2>
-                <span class="gps-state-badge gps-state-off" id="gpsStateBadge">GPS pois käytöstä</span>
+
+                <div class="gps-compact-right">
+                    <strong class="gps-course-inline" id="gpsCourseDataStatus">Ei ladattu</strong>
+
+                    <button
+                        type="button"
+                        class="gps-toggle-button gps-radio-button"
+                        id="gpsToggleButton"
+                        onclick="toggleGps()"
+                        aria-pressed="false"
+                        aria-label="GPS pois käytöstä. Salli GPS."
+                        title="GPS päälle / pois"
+                    >GPS</button>
+                </div>
+
+                <span class="gps-state-badge gps-state-off gps-state-hidden" id="gpsStateBadge">GPS pois käytöstä</span>
             </div>
 
-            <button type="button" class="action-button gps-toggle-button" id="gpsToggleButton" onclick="toggleGps()">
-                📍 Salli GPS
-            </button>
+            <div class="gps-details" id="gpsDetails">
+                <p class="gps-message" id="gpsMessage" role="status" aria-live="polite">
+                    GPS ei ole käytössä. Sijaintia ei tallenneta.
+                </p>
 
-            <p class="gps-message" id="gpsMessage" role="status" aria-live="polite">
-                GPS ei ole käytössä. Sijaintia ei tallenneta.
-            </p>
-
-            <div class="gps-green-panel" aria-label="Golf-GPS">
-                <div class="gps-course-data-line">
-                    <span>GPS-kenttädata</span>
-                    <strong id="gpsCourseDataStatus">Ei ladattu</strong>
-                </div>
-                <div class="gps-green-center-box gps-green-fcb-box">
-                    <div class="gps-green-hole-heading">
-                        <span>Green</span>
-                        <small>Reikä <strong id="gpsGreenHole">1</strong></small>
+                <div class="gps-green-panel" aria-label="Golf-GPS">
+                    <div class="gps-green-center-box gps-green-fcb-box">
+                        <div class="gps-green-hole-heading">
+                            <span>Green</span>
+                            <small>Reikä <strong id="gpsGreenHole">1</strong></small>
+                        </div>
+                        <div class="gps-green-fcb-grid" aria-label="Green Front Center Back etäisyydet">
+                            <div><small>Front</small><strong class="gps-green-distance" id="gpsGreenFrontDistance">—</strong></div>
+                            <div><small>Center</small><strong class="gps-green-distance" id="gpsGreenCenterDistance">—</strong></div>
+                            <div><small>Back</small><strong class="gps-green-distance" id="gpsGreenBackDistance">—</strong></div>
+                        </div>
                     </div>
-                    <div class="gps-green-fcb-grid" aria-label="Green Front Center Back etäisyydet">
-                        <div><small>Front</small><strong class="gps-green-distance" id="gpsGreenFrontDistance">—</strong></div>
-                        <div><small>Center</small><strong class="gps-green-distance" id="gpsGreenCenterDistance">—</strong></div>
-                        <div><small>Back</small><strong class="gps-green-distance" id="gpsGreenBackDistance">—</strong></div>
+                    <div class="gps-obstacle-panel" aria-label="Este etäisyydet">
+                        <div class="gps-obstacle-title">Esteet</div>
+                        <div id="gpsObstacleInfo">Ladataan esteitä…</div>
                     </div>
                 </div>
-                <div class="gps-obstacle-panel" aria-label="Este etäisyydet">
-                    <div class="gps-obstacle-title">Esteet</div>
-                    <div id="gpsObstacleInfo">Ladataan esteitä…</div>
-                </div>
-            </div>
 
-            <div class="gps-data-grid" aria-label="GPS-tiedot">
-                <div class="gps-data-item">
-                    <span>Status</span>
-                    <strong id="gpsStatus">Ei käytössä</strong>
-                </div>
-                <div class="gps-data-item">
-                    <span>Tarkkuus</span>
-                    <strong id="gpsAccuracy">—</strong>
-                </div>
-                <div class="gps-data-item">
-                    <span>Lat</span>
-                    <strong id="gpsLatitude">—</strong>
-                </div>
-                <div class="gps-data-item">
-                    <span>Lon</span>
-                    <strong id="gpsLongitude">—</strong>
-                </div>
-                <div class="gps-data-item">
-                    <span>Mittausaika</span>
-                    <strong id="gpsUpdatedAt">—</strong>
-                </div>
-                <div class="gps-data-item">
-                    <span>Mittauksen ikä</span>
-                    <strong id="gpsPositionAge">—</strong>
-                </div>
-                <div class="gps-data-item">
-                    <span>Etäisyys valittuun pisteeseen</span>
-                    <strong id="gpsDistanceReadout">—</strong>
+                <div class="gps-data-grid" aria-label="GPS-tiedot">
+                    <div class="gps-data-item">
+                        <span>Status</span>
+                        <strong id="gpsStatus">Ei käytössä</strong>
+                    </div>
+                    <div class="gps-data-item">
+                        <span>Tarkkuus</span>
+                        <strong id="gpsAccuracy">—</strong>
+                    </div>
+                    <div class="gps-data-item">
+                        <span>Lat</span>
+                        <strong id="gpsLatitude">—</strong>
+                    </div>
+                    <div class="gps-data-item">
+                        <span>Lon</span>
+                        <strong id="gpsLongitude">—</strong>
+                    </div>
+                    <div class="gps-data-item">
+                        <span>Mittausaika</span>
+                        <strong id="gpsUpdatedAt">—</strong>
+                    </div>
+                    <div class="gps-data-item">
+                        <span>Mittauksen ikä</span>
+                        <strong id="gpsPositionAge">—</strong>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section class="card gps-map-card" id="gpsMapCard">
 <h2 class="section-title">COURSE MAP TEST</h2>
-
+<p class="section-help">Peurunka väylä 1 karttanäkymä</p>
 <div id="courseMap" style="height:420px;border-radius:16px;"></div>
 </section>
 
@@ -509,7 +514,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js?v=gps202" defer></script>
+<script src="app.js?v=gps203" defer></script>
 
 </body>
 </html>

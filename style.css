@@ -2105,3 +2105,173 @@ body {
 }
 
 #courseMap { overflow:hidden; }
+
+
+/* --- GPS compact UI 2026-08-26 --- */
+.gps-card {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.gps-heading-row.gps-compact-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0;
+}
+
+.gps-compact-heading .section-title {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.gps-compact-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
+}
+
+.gps-course-inline {
+    min-width: 0;
+    color: var(--forest);
+    font-size: 13px;
+    font-weight: 900;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.gps-state-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.gps-radio-button {
+    position: relative;
+    flex: 0 0 38px;
+    width: 38px !important;
+    min-width: 38px;
+    max-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid #79a676 !important;
+    border-radius: 50% !important;
+    color: transparent !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-size: 0 !important;
+    line-height: 0;
+}
+
+.gps-radio-button::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+.gps-radio-button.gps-stop-button {
+    border-color: #195119 !important;
+    background: #2c7e28 !important;
+}
+
+.gps-radio-button.gps-stop-button::after {
+    background: #2c7e28;
+}
+
+.gps-radio-button:focus-visible {
+    outline: 3px solid rgba(44, 126, 40, .28);
+    outline-offset: 3px;
+}
+
+.gps-details {
+    display: none;
+    margin-top: 10px;
+}
+
+.gps-card.gps-expanded .gps-details {
+    display: block;
+}
+
+.gps-card.gps-expanded {
+    padding-bottom: 14px;
+}
+
+.gps-details .gps-message {
+    margin-top: 0;
+}
+
+@media (max-width: 420px) {
+    .gps-heading-row.gps-compact-heading {
+        display: flex;
+        align-items: center;
+    }
+
+    .gps-course-inline {
+        max-width: 155px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+    }
+
+    .gps-card {
+        padding: 9px 12px;
+    }
+}
+
+
+/* --- GPS iPhone-style oval switch --- */
+.gps-radio-button {
+    position: relative;
+    flex: 0 0 52px;
+    width: 52px !important;
+    min-width: 52px;
+    max-width: 52px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #d1d1d6 !important;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.05) !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0;
+    transition: background-color .18s ease;
+}
+
+.gps-radio-button::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 28px;
+    height: 28px;
+    inset: auto;
+    border-radius: 50%;
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.28);
+    transition: transform .18s ease;
+}
+
+.gps-radio-button.gps-stop-button {
+    background: #34c759 !important;
+    box-shadow: none !important;
+}
+
+.gps-radio-button.gps-stop-button::after {
+    background: #ffffff !important;
+    transform: translateX(20px);
+}

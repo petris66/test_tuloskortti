@@ -78,6 +78,7 @@
         const stablefordTableBody = document.getElementById("stablefordTableBody");
         const stablefordHeaderRow = document.getElementById("stablefordHeaderRow");
         const stablefordTotalRow = document.getElementById("stablefordTotalRow");
+        const gpsCard = document.getElementById("gpsCard");
         const gpsStateBadge = document.getElementById("gpsStateBadge");
         const gpsToggleButton = document.getElementById("gpsToggleButton");
         const gpsMessage = document.getElementById("gpsMessage");
@@ -457,13 +458,30 @@
             };
         })();
 
+        function setGpsExpanded(expanded) {
+            const isExpanded = Boolean(expanded);
+            if (gpsCard) {
+                gpsCard.classList.toggle("gps-expanded", isExpanded);
+            }
+            if (gpsToggleButton) {
+                gpsToggleButton.setAttribute("aria-pressed", isExpanded ? "true" : "false");
+                gpsToggleButton.setAttribute(
+                    "aria-label",
+                    isExpanded
+                        ? "GPS käytössä. Poista GPS käytöstä."
+                        : "GPS pois käytöstä. Salli GPS."
+                );
+            }
+        }
+
         function setGpsBadge(state, text) {
             if (!gpsStateBadge) return;
-            gpsStateBadge.className = `gps-state-badge gps-state-${state}`;
+            gpsStateBadge.className = `gps-state-badge gps-state-${state} gps-state-hidden`;
             gpsStateBadge.textContent = text;
         }
 
         function resetGpsDisplay(message = "GPS ei ole käytössä. Sijaintia ei tallenneta.") {
+            setGpsExpanded(false);
             setGpsBadge("off", "GPS pois käytöstä");
             if (gpsToggleButton) {
                 gpsToggleButton.textContent = "📍 Salli GPS";
@@ -692,6 +710,7 @@
         }
 
         function handleGpsPosition(position) {
+            setGpsExpanded(true);
             const { latitude, longitude, accuracy } = position.coords;
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
             const accuracyReady =
@@ -753,6 +772,12 @@
         function handleGpsError(error, hasPreviousPosition = false) {
             const permissionDenied = error?.code === 1;
 
+            if (permissionDenied) {
+                setGpsExpanded(false);
+            } else {
+                setGpsExpanded(GPS.isActive());
+            }
+
             if (error?.code === 3 && hasPreviousPosition) {
                 setGpsBadge("waiting", "GPS odottaa päivitystä");
                 if (gpsStatus) gpsStatus.textContent = "Viimeisin sijainti käytössä";
@@ -777,6 +802,7 @@
         }
 
         function startGps() {
+            setGpsExpanded(true);
             setGpsBadge("loading", "Haetaan sijaintia…");
             if (gpsStatus) gpsStatus.textContent = "Haetaan sijaintia";
             if (gpsMessage) gpsMessage.textContent = "Hyväksy selaimen sijaintipyyntö. Ensimmäinen tarkka sijainti voi kestää hetken.";
@@ -1358,9 +1384,23 @@
                 input.addEventListener("input", () => {
                     const editedHole = Number(input.dataset.hole);
                     const wasActiveHole = editedHole === nextHole;
+                    const playerClass = [...input.classList]
+                        .find(className => /^p[1-4]$/.test(className));
+                    const editedPlayer = playerClass
+                        ? Number(playerClass.slice(1))
+                        : 1;
 
                     normalizeManualScoreInput(input);
                     calculateScores();
+
+                    const acceptedValue = normalizeScoreValue(input.value);
+                    let nextPlayerInput = null;
+
+                    if (acceptedValue !== "" && editedPlayer < playerCount) {
+                        nextPlayerInput = document.querySelector(
+                            `.p${editedPlayer + 1}[data-hole="${editedHole}"]`
+                        );
+                    }
 
                     if (wasActiveHole) {
                         const holeComplete = Array.from(
@@ -1381,6 +1421,11 @@
                     saveState();
                     updateRoundLayout();
                     checkFrontNineCompletion();
+
+                    if (nextPlayerInput) {
+                        nextPlayerInput.focus();
+                        nextPlayerInput.select();
+                    }
                 });
             });
         }
