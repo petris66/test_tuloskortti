@@ -167,25 +167,7 @@
             <div class="compact-hole-line">
                 <span id="compactHoleLabel">Nyt pelataan</span>
                 <strong id="compactNextHole">1</strong>
-            </div>
-
-            <div class="voice-quick-controls">
-                <label class="compact-toggle" for="announceStandings">
-                    <span>🔊 Pelitilanne</span>
-                    <input
-                        type="checkbox"
-                        id="announceStandings"
-                        aria-label="Kerro pelitilanne reiän jälkeen"
-                    >
-                </label>
-
-                <button
-                    type="button"
-                    class="dash-button"
-                    onclick="setDashForSelectedScore()"
-                >
-                    ➖ Viiva tuloskorttiin
-                </button>
+                <span class="compact-hole-meta" id="compactHoleMeta"></span>
             </div>
 
             <div class="round-complete-actions" id="roundCompleteActions">
@@ -198,11 +180,9 @@
 
         <section class="card gps-card" id="gpsCard" aria-labelledby="gpsTitle">
             <div class="gps-heading-row gps-compact-heading">
-                <h2 class="section-title" id="gpsTitle">GPS</h2>
-
-                <div class="gps-compact-right">
-                    <strong class="gps-course-inline" id="gpsCourseDataStatus">Ei ladattu</strong>
-
+                <div class="gps-toggle-group">
+                    <h2 class="section-title" id="gpsTitle">GPS</h2>
+                    <span class="gps-toggle-text" id="gpsToggleText">Pois</span>
                     <button
                         type="button"
                         class="gps-toggle-button gps-radio-button"
@@ -214,6 +194,7 @@
                     >GPS</button>
                 </div>
 
+                <strong class="gps-course-inline" id="gpsCourseDataStatus">Ei ladattu</strong>
                 <span class="gps-state-badge gps-state-off gps-state-hidden" id="gpsStateBadge">GPS pois käytöstä</span>
             </div>
 
@@ -437,6 +418,27 @@
             <span>Petri Suokas</span>
             <strong>AI Golf Apps</strong>
         </footer>
+
+        <div class="manual-entry-toolbar" id="manualEntryToolbar" aria-label="Käsinsyötön pikatoiminnot">
+            <label class="manual-standings-toggle" for="announceStandings">
+                <span>🔊 Pelitilanne</span>
+                <input
+                    type="checkbox"
+                    id="announceStandings"
+                    aria-label="Kerro pelitilanne reiän jälkeen"
+                >
+            </label>
+
+            <button
+                type="button"
+                class="manual-dash-button"
+                id="manualDashButton"
+                onclick="setDashForSelectedScore()"
+            >
+                — Viiva
+            </button>
+        </div>
+
     </main>
 
     <div class="modal-backdrop" id="roundCompleteModal" role="dialog"

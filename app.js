@@ -35,6 +35,7 @@
         const activeHoleLabel = document.getElementById("activeHoleLabel");
         const activeHoleHelp = document.getElementById("activeHoleHelp");
         const compactHoleLabel = document.getElementById("compactHoleLabel");
+        const compactHoleMeta = document.getElementById("compactHoleMeta");
         const roundCompleteModal = document.getElementById("roundCompleteModal");
         const roundCompleteActions = document.getElementById("roundCompleteActions");
         const savedMessage = document.getElementById("savedMessage");
@@ -81,6 +82,7 @@
         const gpsCard = document.getElementById("gpsCard");
         const gpsStateBadge = document.getElementById("gpsStateBadge");
         const gpsToggleButton = document.getElementById("gpsToggleButton");
+        const gpsToggleText = document.getElementById("gpsToggleText");
         const gpsMessage = document.getElementById("gpsMessage");
         const gpsStatus = document.getElementById("gpsStatus");
         const gpsAccuracy = document.getElementById("gpsAccuracy");
@@ -94,6 +96,7 @@
         const gpsGreenCenterDistance = document.getElementById("gpsGreenCenterDistance");
         const gpsGreenBackDistance = document.getElementById("gpsGreenBackDistance");
         const gpsObstacleInfo = document.getElementById("gpsObstacleInfo");
+        const manualEntryToolbar = document.getElementById("manualEntryToolbar");
 
 
 
@@ -471,6 +474,10 @@
                         ? "GPS käytössä. Poista GPS käytöstä."
                         : "GPS pois käytöstä. Salli GPS."
                 );
+            }
+
+            if (gpsToggleText) {
+                gpsToggleText.textContent = isExpanded ? "Päällä" : "Pois";
             }
         }
 
@@ -1219,6 +1226,63 @@
                 .sort((a, b) => Number(a.hole) - Number(b.hole));
         }
 
+        function getMajorityPlayerTeeSelection() {
+            const activeSelections = playerTees
+                .slice(0, playerCount)
+                .filter(Boolean);
+
+            if (activeSelections.length === 0) {
+                return "";
+            }
+
+            const counts = new Map();
+            activeSelections.forEach(selection => {
+                counts.set(selection, (counts.get(selection) || 0) + 1);
+            });
+
+            let bestSelection = activeSelections[0];
+            let bestCount = counts.get(bestSelection) || 0;
+
+            activeSelections.forEach(selection => {
+                const count = counts.get(selection) || 0;
+                if (count > bestCount) {
+                    bestSelection = selection;
+                    bestCount = count;
+                }
+            });
+
+            return bestSelection;
+        }
+
+        function getCompactHoleCourseInfo(hole) {
+            const selection = getMajorityPlayerTeeSelection();
+            const { gender, tee } = decodePlayerTee(selection);
+
+            if (!selectedCourseId || !gender || !tee) {
+                return "";
+            }
+
+            const row = courseData.find(item =>
+                item.courseId === selectedCourseId &&
+                item.gender === gender &&
+                item.tee === tee &&
+                Number(item.hole) === Number(hole)
+            );
+
+            if (!row) {
+                return "";
+            }
+
+            const par = Number(row.par);
+            const meters = Number(row.meters);
+
+            if (!Number.isFinite(par) || !Number.isFinite(meters)) {
+                return "";
+            }
+
+            return `Par ${par} · ${meters} m`;
+        }
+
         function calculatePlayerCourseHandicap(playerIndex) {
             const exactHcp = parseExactHandicap(playerHandicaps[playerIndex]);
             const rows = getPlayerSelectedCourseRows(playerIndex);
@@ -1505,6 +1569,36 @@
             saveState();
         }
 
+        function updateManualEntryToolbarPosition() {
+            if (!window.visualViewport) {
+                document.documentElement.style.setProperty(
+                    "--manual-toolbar-keyboard-offset",
+                    "0px"
+                );
+                return;
+            }
+
+            const viewport = window.visualViewport;
+            const keyboardOffset = Math.max(
+                0,
+                window.innerHeight - viewport.height - viewport.offsetTop
+            );
+
+            document.documentElement.style.setProperty(
+                "--manual-toolbar-keyboard-offset",
+                `${keyboardOffset}px`
+            );
+        }
+
+        function showManualEntryToolbar() {
+            document.body.classList.add("manual-entry-active");
+            updateManualEntryToolbarPosition();
+        }
+
+        function hideManualEntryToolbar() {
+            document.body.classList.remove("manual-entry-active");
+        }
+
         function selectScoreInput(input) {
             document.querySelectorAll(".score-input").forEach(item => {
                 item.classList.remove("selected-score");
@@ -1512,6 +1606,7 @@
 
             selectedScoreInput = input;
             selectedScoreInput.classList.add("selected-score");
+            showManualEntryToolbar();
         }
 
         function setDashForSelectedScore() {
@@ -1522,15 +1617,48 @@
                 return;
             }
 
-            selectedScoreInput.value = "-";
-            calculateScores();
-            saveState();
-            checkFrontNineCompletion();
-
-            const hole = selectedScoreInput.dataset.hole;
-            const playerClass = [...selectedScoreInput.classList]
+            const editedInput = selectedScoreInput;
+            const hole = Number(editedInput.dataset.hole);
+            const wasActiveHole = hole === nextHole;
+            const playerClass = [...editedInput.classList]
                 .find(className => /^p[1-4]$/.test(className));
             const player = playerClass ? Number(playerClass.slice(1)) : 1;
+
+            editedInput.value = "-";
+            calculateScores();
+
+            let nextPlayerInput = null;
+            if (player < playerCount) {
+                nextPlayerInput = document.querySelector(
+                    `.p${player + 1}[data-hole="${hole}"]`
+                );
+            }
+
+            if (wasActiveHole) {
+                const holeComplete = Array.from(
+                    { length: playerCount },
+                    (_, index) => document.querySelector(
+                        `.p${index + 1}[data-hole="${hole}"]`
+                    )
+                ).every(scoreInput => normalizeScoreValue(scoreInput?.value) !== "");
+
+                if (holeComplete) {
+                    nextHole = findNextIncompleteHole();
+                    roundSetupConfirmed = true;
+                    updateNextHole();
+                    updateRoundCompleteState();
+                }
+            }
+
+            saveState();
+            updateRoundLayout();
+            checkFrontNineCompletion();
+
+            if (nextPlayerInput) {
+                nextPlayerInput.focus();
+                nextPlayerInput.select();
+            }
+
             const playerName =
                 document.getElementById(`name${player}`).value.trim() ||
                 `P${player}`;
@@ -3088,6 +3216,7 @@
         }
 
         function startVoiceInput() {
+            hideManualEntryToolbar();
             primeSpeechSynthesis();
 
             if (roundComplete) {
@@ -3284,6 +3413,12 @@
                 compactHoleLabel.textContent = roundIsActive
                     ? "Nyt pelataan"
                     : "Aloitusreikä";
+            }
+
+            if (compactHoleMeta) {
+                compactHoleMeta.textContent = roundIsActive
+                    ? getCompactHoleCourseInfo(nextHole)
+                    : "";
             }
 
             updateGreenCenterDistance();
@@ -5048,6 +5183,7 @@
             select.addEventListener("change", () => {
                 playerTees[index] = select.value;
                 updatePlayerTeeSelectColors();
+                updateNextHole();
 
                 // Tuloskortin Par/HCP-näkymä seuraa ensimmäisen aktiivisen
                 // pelaajan tii-/ryhmävalintaa. Muiden pelaajien valinnat säilyvät erillisinä.
@@ -5143,6 +5279,38 @@
 
         async function initializeApp() {
             resetGpsDisplay();
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener(
+                    "resize",
+                    updateManualEntryToolbarPosition
+                );
+                window.visualViewport.addEventListener(
+                    "scroll",
+                    updateManualEntryToolbarPosition
+                );
+            }
+
+            document.addEventListener("focusin", event => {
+                if (event.target?.classList?.contains("score-input")) {
+                    showManualEntryToolbar();
+                }
+            });
+
+            document.addEventListener("focusout", () => {
+                window.setTimeout(() => {
+                    const active = document.activeElement;
+                    const toolbarHasFocus =
+                        manualEntryToolbar && manualEntryToolbar.contains(active);
+
+                    if (
+                        !active?.classList?.contains("score-input") &&
+                        !toolbarHasFocus
+                    ) {
+                        hideManualEntryToolbar();
+                    }
+                }, 80);
+            });
             document.addEventListener("visibilitychange", () => {
                 if (!document.hidden) GPS.restartAfterVisibilityChange();
             });
