@@ -94,5 +94,13 @@
  "lat": 60.5008,
   "lon": 24.5737,
   "radius": 3200
+},
+{
+  "name": "Kytäjä South East",
+  "courseId": "kytaja-se",
+  "country": "FI",
+  "lat": 60.6088793,
+  "lon": 24.6208438,
+  "radius": 3200
 }
 ]

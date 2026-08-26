@@ -127,6 +127,13 @@
       "country": "FI",
       "file": "FI/tuusula.json",
       "status": "verified_from_header"
+    },
+    {
+      "courseId": "kytaja-se",
+      "course": "Kytäjä South East",
+      "country": "FI",
+      "file": "FI/kytaja-se.json",
+      "status": "verified_from_header"
     }
   ]
 }

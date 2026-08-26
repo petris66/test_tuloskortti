@@ -49,6 +49,12 @@
   "file": "FI/nurmijarvi-ba.json",
   "status": "field-test",
   "holes": 18
+},
+{
+  "courseId": "kytaja-se",
+  "file": "FI/kytaja-se.json",
+  "status": "field-test",
+  "holes": 18
 }
   ]
 }

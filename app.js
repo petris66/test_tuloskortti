@@ -87,7 +87,6 @@
         const gpsLongitude = document.getElementById("gpsLongitude");
         const gpsUpdatedAt = document.getElementById("gpsUpdatedAt");
         const gpsPositionAge = document.getElementById("gpsPositionAge");
-        const gpsDistanceReadout = document.getElementById("gpsDistanceReadout");
         const gpsCourseDataStatus = document.getElementById("gpsCourseDataStatus");
         const gpsGreenHole = document.getElementById("gpsGreenHole");
         const gpsGreenFrontDistance = document.getElementById("gpsGreenFrontDistance");
@@ -99,71 +98,20 @@
 
         const CourseMap = (() => {
             let map = null;
-            let shotTargetMarker = null;
-            let shotLine = null;
-            let shotStartPoint = null;
-            let activeHole = 1;
-            let obstacleLayers = [];
-
-            function updateShotLine() {
-                if (!shotTargetMarker || !map) return;
-
-                const target = shotTargetMarker.getLatLng();
-
-                if (!shotLine) {
-                    if (!shotStartPoint) return;
-                    shotLine = L.polyline([shotStartPoint, target], { color: '#ffffff', weight: 3 }).addTo(map);
-                } else {
-                    if (shotStartPoint) {
-                        shotLine.setLatLngs([shotStartPoint, target]);
-                    }
-                }
-            }
-
-            function createShotTarget(latlng) {
-                if (shotTargetMarker) {
-                    shotTargetMarker.setLatLng(latlng);
-                } else {
-                    shotTargetMarker = L.marker(latlng, {
-                        draggable: true
-                    }).addTo(map);
-
-                    shotTargetMarker.on("drag", () => { updateShotLine(); updateGpsDistanceReadout(); });
-                }
-
-                const icon = L.divIcon({
-                    className: "shot-target-icon",
-                    html: "<div style='width:24px;height:24px;border:2px solid #1976d2;border-radius:50%;position:relative;background:transparent'><span style='position:absolute;left:50%;top:0;width:2px;height:100%;background:#1976d2;transform:translateX(-50%)'></span><span style='position:absolute;top:50%;left:0;width:100%;height:2px;background:#1976d2;transform:translateY(-50%)'></span></div>",
-                    iconSize: [24,24],
-                    iconAnchor: [12,12]
-                });
-
-                shotTargetMarker.setIcon(icon);
-                updateShotLine();
-            }
 
             function init() {
                 const el = document.getElementById("courseMap");
                 if (!el || typeof L === "undefined") return;
                 map = L.map(el, { zoomControl: false });
                 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-                map.on("click", (event) => {
-                    createShotTarget(event.latlng);
-                    updateGpsDistanceReadout();
-                });
-
-                loadPeurunka(activeHole);
+                loadPeurunka();
             }
 
-            async function loadPeurunka(holeNumber = activeHole) {
+            async function loadPeurunka() {
                 try {
-                    obstacleLayers.forEach(layer => {
-                        if (map) map.removeLayer(layer);
-                    });
-                    obstacleLayers = [];
                     const r = await fetch("data/gps/FI/peurunkagolf.json?v=map2");
                     const d = await r.json();
-                    const h = d.holes.find(x => Number(x.hole) === Number(holeNumber));
+                    const h = d.holes.find(x => Number(x.hole) === 1);
                     if (!h) return;
 
                     // Green-pisteitä ei piirretä näkyviin.
@@ -180,7 +128,7 @@
 
                     boundsPoints.push(...tees);
 
-                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === Number(holeNumber));
+                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === 1);
 
                     obs.forEach(o => {
                         const point = o.point || (Array.isArray(o.points) ? o.points[0] : null);
@@ -189,8 +137,6 @@
                                 [point.lat, point.lon],
                                 { radius: 4 }
                             ).addTo(map).bindPopup("Bunkkeri");
-                            const layer = map._layers[Object.keys(map._layers).pop()];
-                            if (layer) obstacleLayers.push(layer);
                             boundsPoints.push(point);
                         }
                     });
@@ -206,38 +152,7 @@
                 }
             }
 
-            function setShotStartPoint(point) {
-                if (!point) return;
-                const lat = Number(point.lat);
-                const lon = Number(point.lon);
-                if (Number.isFinite(lat) && Number.isFinite(lon)) {
-                    shotStartPoint = L.latLng(lat, lon);
-                    updateShotLine();
-                }
-            }
-
-            function clearShotStartPoint() {
-                shotStartPoint = null;
-                if (shotLine && map) {
-                    map.removeLayer(shotLine);
-                    shotLine = null;
-                }
-            }
-
-            function getShotTarget() {
-                return shotTargetMarker ? shotTargetMarker.getLatLng() : null;
-            }
-
-            function setHole(holeNumber) {
-                const value = Number(holeNumber);
-                if (!Number.isInteger(value) || value < 1 || value > 18) return;
-                activeHole = value;
-                if (map) {
-                    loadPeurunka(activeHole);
-                }
-            }
-
-            return {init, getShotTarget, setHole, setShotStartPoint, clearShotStartPoint};
+            return {init};
         })();
         window.CourseMap = CourseMap;
 
@@ -776,35 +691,8 @@
             }
         }
 
-        function updateGpsDistanceReadout() {
-            if (!gpsDistanceReadout) return;
-            const position = GPS.getPosition();
-            const target = CourseMap.getShotTarget?.();
-
-            if (!position || !target) {
-                gpsDistanceReadout.textContent = "—";
-                return;
-            }
-
-            const distance = GolfGPS.distanceMeters(
-                position.coords.latitude,
-                position.coords.longitude,
-                target.lat,
-                target.lng
-            );
-
-            gpsDistanceReadout.textContent = Number.isFinite(distance)
-                ? `${Math.round(distance)} m`
-                : "—";
-        }
-
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
-
-            CourseMap.setShotStartPoint?.({
-                lat: latitude,
-                lon: longitude
-            });
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
             const accuracyReady =
                 Number.isFinite(accuracy) &&
@@ -841,7 +729,6 @@
                 });
             }
             updateGpsPositionAge();
-            updateGpsDistanceReadout();
             updateGreenCenterDistance();
             updateObstacleInfo();
         }
@@ -902,7 +789,6 @@
 
         function stopGps(message = "GPS ei ole käytössä. Sijaintia ei tallenneta.") {
             GPS.stop();
-            CourseMap.clearShotStartPoint?.();
             resetGpsDisplay(message);
             resetGreenDistanceDisplay();
             if (gpsObstacleInfo) {
@@ -963,14 +849,14 @@
                 let data = [];
 
                 try {
-                    const manifestResponse = await fetch("data/courses/manifest.json", { cache: "no-store" });
+                    const manifestResponse = await fetch("data/source/manifest.json", { cache: "no-store" });
                     if (!manifestResponse.ok) throw new Error(`Manifest HTTP ${manifestResponse.status}`);
                     const manifest = await manifestResponse.json();
                     const courseFiles = Array.isArray(manifest?.courses) ? manifest.courses : [];
                     if (courseFiles.length === 0) throw new Error("Kenttämanifesti on tyhjä.");
 
                     const libraries = await Promise.all(courseFiles.map(async entry => {
-                        const response = await fetch(`data/courses/${entry.file}`, { cache: "no-store" });
+                        const response = await fetch(`data/source/${entry.file}`, { cache: "no-store" });
                         if (!response.ok) throw new Error(`${entry.file}: HTTP ${response.status}`);
                         const rows = await response.json();
                         if (!Array.isArray(rows)) throw new Error(`${entry.file}: virheellinen kenttädata`);
@@ -2681,7 +2567,6 @@
             nextHole = findNextIncompleteHole();
             roundSetupConfirmed = true;
             updateNextHole();
-            CourseMap.setHole?.(nextHole);
             updateRoundCompleteState();
             updateRoundLayout();
             saveState();
@@ -2755,7 +2640,6 @@
             // Korjaustoiminto ei muuta kierroksen varsinaista etenemiskohtaa.
             nextHole = preservedNextHole;
             updateNextHole();
-            CourseMap.setHole?.(nextHole);
             updateRoundCompleteState();
             updateRoundLayout();
             saveState();
@@ -5019,7 +4903,6 @@
             });
 
             updateNextHole();
-            CourseMap.setHole?.(nextHole);
             updateRoundCompleteState();
             calculateScores();
             updateRoundLayout();
@@ -5150,7 +5033,6 @@
                     startHole = 1;
                     nextHole = 1;
                     updateNextHole();
-                    CourseMap.setHole?.(nextHole);
                     updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
@@ -5162,7 +5044,6 @@
                     startHole = value;
                     nextHole = value;
                     updateNextHole();
-                    CourseMap.setHole?.(nextHole);
                     updateRoundCompleteState();
                     updateRoundLayout();
                     saveState();
