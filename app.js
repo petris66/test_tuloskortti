@@ -1,5 +1,7 @@
 "use strict";
 
+// Player gender separation v0.11: working scoring/voice base + M/N selector.
+
         const STORAGE_KEY = "golfTuloslaskuriV2";
         const HISTORY_KEY = "golfTuloslaskuriHistory";
         const MAX_PLAYERS = 4;
@@ -22,6 +24,7 @@
         let selectedGender = "";
         let manualNineView = null;
         let playerHandicaps = Array(MAX_PLAYERS).fill("");
+        let playerGenders = Array(MAX_PLAYERS).fill("Miehet");
         let playerTees = Array(MAX_PLAYERS).fill("");
 
         const tableBody = document.getElementById("tableBody");
@@ -35,7 +38,6 @@
         const activeHoleLabel = document.getElementById("activeHoleLabel");
         const activeHoleHelp = document.getElementById("activeHoleHelp");
         const compactHoleLabel = document.getElementById("compactHoleLabel");
-        const compactHoleMeta = document.getElementById("compactHoleMeta");
         const roundCompleteModal = document.getElementById("roundCompleteModal");
         const roundCompleteActions = document.getElementById("roundCompleteActions");
         const savedMessage = document.getElementById("savedMessage");
@@ -62,6 +64,17 @@
         const playerHcpInputs = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerHcp${index + 1}`)
         );
+        const playerGenderSelects = Array.from({ length: MAX_PLAYERS }, (_, index) =>
+            document.getElementById(`playerGender${index + 1}`)
+        );
+
+        const playerGenderTriggers = Array.from(document.querySelectorAll(".player-name"));
+        const playerGenderMarks = Array.from(document.querySelectorAll(".player-gender-trigger"));
+        const playerGenderModal = document.getElementById("playerGenderModal");
+        const playerGenderModalPlayer = document.getElementById("playerGenderModalPlayer");
+        const playerGenderModalCancel = document.getElementById("playerGenderModalCancel");
+        const playerGenderChoices = Array.from(document.querySelectorAll(".player-gender-choice"));
+        let playerGenderModalIndex = null;
         const playerTeeSelects = Array.from({ length: MAX_PLAYERS }, (_, index) =>
             document.getElementById(`playerTee${index + 1}`)
         );
@@ -79,10 +92,8 @@
         const stablefordTableBody = document.getElementById("stablefordTableBody");
         const stablefordHeaderRow = document.getElementById("stablefordHeaderRow");
         const stablefordTotalRow = document.getElementById("stablefordTotalRow");
-        const gpsCard = document.getElementById("gpsCard");
         const gpsStateBadge = document.getElementById("gpsStateBadge");
         const gpsToggleButton = document.getElementById("gpsToggleButton");
-        const gpsToggleText = document.getElementById("gpsToggleText");
         const gpsMessage = document.getElementById("gpsMessage");
         const gpsStatus = document.getElementById("gpsStatus");
         const gpsAccuracy = document.getElementById("gpsAccuracy");
@@ -98,123 +109,6 @@
         const gpsObstacleInfo = document.getElementById("gpsObstacleInfo");
         const manualEntryToolbar = document.getElementById("manualEntryToolbar");
 
-
-
-        const CourseMap = (() => {
-            let map = null;
-
-            function init() {
-                const el = document.getElementById("courseMap");
-                if (!el || typeof L === "undefined") return;
-                map = L.map(el, { zoomControl: false });
-                L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-                loadPeurunka();
-            }
-
-            async function loadPeurunka() {
-                try {
-                    const r = await fetch("data/gps/FI/peurunkagolf.json?v=map2");
-                    const d = await r.json();
-                    const h = d.holes.find(x => Number(x.hole) === 1);
-                    if (!h) return;
-
-                    // Green-pisteitä ei piirretä näkyviin.
-                    // Käytetään niitä vain rajaukseen.
-                    const pts = [h.greenFront, h.greenCenter, h.greenBack].filter(Boolean);
-                    const boundsPoints = [...pts];
-
-                    const tees = [
-                        h.tee,
-                        h.teeFront,
-                        h.teeCenter,
-                        h.teeBack
-                    ].filter(Boolean);
-
-                    boundsPoints.push(...tees);
-
-                    const obs = (d.obstacles || []).filter(o => Number(o.hole) === 1);
-
-                    obs.forEach(o => {
-                        const point = o.point || (Array.isArray(o.points) ? o.points[0] : null);
-                        if (point) {
-                            L.circleMarker(
-                                [point.lat, point.lon],
-                                { radius: 4 }
-                            ).addTo(map).bindPopup("Bunkkeri");
-                            boundsPoints.push(point);
-                        }
-                    });
-
-                    if (boundsPoints.length) {
-                        map.fitBounds(
-                            boundsPoints.map(p => [p.lat, p.lon]),
-                            { padding: [30, 30], maxZoom: 17 }
-                        );
-                    }
-                } catch(e) {
-                    console.warn("Course map", e);
-                }
-            }
-
-            return {init};
-        })();
-        window.CourseMap = CourseMap;
-
-        let courseMapInitialized = false;
-
-        function setCourseMapExpanded(expanded) {
-            const card = document.getElementById("gpsMapCard");
-            const button = document.getElementById("courseMapToggleButton");
-            const text = document.getElementById("courseMapToggleText");
-            const isExpanded = Boolean(expanded);
-
-            if (card) {
-                card.classList.toggle("map-expanded", isExpanded);
-            }
-
-            if (button) {
-                button.classList.toggle("is-on", isExpanded);
-                button.setAttribute("aria-pressed", isExpanded ? "true" : "false");
-                button.setAttribute(
-                    "aria-label",
-                    isExpanded
-                        ? "Väyläkartta näkyvissä. Piilota väyläkartta."
-                        : "Väyläkartta piilossa. Näytä väyläkartta."
-                );
-            }
-
-            if (text) {
-                text.textContent = isExpanded ? "Päällä" : "Pois";
-            }
-
-            if (isExpanded) {
-                if (!courseMapInitialized) {
-                    CourseMap.init();
-                    courseMapInitialized = true;
-                } else {
-                    window.setTimeout(() => {
-                        const mapElement = document.getElementById("courseMap");
-                        if (mapElement && mapElement._leaflet_id && window.L) {
-                            window.dispatchEvent(new Event("resize"));
-                        }
-                    }, 80);
-                }
-            }
-        }
-
-        function toggleCourseMap() {
-            const card = document.getElementById("gpsMapCard");
-            const expanded = !card?.classList.contains("map-expanded");
-            setCourseMapExpanded(expanded);
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const button = document.getElementById("courseMapToggleButton");
-            if (button) {
-                button.addEventListener("click", toggleCourseMap);
-            }
-            setCourseMapExpanded(false);
-        });
 
         const GolfGPS = (() => {
             let manifest = null;
@@ -517,34 +411,13 @@
             };
         })();
 
-        function setGpsExpanded(expanded) {
-            const isExpanded = Boolean(expanded);
-            if (gpsCard) {
-                gpsCard.classList.toggle("gps-expanded", isExpanded);
-            }
-            if (gpsToggleButton) {
-                gpsToggleButton.setAttribute("aria-pressed", isExpanded ? "true" : "false");
-                gpsToggleButton.setAttribute(
-                    "aria-label",
-                    isExpanded
-                        ? "GPS käytössä. Poista GPS käytöstä."
-                        : "GPS pois käytöstä. Salli GPS."
-                );
-            }
-
-            if (gpsToggleText) {
-                gpsToggleText.textContent = isExpanded ? "Päällä" : "Pois";
-            }
-        }
-
         function setGpsBadge(state, text) {
             if (!gpsStateBadge) return;
-            gpsStateBadge.className = `gps-state-badge gps-state-${state} gps-state-hidden`;
+            gpsStateBadge.className = `gps-state-badge gps-state-${state}`;
             gpsStateBadge.textContent = text;
         }
 
         function resetGpsDisplay(message = "GPS ei ole käytössä. Sijaintia ei tallenneta.") {
-            setGpsExpanded(false);
             setGpsBadge("off", "GPS pois käytöstä");
             if (gpsToggleButton) {
                 gpsToggleButton.textContent = "📍 Salli GPS";
@@ -773,7 +646,6 @@
         }
 
         function handleGpsPosition(position) {
-            setGpsExpanded(true);
             const { latitude, longitude, accuracy } = position.coords;
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
             const accuracyReady =
@@ -835,12 +707,6 @@
         function handleGpsError(error, hasPreviousPosition = false) {
             const permissionDenied = error?.code === 1;
 
-            if (permissionDenied) {
-                setGpsExpanded(false);
-            } else {
-                setGpsExpanded(GPS.isActive());
-            }
-
             if (error?.code === 3 && hasPreviousPosition) {
                 setGpsBadge("waiting", "GPS odottaa päivitystä");
                 if (gpsStatus) gpsStatus.textContent = "Viimeisin sijainti käytössä";
@@ -865,7 +731,6 @@
         }
 
         function startGps() {
-            setGpsExpanded(true);
             setGpsBadge("loading", "Haetaan sijaintia…");
             if (gpsStatus) gpsStatus.textContent = "Haetaan sijaintia";
             if (gpsMessage) gpsMessage.textContent = "Hyväksy selaimen sijaintipyyntö. Ensimmäinen tarkka sijainti voi kestää hetken.";
@@ -894,8 +759,6 @@
         }
 
         window.toggleGps = toggleGps;
-
-
 
         function keepStartHoleInputVisible() {
             if (!startHoleInput) return;
@@ -938,14 +801,14 @@
                 let data = [];
 
                 try {
-                    const manifestResponse = await fetch("data/source/manifest.json", { cache: "no-store" });
+                    const manifestResponse = await fetch("data/courses/manifest.json", { cache: "no-store" });
                     if (!manifestResponse.ok) throw new Error(`Manifest HTTP ${manifestResponse.status}`);
                     const manifest = await manifestResponse.json();
                     const courseFiles = Array.isArray(manifest?.courses) ? manifest.courses : [];
                     if (courseFiles.length === 0) throw new Error("Kenttämanifesti on tyhjä.");
 
                     const libraries = await Promise.all(courseFiles.map(async entry => {
-                        const response = await fetch(`data/source/${entry.file}`, { cache: "no-store" });
+                        const response = await fetch(`data/courses/${entry.file}`, { cache: "no-store" });
                         if (!response.ok) throw new Error(`${entry.file}: HTTP ${response.status}`);
                         const rows = await response.json();
                         if (!Array.isArray(rows)) throw new Error(`${entry.file}: virheellinen kenttädata`);
@@ -1122,25 +985,22 @@
             return value.length <= 2 ? value : value.slice(0, 2);
         }
 
-        function getAvailablePlayerTees() {
-            const combinations = new Map();
+        function getAvailablePlayerTees(gender) {
+            const tees = new Map();
 
             getRowsForSelectedCourse().forEach(row => {
-                if (!row.gender || !row.tee) return;
-                const value = encodePlayerTee(row.gender, row.tee);
-                if (!combinations.has(value)) {
-                    combinations.set(value, {
-                        value,
-                        gender: row.gender,
+                if (!row.gender || !row.tee || row.gender !== gender) return;
+                if (!tees.has(row.tee)) {
+                    tees.set(row.tee, {
+                        value: row.tee,
                         tee: row.tee,
-                        label: `${getShortTeeLabel(row.tee)} · ${row.gender === "Miehet" ? "M" : row.gender === "Naiset" ? "N" : row.gender}`
+                        label: getShortTeeLabel(row.tee)
                     });
                 }
             });
 
-            return [...combinations.values()].sort((a, b) =>
-                a.tee.localeCompare(b.tee, "fi", { numeric: true }) ||
-                a.gender.localeCompare(b.gender, "fi")
+            return [...tees.values()].sort((a, b) =>
+                a.tee.localeCompare(b.tee, "fi", { numeric: true })
             );
         }
 
@@ -1160,6 +1020,75 @@
             teeSelect.value = selectedTee;
         }
 
+
+        function updatePlayerGenderIndicators() {
+            playerGenderMarks.forEach((button, index) => {
+                if (!button) return;
+                const isFemale = (playerGenders[index] || "Miehet") === "Naiset";
+                button.textContent = isFemale ? "· N" : "";
+                button.classList.toggle("is-female", isFemale);
+                button.classList.toggle("is-male", !isFemale);
+                button.setAttribute(
+                    "aria-label",
+                    `${document.getElementById(`name${index + 1}`)?.value.trim() || `P${index + 1}`}: valitse M tai N`
+                );
+            });
+        }
+
+        function openPlayerGenderModal(index) {
+            if (!playerGenderModal || index < 0 || index >= MAX_PLAYERS) return;
+            playerGenderModalIndex = index;
+            const name = document.getElementById(`name${index + 1}`)?.value.trim() || `P${index + 1}`;
+            if (playerGenderModalPlayer) playerGenderModalPlayer.textContent = name;
+            playerGenderChoices.forEach(button => {
+                const selected = button.dataset.gender === (playerGenders[index] || "Miehet");
+                button.classList.toggle("primary-button", selected);
+                button.setAttribute("aria-pressed", selected ? "true" : "false");
+            });
+            playerGenderModal.classList.add("show");
+        }
+
+        function closePlayerGenderModal() {
+            if (!playerGenderModal) return;
+            playerGenderModal.classList.remove("show");
+            playerGenderModalIndex = null;
+        }
+
+        function setPlayerGenderFromPopup(gender) {
+            const index = playerGenderModalIndex;
+            if (index === null || index < 0 || index >= MAX_PLAYERS) return;
+
+            const normalizedGender = gender === "Naiset" ? "Naiset" : "Miehet";
+            const previousTee =
+                decodePlayerTee(playerTees[index]).tee ||
+                playerTeeSelects[index]?.value ||
+                "";
+
+            playerGenders[index] = normalizedGender;
+            if (playerGenderSelects[index]) playerGenderSelects[index].value = normalizedGender;
+            playerTees[index] = previousTee
+                ? encodePlayerTee(normalizedGender, previousTee)
+                : "";
+
+            populatePlayerTeeOptions();
+
+            if (index === 0 || !playerTees[0]) {
+                applyPrimaryPlayerTeeToScorecard();
+                buildScoreTable();
+                setPlayerCount(playerCount);
+                calculateScores();
+                updateRoundLayout();
+                updateSelectedCourseInfo();
+            }
+
+            updatePlayerGenderIndicators();
+            updatePlayerSettingNames();
+            updateStablefordPlayerNames();
+            updatePlayerCourseHandicapsAndStrokeMarkers();
+            saveState();
+            closePlayerGenderModal();
+        }
+
         function updatePlayerSettingNames() {
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 const nameInput = document.getElementById(`name${player}`);
@@ -1170,21 +1099,29 @@
                 }
 
                 if (scorecardPlayerNames[player - 1]) {
-                    scorecardPlayerNames[player - 1].textContent = name;
+                    const femaleMark = (playerGenders[player - 1] || "Miehet") === "Naiset" ? " · N" : "";
+                    scorecardPlayerNames[player - 1].textContent = `${name}${femaleMark}`;
                 }
             }
         }
 
         function resetPlayerDetailsAfterNameChange(playerIndex) {
             const hcpInput = playerHcpInputs[playerIndex];
+            const genderSelect = playerGenderSelects[playerIndex];
             const teeSelect = playerTeeSelects[playerIndex];
 
             playerHandicaps[playerIndex] = "";
+            playerGenders[playerIndex] = "Miehet";
             playerTees[playerIndex] = "";
 
             if (hcpInput) hcpInput.value = "";
+            if (genderSelect) genderSelect.value = "Miehet";
             if (teeSelect) teeSelect.value = "";
 
+            populatePlayerTeeOptions();
+            updatePlayerGenderIndicators();
+            playerTees[playerIndex] = "";
+            if (teeSelect) teeSelect.value = "";
             updatePlayerTeeSelectColors();
             updatePlayerCourseHandicapsAndStrokeMarkers();
             saveState();
@@ -1204,7 +1141,7 @@
         }
 
         function updatePlayerTeeSelectColors() {
-            playerTeeSelects.forEach((select, index) => {
+        playerTeeSelects.forEach((select, index) => {
                 if (!select) return;
 
                 const { tee } = decodePlayerTee(playerTees[index]);
@@ -1221,36 +1158,41 @@
         }
 
         function populatePlayerTeeOptions() {
-            const teeOptions = getAvailablePlayerTees();
-            const validValues = teeOptions.map(option => option.value);
-            const defaultValue = encodePlayerTee(selectedGender, selectedTee);
-
             playerTeeSelects.forEach((select, index) => {
                 if (!select) return;
 
-                let previous = playerTees[index] || select.value || defaultValue;
+                const gender = playerGenders[index] || "Miehet";
+                playerGenders[index] = gender;
+                if (playerGenderSelects[index]) {
+                    playerGenderSelects[index].value = gender;
+                }
 
-                // Vanhan version pelkkä tiin nimi muunnetaan yhdistelmäksi.
-                if (previous && !String(previous).includes("|||")) {
-                    const legacyMatch = teeOptions.find(option => option.tee === previous);
-                    previous = legacyMatch?.value || "";
+                const teeOptions = getAvailablePlayerTees(gender);
+                const validTees = teeOptions.map(option => option.tee);
+                const stored = decodePlayerTee(playerTees[index] || "");
+                let previousTee = stored.tee || select.value || "";
+
+                // Vanhan version valinta (gender|||tee) säilytetään migraatiossa.
+                if (select.value && String(select.value).includes("|||")) {
+                    previousTee = decodePlayerTee(select.value).tee;
                 }
 
                 select.innerHTML = '<option value="">Valitse tii</option>';
 
                 teeOptions.forEach(teeOption => {
                     const option = document.createElement("option");
-                    option.value = teeOption.value;
+                    option.value = teeOption.tee;
                     option.textContent = teeOption.label;
                     select.appendChild(option);
                 });
 
-                const nextValue = validValues.includes(previous)
-                    ? previous
-                    : (validValues.includes(defaultValue) ? defaultValue : (validValues[0] || ""));
+                const defaultTee = validTees.includes(selectedTee) ? selectedTee : "";
+                const nextTee = validTees.includes(previousTee)
+                    ? previousTee
+                    : (defaultTee || validTees[0] || "");
 
-                playerTees[index] = nextValue;
-                select.value = nextValue;
+                playerTees[index] = nextTee ? encodePlayerTee(gender, nextTee) : "";
+                select.value = nextTee;
             });
 
             applyPrimaryPlayerTeeToScorecard();
@@ -1280,63 +1222,6 @@
                     row.tee === tee
                 )
                 .sort((a, b) => Number(a.hole) - Number(b.hole));
-        }
-
-        function getMajorityPlayerTeeSelection() {
-            const activeSelections = playerTees
-                .slice(0, playerCount)
-                .filter(Boolean);
-
-            if (activeSelections.length === 0) {
-                return "";
-            }
-
-            const counts = new Map();
-            activeSelections.forEach(selection => {
-                counts.set(selection, (counts.get(selection) || 0) + 1);
-            });
-
-            let bestSelection = activeSelections[0];
-            let bestCount = counts.get(bestSelection) || 0;
-
-            activeSelections.forEach(selection => {
-                const count = counts.get(selection) || 0;
-                if (count > bestCount) {
-                    bestSelection = selection;
-                    bestCount = count;
-                }
-            });
-
-            return bestSelection;
-        }
-
-        function getCompactHoleCourseInfo(hole) {
-            const selection = getMajorityPlayerTeeSelection();
-            const { gender, tee } = decodePlayerTee(selection);
-
-            if (!selectedCourseId || !gender || !tee) {
-                return "";
-            }
-
-            const row = courseData.find(item =>
-                item.courseId === selectedCourseId &&
-                item.gender === gender &&
-                item.tee === tee &&
-                Number(item.hole) === Number(hole)
-            );
-
-            if (!row) {
-                return "";
-            }
-
-            const par = Number(row.par);
-            const meters = Number(row.meters);
-
-            if (!Number.isFinite(par) || !Number.isFinite(meters)) {
-                return "";
-            }
-
-            return `Par ${par} · ${meters} m`;
         }
 
         function calculatePlayerCourseHandicap(playerIndex) {
@@ -1440,20 +1325,28 @@
 
             updateHandicapStrokePlayStatus();
             updateStablefordScorecard();
-            updateScoreVisualClasses();
         }
 
         function syncPlayerRoundSettingsFromInputs() {
             playerHandicaps = playerHcpInputs.map(input => input?.value.trim() || "");
-            playerTees = playerTeeSelects.map(select => select?.value || "");
+            playerGenders = playerGenderSelects.map(select => select?.value || "Miehet");
+            playerTees = playerTeeSelects.map((select, index) => {
+                const tee = select?.value || "";
+                const gender = playerGenders[index] || "Miehet";
+                return tee ? encodePlayerTee(gender, tee) : "";
+            });
         }
 
         function restorePlayerRoundSettings() {
             playerHcpInputs.forEach((input, index) => {
                 if (input) input.value = playerHandicaps[index] || "";
             });
+            playerGenderSelects.forEach((select, index) => {
+                if (select) select.value = playerGenders[index] || "Miehet";
+            });
             populatePlayerTeeOptions();
             updatePlayerSettingNames();
+            updatePlayerGenderIndicators();
             updatePlayerCourseHandicapsAndStrokeMarkers();
         }
 
@@ -1656,14 +1549,17 @@
             );
         }
 
+
         function showManualEntryToolbar() {
             document.body.classList.add("manual-entry-active");
             updateManualEntryToolbarPosition();
         }
 
+
         function hideManualEntryToolbar() {
             document.body.classList.remove("manual-entry-active");
         }
+
 
         function selectScoreInput(input) {
             document.querySelectorAll(".score-input").forEach(item => {
@@ -1894,45 +1790,6 @@
             }
         }
 
-        function updateScoreVisualClasses() {
-            document.querySelectorAll(".score-input").forEach(input => {
-                input.classList.remove(
-                    "score-par",
-                    "score-bogey",
-                    "score-double-plus",
-                    "score-birdie",
-                    "score-eagle"
-                );
-
-                const value = normalizeScoreValue(input.value);
-                if (value === "" || value === "-") {
-                    return;
-                }
-
-                const hole = Number(input.dataset.hole);
-                const holeData = getHoleData(hole);
-                const par = Number(holeData?.par);
-
-                if (!Number.isFinite(par) || !Number.isFinite(Number(value))) {
-                    return;
-                }
-
-                const difference = Number(value) - par;
-
-                if (difference <= -2) {
-                    input.classList.add("score-eagle");
-                } else if (difference === -1) {
-                    input.classList.add("score-birdie");
-                } else if (difference === 0) {
-                    input.classList.add("score-par");
-                } else if (difference === 1) {
-                    input.classList.add("score-bogey");
-                } else if (difference >= 2) {
-                    input.classList.add("score-double-plus");
-                }
-            });
-        }
-
         function calculateScores() {
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 const front = calculateNineResult(player, 1, 9);
@@ -1951,7 +1808,6 @@
 
             updateHandicapStrokePlayStatus();
             updateStablefordScorecard();
-            updateScoreVisualClasses();
         }
 
         function getStablefordPoints(playerIndex, hole) {
@@ -3521,12 +3377,6 @@
                     : "Aloitusreikä";
             }
 
-            if (compactHoleMeta) {
-                compactHoleMeta.textContent = roundIsActive
-                    ? getCompactHoleCourseInfo(nextHole)
-                    : "";
-            }
-
             updateGreenCenterDistance();
             updateObstacleInfo();
         }
@@ -3604,6 +3454,7 @@
                 tee: selectedTee,
                 gender: selectedGender,
                 playerHandicaps: [...playerHandicaps],
+                playerGenders: [...playerGenders],
                 playerTees: [...playerTees],
                 names: [],
                 scores: {}
@@ -3663,6 +3514,14 @@
                 playerTees = Array.from({ length: MAX_PLAYERS }, (_, index) =>
                     String(state.playerTees?.[index] ?? "")
                 );
+                playerGenders = Array.from({ length: MAX_PLAYERS }, (_, index) => {
+                    const savedGender = String(state.playerGenders?.[index] ?? "");
+                    if (savedGender === "Miehet" || savedGender === "Naiset") {
+                        return savedGender;
+                    }
+                    const legacyGender = decodePlayerTee(playerTees[index]).gender;
+                    return legacyGender === "Naiset" ? "Naiset" : "Miehet";
+                });
 
                 for (let player = 1; player <= MAX_PLAYERS; player++) {
                     const name = state.names?.[player - 1];
@@ -5182,6 +5041,11 @@
         }
 
         function resetRound() {
+            playerGenders = Array(MAX_PLAYERS).fill("Miehet");
+            playerGenderSelects.forEach(select => {
+                if (select) select.value = "Miehet";
+            });
+            updatePlayerGenderIndicators();
             const confirmed = confirm(
                 "Haluatko varmasti aloittaa uuden kierroksen? Kaikki tulokset poistetaan."
             );
@@ -5192,17 +5056,7 @@
 
             document.querySelectorAll(".score-input").forEach(input => {
                 input.value = "";
-                input.classList.remove(
-                    "selected-score",
-                    "score-par",
-                    "score-bogey",
-                    "score-double-plus",
-                    "score-birdie",
-                    "score-eagle"
-                );
             });
-
-            selectedScoreInput = null;
 
             nextHole = 1;
             roundComplete = false;
@@ -5238,7 +5092,6 @@
 
         document.querySelectorAll("#playerCountButtons button").forEach(button => {
             button.addEventListener("click", () => {
-                primeSpeechSynthesis();
                 setPlayerCount(Number(button.dataset.count));
                 applyPrimaryPlayerTeeToScorecard();
                 updateRoundLayout();
@@ -5246,6 +5099,48 @@
                 saveState();
             });
         });
+
+        // Player gender: first tap/click focuses the name for editing.
+        // A later tap/click while the same input is already focused opens M/N.
+        playerGenderTriggers.forEach((input, index) => {
+            if (!input) return;
+
+            input.addEventListener("pointerdown", event => {
+                if (document.activeElement !== input) return;
+
+                event.preventDefault();
+                input.blur();
+                openPlayerGenderModal(index);
+            });
+        });
+
+        // For a female player the visible · N marker opens the same popup directly.
+        playerGenderMarks.forEach((button, index) => {
+            if (!button) return;
+            button.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const input = playerGenderTriggers[index];
+                if (input) input.blur();
+                openPlayerGenderModal(index);
+            });
+        });
+
+        playerGenderChoices.forEach(button => {
+            button.addEventListener("click", () => {
+                setPlayerGenderFromPopup(button.dataset.gender);
+            });
+        });
+
+        if (playerGenderModalCancel) {
+            playerGenderModalCancel.addEventListener("click", closePlayerGenderModal);
+        }
+
+        if (playerGenderModal) {
+            playerGenderModal.addEventListener("click", event => {
+                if (event.target === playerGenderModal) closePlayerGenderModal();
+            });
+        }
 
         document.querySelectorAll(".player-name").forEach(input => {
             input.dataset.previousName = input.value.trim();
@@ -5257,6 +5152,13 @@
                 if (genericName) {
                     input.value = "";
                     updatePlayerSettingNames();
+                } else {
+                    window.setTimeout(() => {
+                        try {
+                            const end = input.value.length;
+                            input.setSelectionRange(end, end);
+                        } catch (_) {}
+                    }, 0);
                 }
             });
 
@@ -5293,13 +5195,41 @@
             });
         });
 
+        playerGenderSelects.forEach((select, index) => {
+            if (!select) return;
+
+            select.addEventListener("change", () => {
+                const previousTee = decodePlayerTee(playerTees[index]).tee || playerTeeSelects[index]?.value || "";
+                playerGenders[index] = select.value || "Miehet";
+                playerTees[index] = previousTee
+                    ? encodePlayerTee(playerGenders[index], previousTee)
+                    : "";
+
+                populatePlayerTeeOptions();
+
+                if (index === 0 || !playerTees[0]) {
+                    applyPrimaryPlayerTeeToScorecard();
+                    buildScoreTable();
+                    setPlayerCount(playerCount);
+                    calculateScores();
+                    updateRoundLayout();
+                    updateSelectedCourseInfo();
+                }
+
+                updatePlayerCourseHandicapsAndStrokeMarkers();
+                saveState();
+            });
+        });
+
         playerTeeSelects.forEach((select, index) => {
             if (!select) return;
 
             select.addEventListener("change", () => {
-                playerTees[index] = select.value;
+                const gender = playerGenders[index] || "Miehet";
+                playerTees[index] = select.value
+                    ? encodePlayerTee(gender, select.value)
+                    : "";
                 updatePlayerTeeSelectColors();
-                updateNextHole();
 
                 // Tuloskortin Par/HCP-näkymä seuraa ensimmäisen aktiivisen
                 // pelaajan tii-/ryhmävalintaa. Muiden pelaajien valinnat säilyvät erillisinä.
@@ -5344,10 +5274,7 @@
             };
 
             startHoleInput.addEventListener("focus", selectStartHoleValue);
-            startHoleInput.addEventListener("click", () => {
-                primeSpeechSynthesis();
-                selectStartHoleValue();
-            });
+            startHoleInput.addEventListener("click", selectStartHoleValue);
 
             const applyStartHole = () => {
                 if (startHoleInput.value === "") {
@@ -5395,38 +5322,6 @@
 
         async function initializeApp() {
             resetGpsDisplay();
-
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener(
-                    "resize",
-                    updateManualEntryToolbarPosition
-                );
-                window.visualViewport.addEventListener(
-                    "scroll",
-                    updateManualEntryToolbarPosition
-                );
-            }
-
-            document.addEventListener("focusin", event => {
-                if (event.target?.classList?.contains("score-input")) {
-                    showManualEntryToolbar();
-                }
-            });
-
-            document.addEventListener("focusout", () => {
-                window.setTimeout(() => {
-                    const active = document.activeElement;
-                    const toolbarHasFocus =
-                        manualEntryToolbar && manualEntryToolbar.contains(active);
-
-                    if (
-                        !active?.classList?.contains("score-input") &&
-                        !toolbarHasFocus
-                    ) {
-                        hideManualEntryToolbar();
-                    }
-                }, 80);
-            });
             document.addEventListener("visibilitychange", () => {
                 if (!document.hidden) GPS.restartAfterVisibilityChange();
             });

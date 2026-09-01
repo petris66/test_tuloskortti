@@ -2091,586 +2091,125 @@ body {
     }
 }
 
-.gps-obstacle-panel {
-    margin-top: 12px;
-    padding: 12px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: #fafcf8;
-}
-.gps-obstacle-title {
-    font-weight: 800;
-    margin-bottom: 8px;
-    color: var(--forest-2);
+
+/* --- Player gender popup v0.3: compact mobile row --- */
+.player-gender-hidden {
+    display: none !important;
 }
 
-#courseMap { overflow:hidden; }
-
-
-/* --- GPS compact UI 2026-08-26 --- */
-.gps-card {
-    padding-top: 10px;
-    padding-bottom: 10px;
+.player-round-setting {
+    grid-template-columns: minmax(88px, 1.2fr) minmax(64px, .72fr) minmax(100px, 1fr) minmax(76px, .82fr);
 }
 
-.gps-heading-row.gps-compact-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 0;
-}
-
-.gps-compact-heading .section-title {
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-.gps-compact-right {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    min-width: 0;
-}
-
-.gps-course-inline {
-    min-width: 0;
-    color: var(--forest);
-    font-size: 13px;
-    font-weight: 900;
-    text-align: right;
-    white-space: nowrap;
-}
-
-.gps-state-hidden {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
-}
-
-.gps-radio-button {
+.player-name-wrap {
     position: relative;
-    flex: 0 0 38px;
-    width: 38px !important;
-    min-width: 38px;
-    max-width: 38px;
-    height: 38px;
-    min-height: 38px;
-    margin: 0;
-    padding: 0;
-    border: 2px solid #79a676 !important;
-    border-radius: 50% !important;
-    color: transparent !important;
-    background: #ffffff !important;
-    box-shadow: none !important;
-    font-size: 0 !important;
-    line-height: 0;
-}
-
-.gps-radio-button::after {
-    content: "";
-    position: absolute;
-    inset: 7px;
-    border-radius: 50%;
-    background: #ffffff;
-}
-
-.gps-radio-button.gps-stop-button {
-    border-color: #195119 !important;
-    background: #2c7e28 !important;
-}
-
-.gps-radio-button.gps-stop-button::after {
-    background: #2c7e28;
-}
-
-.gps-radio-button:focus-visible {
-    outline: 3px solid rgba(44, 126, 40, .28);
-    outline-offset: 3px;
-}
-
-.gps-details {
-    display: none;
-    margin-top: 10px;
-}
-
-.gps-card.gps-expanded .gps-details {
     display: block;
-}
-
-.gps-card.gps-expanded {
-    padding-bottom: 14px;
-}
-
-.gps-details .gps-message {
-    margin-top: 0;
-}
-
-@media (max-width: 420px) {
-    .gps-heading-row.gps-compact-heading {
-        display: flex;
-        align-items: center;
-    }
-
-    .gps-course-inline {
-        max-width: 155px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 12px;
-    }
-
-    .gps-card {
-        padding: 9px 12px;
-    }
-}
-
-
-/* --- GPS iPhone-style oval switch --- */
-.gps-radio-button {
-    position: relative;
-    flex: 0 0 52px;
-    width: 52px !important;
-    min-width: 52px;
-    max-width: 52px;
-    height: 32px;
-    min-height: 32px;
-    padding: 0 !important;
-    border: 0 !important;
-    border-radius: 999px !important;
-    background: #d1d1d6 !important;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.05) !important;
-    color: transparent !important;
-    font-size: 0 !important;
-    line-height: 0;
-    transition: background-color .18s ease;
-}
-
-.gps-radio-button::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 28px;
-    height: 28px;
-    inset: auto;
-    border-radius: 50%;
-    background: #ffffff !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,.28);
-    transition: transform .18s ease;
-}
-
-.gps-radio-button.gps-stop-button {
-    background: #34c759 !important;
-    box-shadow: none !important;
-}
-
-.gps-radio-button.gps-stop-button::after {
-    background: #ffffff !important;
-    transform: translateX(20px);
-}
-
-
-/* --- Manual score-entry toolbar + simplified GPS switch --- */
-
-/* Pelitilanne + Viiva näkyvät vain käsinsyötön aikana, aivan näppäimistön yläpuolella. */
-.manual-entry-toolbar {
-    position: fixed;
-    left: 50%;
-    bottom: calc(var(--manual-toolbar-keyboard-offset, 0px) + 8px);
-    z-index: 10050;
-    display: none;
-    grid-template-columns: minmax(0, 1fr) minmax(92px, .55fr);
-    gap: 8px;
-    width: min(calc(100% - 24px), 520px);
-    padding: 8px;
-    border: 1px solid #a9c4a4;
-    border-radius: 18px;
-    background: rgba(247, 251, 244, .96);
-    box-shadow: 0 4px 18px rgba(18, 56, 20, .18);
-    transform: translateX(-50%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
-
-body.manual-entry-active .manual-entry-toolbar {
-    display: grid;
-}
-
-.manual-standings-toggle,
-.manual-dash-button {
-    min-height: 46px;
-    border: 1px solid #afc6aa;
-    border-radius: 13px;
-    color: var(--ink);
-    background: #ffffff;
-    font: inherit;
-    font-size: 14px;
-    font-weight: 900;
-}
-
-.manual-standings-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 7px 10px;
-}
-
-.manual-standings-toggle input {
-    width: 24px;
-    height: 24px;
-    margin: 0;
-    accent-color: var(--forest-2);
-}
-
-.manual-dash-button {
-    padding: 7px 10px;
-}
-
-body.manual-entry-active {
-    padding-bottom: 76px;
-}
-
-/* GPS-kytkin ilman ulkonevaa valkoista palloa. */
-.gps-radio-button,
-.gps-radio-button.gps-stop-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 54px;
-    width: 54px !important;
-    min-width: 54px;
-    max-width: 54px;
-    height: 30px;
-    min-height: 30px;
-    padding: 0 !important;
-    border: 0 !important;
-    border-radius: 999px !important;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.08) !important;
-    color: #ffffff !important;
-    background: #a9aaad !important;
-    font-size: 10px !important;
-    font-weight: 900 !important;
-    line-height: 1 !important;
-    letter-spacing: .5px;
-    transition: background-color .18s ease;
-}
-
-.gps-radio-button::after,
-.gps-radio-button.gps-stop-button::after {
-    content: none !important;
-    display: none !important;
-}
-
-.gps-radio-button::before {
-    content: "OFF";
-}
-
-.gps-radio-button.gps-stop-button {
-    background: #34c759 !important;
-}
-
-.gps-radio-button.gps-stop-button::before {
-    content: "ON";
-}
-
-@media (max-width: 420px) {
-    .manual-entry-toolbar {
-        width: calc(100% - 16px);
-        gap: 6px;
-        padding: 6px;
-        border-radius: 16px;
-    }
-}
-
-
-/* --- GPS label outside switch + next-hole par/distance --- */
-.gps-compact-heading {
-    align-items: center;
-}
-
-.gps-toggle-group {
-    display: flex;
-    align-items: center;
-    gap: 7px;
     min-width: 0;
 }
 
-.gps-toggle-group .section-title {
-    margin: 0;
+.player-name-wrap .player-name {
+    width: 100%;
+    padding-right: 42px;
 }
 
-.gps-toggle-text {
-    color: #5c675d;
-    font-size: 13px;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.gps-radio-button,
-.gps-radio-button.gps-stop-button {
-    flex: 0 0 42px;
-    width: 42px !important;
-    min-width: 42px;
-    max-width: 42px;
-    height: 24px;
-    min-height: 24px;
-    padding: 0 !important;
-    border: 0 !important;
-    border-radius: 999px !important;
-    color: transparent !important;
-    background: #c7c7cc !important;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.08) !important;
-    font-size: 0 !important;
-    line-height: 0;
-}
-
-.gps-radio-button::before,
-.gps-radio-button::after,
-.gps-radio-button.gps-stop-button::before,
-.gps-radio-button.gps-stop-button::after {
-    content: none !important;
-    display: none !important;
-}
-
-.gps-radio-button.gps-stop-button {
-    background: #34c759 !important;
-}
-
-.gps-course-inline {
-    margin-left: auto;
-}
-
-.compact-hole-meta {
-    margin-left: 5px;
-    padding-left: 9px;
-    border-left: 1px solid #b8d1b2;
-    color: #355d35;
-    font-size: 13px;
-    font-weight: 800;
-    line-height: 1.1;
-    white-space: nowrap;
-}
-
-@media (max-width: 390px) {
-    .gps-toggle-group {
-        gap: 5px;
-    }
-
-    .gps-toggle-text {
-        font-size: 12px;
-    }
-
-    .gps-course-inline {
-        max-width: 128px;
-    }
-
-    .compact-hole-line {
-        gap: 6px;
-    }
-
-    .compact-hole-meta {
-        margin-left: 2px;
-        padding-left: 7px;
-        font-size: 12px;
-    }
-}
-
-
-/* --- Score colours + course map toggle --- */
-.score-input.score-par {
-    background: transparent;
-}
-
-.score-input.score-bogey {
-    color: #173019;
-    background: #d7ebf8;
-    border-radius: 7px;
-}
-
-.score-input.score-double-plus {
-    color: #ffffff;
-    background: #2f5f91;
-    border-radius: 7px;
-}
-
-.score-input.score-birdie {
-    width: 30px;
-    min-width: 30px;
-    height: 30px;
+.player-gender-trigger {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    min-width: 34px;
     min-height: 30px;
-    margin: 0 auto;
-    padding: 0;
-    color: #ffffff;
-    background: #c62828;
-    border-radius: 50%;
-    font-weight: 900;
-}
-
-.score-input.score-birdie:focus,
-.score-input.score-birdie.selected-score {
-    color: #ffffff;
-    background: #c62828;
-    outline: 2px solid #7a877b;
-    outline-offset: 2px;
-}
-
-.score-input.score-bogey:focus,
-.score-input.score-bogey.selected-score {
-    background: #d7ebf8;
-}
-
-.score-input.score-double-plus:focus,
-.score-input.score-double-plus.selected-score {
-    color: #ffffff;
-    background: #2f5f91;
-}
-
-.course-map-card {
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-.course-map-heading-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 38px;
-}
-
-.course-map-toggle-group {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.course-map-toggle-group .section-title {
-    margin: 0;
-}
-
-.course-map-toggle-text {
-    color: #5c675d;
-    font-size: 13px;
-    font-weight: 800;
-}
-
-.course-map-toggle-switch {
-    flex: 0 0 42px;
-    width: 42px;
-    min-width: 42px;
-    height: 24px;
-    min-height: 24px;
-    padding: 0;
+    padding: 2px 5px;
     border: 0;
-    border-radius: 999px;
-    background: #c7c7cc;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
-    transition: background-color .18s ease;
+    border-radius: 7px;
+    background: transparent;
+    color: #557254;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 900;
+    cursor: pointer;
 }
 
-.course-map-toggle-switch.is-on {
-    background: #34c759;
+.player-gender-trigger.is-female {
+    color: var(--forest);
+    font-size: 12px;
 }
 
-.course-map-details {
+.player-gender-modal {
     display: none;
-    margin-top: 10px;
 }
 
-.course-map-card.map-expanded .course-map-details {
-    display: block;
+.player-gender-modal.show {
+    display: flex;
+}
+
+.player-gender-modal-card {
+    max-width: 320px;
+    text-align: center;
+}
+
+.player-gender-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 14px 0 10px;
+}
+
+.player-gender-choice {
+    min-height: 54px;
+    font-size: 20px;
+    font-weight: 900;
 }
 
 @media (max-width: 500px) {
-    .score-input.score-birdie {
-        width: 28px;
-        min-width: 28px;
-        height: 28px;
+    .player-round-setting {
+        grid-template-columns: minmax(82px, 1.18fr) minmax(58px, .68fr) minmax(92px, 1fr) minmax(70px, .78fr);
+        gap: 4px;
+        padding: 7px 5px;
+    }
+
+    .player-name-wrap .player-name {
+        padding-right: 36px !important;
+    }
+
+    .player-gender-trigger {
+        min-width: 30px;
         min-height: 28px;
+        right: 3px;
+        padding: 1px 3px;
+        font-size: 9px;
     }
-
-    .course-map-toggle-text {
-        font-size: 12px;
-    }
 }
 
 
-/* --- Score colour live/readability fix --- */
-.score-input.score-birdie {
-    width: 100% !important;
-    min-width: 0 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 4px 2px !important;
-    color: #111111 !important;
-    background: transparent !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    text-align: center;
+/* --- Player gender selector v0.9 --- */
+.player-name-wrap .player-name {
+    padding-right: 8px !important;
+    cursor: text;
+}
+
+.player-gender-trigger {
+    display: none !important;
+}
+
+.player-gender-trigger.is-female {
+    display: block !important;
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    min-width: 30px;
+    min-height: 30px;
+    padding: 1px 4px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    font: inherit;
+    font-size: 12px;
     font-weight: 900;
-    text-decoration: none;
+    cursor: pointer;
 }
 
-/* Red golf-score circle without hiding the number. */
-.score-input.score-birdie {
-    background-image: radial-gradient(
-        circle at center,
-        transparent 0,
-        transparent 12px,
-        #c62828 12px,
-        #c62828 14px,
-        transparent 14px
-    ) !important;
-}
-
-.score-input.score-bogey {
-    color: #111111 !important;
-    background: #d7ebf8 !important;
-}
-
-.score-input.score-double-plus {
-    color: #ffffff !important;
-    background: #2f5f91 !important;
-}
-
-.score-input.score-par {
-    color: #111111 !important;
-    background: transparent !important;
-}
-
-
-/* Eagle / two under par: red double circle */
-.score-input.score-eagle {
-    width: 100% !important;
-    min-width: 0 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 4px 2px !important;
-    color: #111111 !important;
-    background-color: transparent !important;
-    border-radius: 0 !important;
-    text-align: center;
-    font-weight: 900;
-    background-image:
-        radial-gradient(
-            circle at center,
-            transparent 0,
-            transparent 10px,
-            #c62828 10px,
-            #c62828 12px,
-            transparent 12px,
-            transparent 14px,
-            #c62828 14px,
-            #c62828 16px,
-            transparent 16px
-        ) !important;
+.player-name-wrap:has(.player-gender-trigger.is-female) .player-name {
+    padding-right: 38px !important;
 }
