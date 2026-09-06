@@ -1409,6 +1409,7 @@
 
                     const acceptedValue = normalizeScoreValue(input.value);
                     let nextPlayerInput = null;
+                    let nextHoleFirstPlayerInput = null;
 
                     if (acceptedValue !== "" && editedPlayer < playerCount) {
                         nextPlayerInput = document.querySelector(
@@ -1438,6 +1439,19 @@
                             roundSetupConfirmed = true;
                             updateNextHole();
                             updateRoundCompleteState();
+
+                            const nextHoleIsIncomplete = Array.from(
+                                { length: playerCount },
+                                (_, index) => document.querySelector(
+                                    `.p${index + 1}[data-hole="${nextHole}"]`
+                                )
+                            ).some(scoreInput => normalizeScoreValue(scoreInput?.value) === "");
+
+                            if (nextHoleIsIncomplete) {
+                                nextHoleFirstPlayerInput = document.querySelector(
+                                    `.p1[data-hole="${nextHole}"]`
+                                );
+                            }
                         }
                     }
 
@@ -1445,9 +1459,10 @@
                     updateRoundLayout();
                     checkFrontNineCompletion();
 
-                    if (nextPlayerInput) {
-                        nextPlayerInput.focus();
-                        nextPlayerInput.select();
+                    const focusTarget = nextPlayerInput || nextHoleFirstPlayerInput;
+                    if (focusTarget) {
+                        focusTarget.focus();
+                        focusTarget.select();
                     }
                 });
             });
@@ -1590,6 +1605,7 @@
             calculateScores();
 
             let nextPlayerInput = null;
+            let nextHoleFirstPlayerInput = null;
             if (player < playerCount) {
                 nextPlayerInput = document.querySelector(
                     `.p${player + 1}[data-hole="${hole}"]`
@@ -1609,6 +1625,19 @@
                     roundSetupConfirmed = true;
                     updateNextHole();
                     updateRoundCompleteState();
+
+                    const nextHoleIsIncomplete = Array.from(
+                        { length: playerCount },
+                        (_, index) => document.querySelector(
+                            `.p${index + 1}[data-hole="${nextHole}"]`
+                        )
+                    ).some(scoreInput => normalizeScoreValue(scoreInput?.value) === "");
+
+                    if (nextHoleIsIncomplete) {
+                        nextHoleFirstPlayerInput = document.querySelector(
+                            `.p1[data-hole="${nextHole}"]`
+                        );
+                    }
                 }
             }
 
@@ -1616,9 +1645,10 @@
             updateRoundLayout();
             checkFrontNineCompletion();
 
-            if (nextPlayerInput) {
-                nextPlayerInput.focus();
-                nextPlayerInput.select();
+            const focusTarget = nextPlayerInput || nextHoleFirstPlayerInput;
+            if (focusTarget) {
+                focusTarget.focus();
+                focusTarget.select();
             }
 
             const playerName =
