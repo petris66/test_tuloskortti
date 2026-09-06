@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updated": "2026-08-07",
+  "updated": "2026-09-06",
   "courses": [
     {
       "courseId": "gumbole",
@@ -141,6 +141,13 @@
       "country": "FI",
       "file": "FI/kytaja-nw.json",
       "status": "verified_from_header"
+    },
+    {
+      "courseId": "koto-golf",
+      "course": "Koto Golf",
+      "country": "FI",
+      "file": "FI/koto-golf.json",
+      "status": "verified_2026_rating_legacy_scorecard_geometry"
     }
   ]
 }

@@ -17,7 +17,7 @@
 
     <title>Golf Voice Scorecard AI</title>
 
-    <link rel="stylesheet" href="style.css?v=gender112">
+    <link rel="stylesheet" href="style.css?v=gender113">
 
 </head>
 
@@ -233,6 +233,7 @@
                 📍 Salli GPS
             </button>
 
+            <div id="gpsDetails" hidden>
             <p class="gps-message" id="gpsMessage" role="status" aria-live="polite">
                 GPS ei ole käytössä. Sijaintia ei tallenneta.
             </p>
@@ -280,6 +281,7 @@
                     <span>Mittauksen ikä</span>
                     <strong id="gpsPositionAge">—</strong>
                 </div>
+            </div>
             </div>
         </section>
 
@@ -535,7 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sync();
 });
 </script>
-<script src="app.js?v=gender112" defer></script>
+<script src="app.js?v=gender113" defer></script>
 
 </body>
 </html>

@@ -95,6 +95,7 @@
         const gpsStateBadge = document.getElementById("gpsStateBadge");
         const gpsToggleButton = document.getElementById("gpsToggleButton");
         const gpsMessage = document.getElementById("gpsMessage");
+        const gpsDetails = document.getElementById("gpsDetails");
         const gpsStatus = document.getElementById("gpsStatus");
         const gpsAccuracy = document.getElementById("gpsAccuracy");
         const gpsLatitude = document.getElementById("gpsLatitude");
@@ -411,6 +412,10 @@
             };
         })();
 
+        function setGpsDetailsVisible(visible) {
+            if (gpsDetails) gpsDetails.hidden = !visible;
+        }
+
         function setGpsBadge(state, text) {
             if (!gpsStateBadge) return;
             gpsStateBadge.className = `gps-state-badge gps-state-${state}`;
@@ -418,6 +423,7 @@
         }
 
         function resetGpsDisplay(message = "GPS ei ole käytössä. Sijaintia ei tallenneta.") {
+            setGpsDetailsVisible(false);
             setGpsBadge("off", "GPS pois käytöstä");
             if (gpsToggleButton) {
                 gpsToggleButton.textContent = "📍 Salli GPS";
@@ -731,6 +737,7 @@
         }
 
         function startGps() {
+            setGpsDetailsVisible(true);
             setGpsBadge("loading", "Haetaan sijaintia…");
             if (gpsStatus) gpsStatus.textContent = "Haetaan sijaintia";
             if (gpsMessage) gpsMessage.textContent = "Hyväksy selaimen sijaintipyyntö. Ensimmäinen tarkka sijainti voi kestää hetken.";

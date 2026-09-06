@@ -40,75 +40,83 @@
     "radius": 3200
   },
   {
-  "name": "Hyvinkää Golf",
-  "courseId": "hyvigolf",
-  "country": "FI",
-  "lat": 60.657279,
-  "lon": 24.817359,
-  "radius": 3200
-},
-{
-  "name": "Nurmijärvi AB",
-  "courseId": "nurmijarvi-ab",
-  "country": "FI",
-  "lat": 60.5008,
-  "lon": 24.5737,
-  "radius": 3200
-},
-{
-  "name": "Nurmijärvi AC",
-  "courseId": "nurmijarvi-ac",
-  "country": "FI",
-  "lat": 60.5008,
-  "lon": 24.5737,
-  "radius": 3200
-},
-{
-  "name": "Nurmijärvi BA",
-  "courseId": "nurmijarvi-ba",
-  "country": "FI",
-  "lat": 60.5008,
-  "lon": 24.5737,
-  "radius": 3200
-},
-{
-  "name": "Nurmijärvi BC",
-  "courseId": "nurmijarvi-bc",
-  "country": "FI",
-  "lat": 60.5008,
-  "lon": 24.5737,
-  "radius": 3200
-},
-{
-  "name": "Nurmijärvi CA",
-  "courseId": "nurmijarvi-ca",
-  "country": "FI",
-  "lat": 60.5008,
-  "lon": 24.5737,
-  "radius": 3200
-},
-{
-  "name": "Nurmijärvi CB",
-  "courseId": "nurmijarvi-cb",
-  "country": "FI",
- "lat": 60.5008,
-  "lon": 24.5737,
-  "radius": 3200
-},
-{
-  "name": "Kytäjä South East",
-  "courseId": "kytaja-se",
-  "country": "FI",
-  "lat": 60.6088793,
-  "lon": 24.6208438,
-  "radius": 3200
-},
-{
-  "name": "Kytäjä North West",
-  "courseId": "kytaja-nw",
-  "country": "FI",
-  "lat": 60.6088793,
-  "lon": 24.6208438,
-  "radius": 3200
-}
+    "name": "Hyvinkää Golf",
+    "courseId": "hyvigolf",
+    "country": "FI",
+    "lat": 60.657279,
+    "lon": 24.817359,
+    "radius": 3200
+  },
+  {
+    "name": "Nurmijärvi AB",
+    "courseId": "nurmijarvi-ab",
+    "country": "FI",
+    "lat": 60.5008,
+    "lon": 24.5737,
+    "radius": 3200
+  },
+  {
+    "name": "Nurmijärvi AC",
+    "courseId": "nurmijarvi-ac",
+    "country": "FI",
+    "lat": 60.5008,
+    "lon": 24.5737,
+    "radius": 3200
+  },
+  {
+    "name": "Nurmijärvi BA",
+    "courseId": "nurmijarvi-ba",
+    "country": "FI",
+    "lat": 60.5008,
+    "lon": 24.5737,
+    "radius": 3200
+  },
+  {
+    "name": "Nurmijärvi BC",
+    "courseId": "nurmijarvi-bc",
+    "country": "FI",
+    "lat": 60.5008,
+    "lon": 24.5737,
+    "radius": 3200
+  },
+  {
+    "name": "Nurmijärvi CA",
+    "courseId": "nurmijarvi-ca",
+    "country": "FI",
+    "lat": 60.5008,
+    "lon": 24.5737,
+    "radius": 3200
+  },
+  {
+    "name": "Nurmijärvi CB",
+    "courseId": "nurmijarvi-cb",
+    "country": "FI",
+    "lat": 60.5008,
+    "lon": 24.5737,
+    "radius": 3200
+  },
+  {
+    "name": "Kytäjä South East",
+    "courseId": "kytaja-se",
+    "country": "FI",
+    "lat": 60.6088793,
+    "lon": 24.6208438,
+    "radius": 3200
+  },
+  {
+    "name": "Kytäjä North West",
+    "courseId": "kytaja-nw",
+    "country": "FI",
+    "lat": 60.6088793,
+    "lon": 24.6208438,
+    "radius": 3200
+  },
+  {
+    "name": "Koto Golf",
+    "courseId": "koto-golf",
+    "country": "FI",
+    "lat": 60.4756,
+    "lon": 25.371,
+    "radius": 3200
+  }
 ]
