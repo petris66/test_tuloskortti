@@ -118,5 +118,21 @@
     "lat": 60.4756,
     "lon": 25.371,
     "radius": 3200
+  },
+  {
+    "name": "St. Laurence Golf – Kalkki-Petteri",
+    "courseId": "stlaurence-kalkki-petteri",
+    "country": "FI",
+    "lat": 60.220251,
+    "lon": 24.05232,
+    "radius": 3200
+  },
+  {
+    "name": "St. Laurence Golf – Pyhä Lauri",
+    "courseId": "stlaurence-pyha-lauri",
+    "country": "FI",
+    "lat": 60.220251,
+    "lon": 24.05232,
+    "radius": 3200
   }
 ]

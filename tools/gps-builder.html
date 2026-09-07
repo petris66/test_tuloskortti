@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.8.1</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.8.2</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -84,7 +84,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.8.1</h1>
+  <h1>GPS Builder 0.8.2</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -253,7 +253,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=1.9.4"></script>
 <script>
-// GPS Builder 0.8.1 - Peurunka bunker cleanup
+// GPS Builder 0.8.2 - St. Laurence course selection
 (() => {
   const endpoints = [
     "https://overpass-api.de/api/interpreter",
@@ -2084,6 +2084,15 @@ out tags center geom;`;
   $("peurunkaBtn").addEventListener("click",()=>preset("Laukaan Peurunkagolf","peurunkagolf",62.434565,25.868707,3200));
   $("keimolaSarasBtn").addEventListener("click",()=>preset("Keimola Saras","keimola-saras",60.3207772,24.8044882,3200));
 
+  const builderCourseSelect=$("builderCourseSelect");
+  builderCourseSelect.addEventListener("change",()=>{
+    const option=builderCourseSelect.selectedOptions[0];
+    if(!option?.dataset.course) return;
+    const c=JSON.parse(option.dataset.course);
+    preset(c.name,c.courseId,Number(c.lat),Number(c.lon),Number(c.radius)||3200);
+    country.value=c.country||"FI";
+  });
+
   window.addEventListener("load",()=>{
     initMap();
     render();
@@ -2108,15 +2117,7 @@ out tags center geom;`;
    o.dataset.course=JSON.stringify(c);
    s.appendChild(o);
   });
-  s.onchange=()=>{
-   const c=JSON.parse(s.selectedOptions[0].dataset.course);
-   courseName.value=c.name;
-   courseId.value=c.courseId;
-   lat.value=c.lat;
-   lon.value=c.lon;
-   radius.value=c.radius;
-   country.value=c.country;
-  };
+
  }catch(e){console.log(e);}
 })();
 </script>
