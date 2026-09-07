@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Golf Voice Scorecard AI – GPS Builder 0.8.2</title>
+<title>Golf Voice Scorecard AI – GPS Builder 0.8.3</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=1.9.4">
 <style>
 :root{
@@ -84,7 +84,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 </head>
 <body>
 <main>
-  <h1>GPS Builder 0.8.2</h1>
+  <h1>GPS Builder 0.8.3</h1>
   <p class="small">Kehitystyökalu GPS Libraryn rakentamiseen. Varsinainen Golf Voice Scorecard AI ei käytä Overpass API:a kentällä.</p>
 
   <section class="card">
@@ -253,7 +253,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=1.9.4"></script>
 <script>
-// GPS Builder 0.8.2 - St. Laurence course selection
+// GPS Builder 0.8.3 - St. Laurence course selection
 (() => {
   const endpoints = [
     "https://overpass-api.de/api/interpreter",
@@ -460,7 +460,7 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       </div>`;
   }
 
-  function renderMap(){
+  function renderMap(fitView=false){
     if(!initMap()) return;
     markerLayer.clearLayers();
 
@@ -484,15 +484,16 @@ textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Consolas,monos
       bounds.push([g.lat,g.lon]);
     });
 
-    if(bounds.length){
+    // Säilytä käyttäjän nykyinen zoom ja kartan sijainti normaalissa
+    // editoinnissa. Sovita kaikki greenit näkymään vain silloin, kun
+    // renderMap(true) pyydetään erikseen (esim. uusi OSM-haku / GPS Library).
+    if(fitView && bounds.length){
       map.fitBounds(bounds,{padding:[28,28],maxZoom:17});
     }
 
-    // fitBounds heti layout-muutoksen yhteydessä voi jättää Leafletin vanhaan
-    // kokoon. Toinen invalidointi seuraavalla event loopilla korjaa tiilet.
     window.setTimeout(()=>{
-      map.invalidateSize(true);
-      if(bounds.length){
+      map.invalidateSize(false);
+      if(fitView && bounds.length){
         map.fitBounds(bounds,{padding:[28,28],maxZoom:17});
       }
     },150);
@@ -1752,7 +1753,7 @@ out tags center geom;`;
         greens.push(...manualGreens);
 
         render();
-        renderMap();
+        renderMap(true);
 
         const autoCount=greens.filter(g=>g.autoAssigned).length;
         const safeSet=partialExportHoles();
@@ -1926,36 +1927,54 @@ out tags center geom;`;
 
 
   async function loadGpsGreenLibrary(id){
-    if(id!=="peurunkagolf") return;
+    if(!id) return;
     try{
+      const safeId=String(id).trim();
       const candidates=[
-        `${repoBasePath()}/data/gps/FI/peurunkagolf.json?v=0.7.14`,
-        `../data/gps/FI/peurunkagolf.json?v=0.7.14`
+        `${repoBasePath()}/data/gps/FI/${safeId}.json?v=0.8.3`,
+        `../data/gps/FI/${safeId}.json?v=0.8.3`
       ];
       const result=await fetchJsonCandidates(candidates);
       const data=result.data;
       const holes=Array.isArray(data.holes)?data.holes:[];
-      greens=holes.map((h,i)=>({
-        hole:Number(h.hole),
-        lat:Number(h.greenCenter.lat),
-        lon:Number(h.greenCenter.lon),
-        geometry:[],
-        type:"course-library",
-        id:`peurunka-${h.hole}`,
-        tags:{},
-        selected:true,
-        extra:false,
-        autoAssigned:true,
-        autoDistance:null,
-        manualFront:h.greenFront,
-        manualCenter:h.greenCenter,
-        manualBack:h.greenBack
-      })).filter(g=>Number.isFinite(g.lat)&&Number.isFinite(g.lon));
+
+      greens=holes.map(h=>{
+        const center=h?.greenCenter;
+        if(!center) return null;
+
+        const osm=String(h?.source?.osmElement||"");
+        const osmMatch=osm.match(/^([^/]+)\/(.+)$/);
+
+        return {
+          hole:Number(h.hole),
+          lat:Number(center.lat),
+          lon:Number(center.lon),
+          geometry:[],
+          type:osmMatch?osmMatch[1]:"gps-library",
+          id:osmMatch?osmMatch[2]:`${safeId}-${h.hole}`,
+          tags:{},
+          selected:true,
+          extra:false,
+          autoAssigned:false,
+          autoDistance:null,
+          manual:true,
+          manualFront:h.greenFront||null,
+          manualCenter:h.greenCenter||center,
+          manualBack:h.greenBack||null
+        };
+      }).filter(g=>
+        g &&
+        Number.isInteger(g.hole) && g.hole>=1 && g.hole<=18 &&
+        Number.isFinite(g.lat) && Number.isFinite(g.lon)
+      );
+
       render();
-      renderMap();
-      setStatus(`Peurunka GPS Library ladattu: ${greens.length}/18 greeniä`,"ok");
+      renderMap(true);
+      setStatus(`${courseName.value.trim()||safeId} GPS Library ladattu: ${greens.length}/18 greeniä`,"ok");
     }catch(err){
-      console.warn("Peurunka GPS Library lataus epäonnistui",err);
+      // Kaikilla Builderin kentillä ei vielä ole GPS Library -tiedostoa.
+      // Se ei ole virhe: käyttäjä voi tällöin hakea greenit OSM:stä.
+      console.info(`GPS Libraryä ei löytynyt kentälle ${id}`,err);
     }
   }
 
@@ -2109,7 +2128,7 @@ out tags center geom;`;
  const s=document.getElementById("builderCourseSelect");
  if(!s)return;
  try{
-  const data=await (await fetch("../data/source/gps-builder-courses.json?v=080")).json();
+  const data=await (await fetch("../data/source/gps-builder-courses.json?v=083")).json();
   data.forEach(c=>{
    const o=document.createElement("option");
    o.textContent=c.name;
