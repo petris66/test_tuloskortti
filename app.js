@@ -2,7 +2,7 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.4";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.7";
         const UPDATE_CHECK_URL = "version.json";
 
         async function updateToLatestVersionIfNeeded() {
@@ -1469,7 +1469,7 @@
                                 }
                             }
 
-                            nextHole = findNextIncompleteHole();
+                            nextHole = getNextSequentialHole(editedHole);
                             roundSetupConfirmed = true;
                             updateNextHole();
                             updateRoundCompleteState();
@@ -1617,6 +1617,17 @@
 
             selectedScoreInput = input;
             selectedScoreInput.classList.add("selected-score");
+
+            const selectedHole = Number(selectedScoreInput.dataset.hole);
+            if (selectedHole >= 1 && selectedHole <= 18 && selectedHole !== nextHole) {
+                nextHole = selectedHole;
+                roundSetupConfirmed = true;
+                updateNextHole();
+                updateRoundCompleteState();
+                updateRoundLayout();
+                saveState();
+            }
+
             showManualEntryToolbar();
         }
 
@@ -1655,7 +1666,7 @@
                 ).every(scoreInput => normalizeScoreValue(scoreInput?.value) !== "");
 
                 if (holeComplete) {
-                    nextHole = findNextIncompleteHole();
+                    nextHole = getNextSequentialHole(hole);
                     roundSetupConfirmed = true;
                     updateNextHole();
                     updateRoundCompleteState();
@@ -2739,6 +2750,21 @@
             };
         }
 
+        function getNextSequentialHole(hole) {
+            const currentHole = Number(hole);
+
+            if (currentHole >= 1 && currentHole < 18) {
+                return currentHole + 1;
+            }
+
+            // Preserve normal 18 -> 1 golf-course rotation.
+            if (currentHole === 18) {
+                return 1;
+            }
+
+            return findNextIncompleteHole();
+        }
+
         function findNextIncompleteHole() {
             const playedHoleOrder = getPlayedHoleOrder();
 
@@ -2783,7 +2809,7 @@
             }
 
             calculateScores();
-            nextHole = findNextIncompleteHole();
+            nextHole = getNextSequentialHole(hole);
             roundSetupConfirmed = true;
             updateNextHole();
             updateRoundCompleteState();
