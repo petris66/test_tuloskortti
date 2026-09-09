@@ -2288,7 +2288,7 @@ body {
 }
 
 
-/* Petrify header placement correction — v3.7.19 */
+/* Petrify header placement correction — v3.7.20 */
 .hero {
     position: relative;
 }
@@ -2317,7 +2317,7 @@ body {
 }
 
 
-/* Petrify signature placement test — v3.7.19 */
+/* Petrify signature placement test — v3.7.20 */
 .petrify-signature {
     display: flex;
     align-items: center;
@@ -2340,7 +2340,7 @@ body {
 }
 
 
-/* Petrify footer branding — v3.7.19 */
+/* Petrify footer branding — v3.7.20 */
 .petrify-footer-brand {
     display: flex;
     justify-content: center;
@@ -2460,4 +2460,26 @@ body {
 
 .about-author {
     font-weight: 400;
+}
+
+
+/* Temporary v3.7.20 update diagnostics */
+.update-debug-box {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 100001;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #111;
+    font-size: 12px;
+    line-height: 1.35;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.22);
+    word-break: break-word;
+}
+.update-debug-title {
+    font-weight: 700;
+    margin-bottom: 4px;
 }
