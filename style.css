@@ -2288,7 +2288,7 @@ body {
 }
 
 
-/* Petrify header placement correction — v3.7.18 */
+/* Petrify header placement correction — v3.7.19 */
 .hero {
     position: relative;
 }
@@ -2317,7 +2317,7 @@ body {
 }
 
 
-/* Petrify signature placement test — v3.7.18 */
+/* Petrify signature placement test — v3.7.19 */
 .petrify-signature {
     display: flex;
     align-items: center;
@@ -2340,7 +2340,7 @@ body {
 }
 
 
-/* Petrify footer branding — v3.7.18 */
+/* Petrify footer branding — v3.7.19 */
 .petrify-footer-brand {
     display: flex;
     justify-content: center;
