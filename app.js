@@ -2,34 +2,11 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.14";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.15";
         const UPDATE_CHECK_URL = "version.json";
 
 const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
 const SHOWN_UPDATE_VERSION_KEY = "golfVoiceScorecard-shownUpdateVersion";
-
-function showUpdateDebug(values) {
-    try {
-        const box = document.getElementById("update-debug-box");
-        if (!box) return;
-        const text = box.querySelector(".update-debug-text");
-        if (!text) return;
-
-        const parts = [
-            `APP_VERSION=${values.appVersion ?? ""}`,
-            `loadedUpdateVersion=${values.loadedUpdateVersion ?? ""}`,
-            `pendingVersion=${values.pendingVersion ?? ""}`,
-            `shownVersion=${values.shownVersion ?? ""}`,
-            `refreshToken=${values.refreshToken ?? ""}`,
-            `arrivedFromAutomaticUpdate=${String(values.arrivedFromAutomaticUpdate)}`
-        ];
-
-        text.textContent = parts.join(" | ");
-        box.hidden = false;
-    } catch (error) {
-        console.info("Update debug skipped:", error);
-    }
-}
 
 function showAppUpdatedToastIfNeeded() {
     try {
@@ -54,15 +31,6 @@ function showAppUpdatedToastIfNeeded() {
             arrivedFromAutomaticUpdate
         });
 
-        showUpdateDebug({
-            appVersion: APP_VERSION,
-            loadedUpdateVersion,
-            pendingVersion,
-            shownVersion,
-            refreshToken,
-            arrivedFromAutomaticUpdate
-        });
-
         if (!arrivedFromAutomaticUpdate || shownVersion === APP_VERSION) return;
 
         localStorage.setItem(SHOWN_UPDATE_VERSION_KEY, APP_VERSION);
@@ -80,7 +48,10 @@ function showAppUpdatedToastIfNeeded() {
         }
 
         toast.hidden = false;
-        toast.classList.add("show");
+        toast.removeAttribute("hidden");
+        window.requestAnimationFrame(() => {
+            toast.classList.add("show");
+        });
 
         window.setTimeout(() => {
             toast.classList.remove("show");
