@@ -2213,3 +2213,28 @@ body {
 .player-name-wrap:has(.player-gender-trigger.is-female) .player-name {
     padding-right: 38px !important;
 }
+
+
+/* One-time automatic update notification */
+.app-update-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translate(-50%, 18px);
+  z-index: 9999;
+  width: min(92vw, 420px);
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(20, 24, 28, 0.94);
+  color: #fff;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  pointer-events: none;
+  text-align: left;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.app-update-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.app-update-toast-title { font-weight: 700; font-size: 0.98rem; margin-bottom: 2px; }
+.app-update-toast-text { font-size: 0.88rem; opacity: 0.9; }

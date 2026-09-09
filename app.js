@@ -2,8 +2,37 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.7";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.8";
         const UPDATE_CHECK_URL = "version.json";
+
+const LAST_SEEN_APP_VERSION_KEY = "golfVoiceScorecard-lastSeenAppVersion";
+
+function showAppUpdatedToastIfNeeded() {
+    try {
+        const previousVersion = localStorage.getItem(LAST_SEEN_APP_VERSION_KEY);
+        if (!previousVersion) {
+            localStorage.setItem(LAST_SEEN_APP_VERSION_KEY, APP_VERSION);
+            return;
+        }
+        if (previousVersion === APP_VERSION) return;
+        localStorage.setItem(LAST_SEEN_APP_VERSION_KEY, APP_VERSION);
+
+        const toast = document.getElementById("app-update-toast");
+        if (!toast) return;
+        const text = toast.querySelector(".app-update-toast-text");
+        if (text) text.textContent = `Käytössäsi on nyt versio ${APP_VERSION}`;
+
+        toast.hidden = false;
+        requestAnimationFrame(() => toast.classList.add("show"));
+        window.setTimeout(() => {
+            toast.classList.remove("show");
+            window.setTimeout(() => { toast.hidden = true; }, 250);
+        }, 3500);
+    } catch (error) {
+        console.info("Päivitysilmoitus ohitettiin:", error);
+    }
+}
+
 
         async function updateToLatestVersionIfNeeded() {
             try {
@@ -5431,6 +5460,7 @@
             prepareRoundMetadataForm();
             renderHistory();
             processResultsFromUrl();
+            showAppUpdatedToastIfNeeded();
         }
 
         initializeApp();
