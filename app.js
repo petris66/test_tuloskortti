@@ -2,20 +2,45 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.12";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.13";
         const UPDATE_CHECK_URL = "version.json";
 
 const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
+const SHOWN_UPDATE_VERSION_KEY = "golfVoiceScorecard-shownUpdateVersion";
 
 function showAppUpdatedToastIfNeeded() {
     try {
+        const params = new URL(window.location.href).searchParams;
+        const loadedUpdateVersion = params.get("v");
+        const refreshToken = params.get("refresh");
         const pendingVersion = localStorage.getItem(PENDING_UPDATE_VERSION_KEY);
-        if (pendingVersion !== APP_VERSION) return;
+        const shownVersion = localStorage.getItem(SHOWN_UPDATE_VERSION_KEY);
 
+        // A real automatic update is identified primarily by the versioned
+        // reload URL created by updateToLatestVersionIfNeeded(). Keep the
+        // pending marker as a fallback for older test builds.
+        const arrivedFromAutomaticUpdate =
+            (loadedUpdateVersion === APP_VERSION && Boolean(refreshToken)) ||
+            pendingVersion === APP_VERSION;
+
+        console.info("PWA update notification:", {
+            appVersion: APP_VERSION,
+            loadedUpdateVersion,
+            pendingVersion,
+            shownVersion,
+            arrivedFromAutomaticUpdate
+        });
+
+        if (!arrivedFromAutomaticUpdate || shownVersion === APP_VERSION) return;
+
+        localStorage.setItem(SHOWN_UPDATE_VERSION_KEY, APP_VERSION);
         localStorage.removeItem(PENDING_UPDATE_VERSION_KEY);
 
         const toast = document.getElementById("app-update-toast");
-        if (!toast) return;
+        if (!toast) {
+            console.info("Päivitysilmoitusta ei löytynyt HTML:stä.");
+            return;
+        }
 
         const text = toast.querySelector(".app-update-toast-text");
         if (text) {
@@ -23,7 +48,7 @@ function showAppUpdatedToastIfNeeded() {
         }
 
         toast.hidden = false;
-        requestAnimationFrame(() => toast.classList.add("show"));
+        toast.classList.add("show");
 
         window.setTimeout(() => {
             toast.classList.remove("show");
