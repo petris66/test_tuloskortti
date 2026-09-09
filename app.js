@@ -2,97 +2,53 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.20";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.21";
         const UPDATE_CHECK_URL = "version.json";
 
 const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
 const SHOWN_UPDATE_VERSION_KEY = "golfVoiceScorecard-shownUpdateVersion";
 
-function showUpdateDebug(values) {
-    try {
-        const box = document.getElementById("update-debug-box");
-        if (!box) return;
-        const text = box.querySelector(".update-debug-text");
-        if (!text) return;
-
-        const parts = [
-            `APP_VERSION=${values.appVersion ?? ""}`,
-            `loadedUpdateVersion=${values.loadedUpdateVersion ?? ""}`,
-            `pendingVersion=${values.pendingVersion ?? ""}`,
-            `shownVersion=${values.shownVersion ?? ""}`,
-            `refreshToken=${values.refreshToken ?? ""}`,
-            `arrivedFromAutomaticUpdate=${String(values.arrivedFromAutomaticUpdate)}`
-        ];
-
-        text.textContent = parts.join(" | ");
-        box.hidden = false;
-    } catch (error) {
-        console.info("Update debug skipped:", error);
-    }
-}
-
 function showAppUpdatedToastIfNeeded() {
     try {
-        const params = new URL(window.location.href).searchParams;
-        const loadedUpdateVersion = params.get("v");
-        const refreshToken = params.get("refresh");
-        const pendingVersion = localStorage.getItem(PENDING_UPDATE_VERSION_KEY);
-        const shownVersion = localStorage.getItem(SHOWN_UPDATE_VERSION_KEY);
+        const LAST_SEEN_APP_VERSION_KEY = "golfVoiceScorecard-lastSeenAppVersion";
+        const previousVersion =
+            localStorage.getItem(LAST_SEEN_APP_VERSION_KEY) ||
+            localStorage.getItem(SHOWN_UPDATE_VERSION_KEY) ||
+            "";
 
-        // A real automatic update is identified primarily by the versioned
-        // reload URL created by updateToLatestVersionIfNeeded(). Keep the
-        // pending marker as a fallback for older test builds.
-        const arrivedFromAutomaticUpdate =
-            (loadedUpdateVersion === APP_VERSION && Boolean(refreshToken)) ||
-            pendingVersion === APP_VERSION;
-
-        console.info("PWA update notification:", {
-            appVersion: APP_VERSION,
-            loadedUpdateVersion,
-            pendingVersion,
-            shownVersion,
-            arrivedFromAutomaticUpdate
-        });
-
-        showUpdateDebug({
-            appVersion: APP_VERSION,
-            loadedUpdateVersion,
-            pendingVersion,
-            shownVersion,
-            refreshToken,
-            arrivedFromAutomaticUpdate
-        });
-
-        if (!arrivedFromAutomaticUpdate || shownVersion === APP_VERSION) return;
-
-        localStorage.setItem(SHOWN_UPDATE_VERSION_KEY, APP_VERSION);
-        localStorage.removeItem(PENDING_UPDATE_VERSION_KEY);
-
-        const toast = document.getElementById("app-update-toast");
-        if (!toast) {
-            console.info("Päivitysilmoitusta ei löytynyt HTML:stä.");
+        // First use/install: establish the baseline without showing an update toast.
+        if (!previousVersion) {
+            localStorage.setItem(LAST_SEEN_APP_VERSION_KEY, APP_VERSION);
             return;
         }
 
+        // Same version as last time: nothing new to announce.
+        if (previousVersion === APP_VERSION) return;
+
+        // A different app version is now running. Show the notification once,
+        // regardless of any old ?v= or refresh parameters in the PWA URL.
+        localStorage.setItem(LAST_SEEN_APP_VERSION_KEY, APP_VERSION);
+        localStorage.setItem(SHOWN_UPDATE_VERSION_KEY, APP_VERSION);
+
+        const toast = document.getElementById("app-update-toast");
+        if (!toast) return;
+
         const text = toast.querySelector(".app-update-toast-text");
-        if (text) {
-            text.textContent = `Käytössäsi on nyt versio ${APP_VERSION}`;
-        }
+        if (text) text.textContent = `Käytössäsi on nyt versio ${APP_VERSION}`;
 
         toast.hidden = false;
-        toast.removeAttribute("hidden");
-        window.requestAnimationFrame(() => {
-            toast.classList.add("show");
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => toast.classList.add("show"));
         });
 
         window.setTimeout(() => {
             toast.classList.remove("show");
             window.setTimeout(() => {
                 toast.hidden = true;
-            }, 250);
+            }, 260);
         }, 3500);
     } catch (error) {
-        console.info("Päivitysilmoitus ohitettiin:", error);
+        console.info("Update toast skipped:", error);
     }
 }
 
