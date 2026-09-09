@@ -2,7 +2,7 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.10";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.11";
         const UPDATE_CHECK_URL = "version.json";
 
 const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
