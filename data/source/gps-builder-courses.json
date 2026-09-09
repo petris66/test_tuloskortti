@@ -134,5 +134,13 @@
     "lat": 60.220251,
     "lon": 24.05232,
     "radius": 3200
+  },
+  {
+    "name": "Lahden Golf – Mestari",
+    "courseId": "lahden-golf-mestari",
+    "country": "FI",
+    "lat": 61.026554,
+    "lon": 25.725449,
+    "radius": 3200
   }
 ]

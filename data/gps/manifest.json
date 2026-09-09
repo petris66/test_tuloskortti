@@ -86,6 +86,14 @@
       "file": "FI/stlaurence-pyha-lauri.json",
       "status": "pending",
       "holes": 18
+    },
+    {
+      "courseId": "lahden-golf-mestari",
+      "course": "Lahden Golf – Mestari",
+      "country": "FI",
+      "file": "FI/lahden-golf-mestari.json",
+      "status": "pending",
+      "holes": 18
     }
   ]
 }
