@@ -900,14 +900,14 @@ async function updateToLatestVersionIfNeeded() {
                 let data = [];
 
                 try {
-                    const manifestResponse = await fetch("data/courses/manifest.json", { cache: "no-store" });
+                    const manifestResponse = await fetch("data/source/manifest.json", { cache: "no-store" });
                     if (!manifestResponse.ok) throw new Error(`Manifest HTTP ${manifestResponse.status}`);
                     const manifest = await manifestResponse.json();
                     const courseFiles = Array.isArray(manifest?.courses) ? manifest.courses : [];
                     if (courseFiles.length === 0) throw new Error("Kenttämanifesti on tyhjä.");
 
                     const libraries = await Promise.all(courseFiles.map(async entry => {
-                        const response = await fetch(`data/courses/${entry.file}`, { cache: "no-store" });
+                        const response = await fetch(`data/source/${entry.file}`, { cache: "no-store" });
                         if (!response.ok) throw new Error(`${entry.file}: HTTP ${response.status}`);
                         const rows = await response.json();
                         if (!Array.isArray(rows)) throw new Error(`${entry.file}: virheellinen kenttädata`);
