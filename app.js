@@ -2,39 +2,41 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.8";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.9";
         const UPDATE_CHECK_URL = "version.json";
 
-const LAST_SEEN_APP_VERSION_KEY = "golfVoiceScorecard-lastSeenAppVersion";
+const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
 
 function showAppUpdatedToastIfNeeded() {
     try {
-        const previousVersion = localStorage.getItem(LAST_SEEN_APP_VERSION_KEY);
-        if (!previousVersion) {
-            localStorage.setItem(LAST_SEEN_APP_VERSION_KEY, APP_VERSION);
-            return;
-        }
-        if (previousVersion === APP_VERSION) return;
-        localStorage.setItem(LAST_SEEN_APP_VERSION_KEY, APP_VERSION);
+        const pendingVersion = localStorage.getItem(PENDING_UPDATE_VERSION_KEY);
+        if (pendingVersion !== APP_VERSION) return;
+
+        localStorage.removeItem(PENDING_UPDATE_VERSION_KEY);
 
         const toast = document.getElementById("app-update-toast");
         if (!toast) return;
+
         const text = toast.querySelector(".app-update-toast-text");
-        if (text) text.textContent = `Käytössäsi on nyt versio ${APP_VERSION}`;
+        if (text) {
+            text.textContent = `Käytössäsi on nyt versio ${APP_VERSION}`;
+        }
 
         toast.hidden = false;
         requestAnimationFrame(() => toast.classList.add("show"));
+
         window.setTimeout(() => {
             toast.classList.remove("show");
-            window.setTimeout(() => { toast.hidden = true; }, 250);
+            window.setTimeout(() => {
+                toast.hidden = true;
+            }, 250);
         }, 3500);
     } catch (error) {
         console.info("Päivitysilmoitus ohitettiin:", error);
     }
 }
 
-
-        async function updateToLatestVersionIfNeeded() {
+async function updateToLatestVersionIfNeeded() {
             try {
                 const response = await fetch(`${UPDATE_CHECK_URL}?t=${Date.now()}`, {
                     cache: "no-store"
@@ -47,6 +49,12 @@ function showAppUpdatedToastIfNeeded() {
 
                 const url = new URL(window.location.href);
                 if (url.searchParams.get("v") === latestVersion) return false;
+
+                try {
+                    localStorage.setItem(PENDING_UPDATE_VERSION_KEY, latestVersion);
+                } catch (error) {
+                    console.info("Päivitystilan tallennus ohitettiin:", error);
+                }
 
                 url.searchParams.set("v", latestVersion);
                 url.searchParams.set("refresh", Date.now().toString());
