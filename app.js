@@ -2,7 +2,7 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.23";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.24";
         const UPDATE_CHECK_URL = "version.json";
 
 const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
@@ -86,6 +86,7 @@ async function updateToLatestVersionIfNeeded() {
         const HISTORY_KEY = "golfTuloslaskuriHistory";
         const MAX_PLAYERS = 4;
         const GPS_DISTANCE_ACCURACY_LIMIT_METERS = 15;
+        const GPS_COURSE_DETECTION_ACCURACY_LIMIT_METERS = 100;
 
         let playerCount = 1;
         let roundSetupConfirmed = false;
@@ -102,6 +103,9 @@ async function updateToLatestVersionIfNeeded() {
         let selectedCourseId = "";
         let selectedTee = "";
         let selectedGender = "";
+        let gpsAutoCourseResolved = false;
+        let gpsAutoCourseLookupInProgress = false;
+        let gpsCourseSelectionManuallyChanged = false;
         let manualNineView = null;
         let playerHandicaps = Array(MAX_PLAYERS).fill("");
         let playerGenders = Array(MAX_PLAYERS).fill("Miehet");
@@ -196,6 +200,7 @@ async function updateToLatestVersionIfNeeded() {
             let config = null;
             let greens = new Map();
             let loadingCourseId = "";
+            const configCache = new Map();
 
             function radians(value) {
                 return Number(value) * Math.PI / 180;
@@ -229,6 +234,8 @@ async function updateToLatestVersionIfNeeded() {
             }
 
             async function loadConfig(courseId) {
+                if (configCache.has(courseId)) return configCache.get(courseId);
+
                 const gpsManifest = await loadManifest();
                 const entry = gpsManifest?.courses?.find(item => item.courseId === courseId);
                 if (!entry?.file) return null;
@@ -240,7 +247,54 @@ async function updateToLatestVersionIfNeeded() {
                     throw new Error(`GPS config HTTP ${response.status}`);
                 }
 
-                return response.json();
+                const courseConfig = await response.json();
+                configCache.set(courseId, courseConfig);
+                return courseConfig;
+            }
+
+            function courseReferencePoint(courseConfig) {
+                const explicit =
+                    pointFrom(courseConfig?.courseCenter) ||
+                    pointFrom(courseConfig?.location) ||
+                    pointFrom(courseConfig?.center);
+                if (explicit) return explicit;
+
+                const points = (courseConfig?.holes || [])
+                    .map(row => pointFrom(row?.greenCenter))
+                    .filter(Boolean);
+                if (!points.length) return null;
+
+                return {
+                    lat: points.reduce((sum, point) => sum + point.lat, 0) / points.length,
+                    lon: points.reduce((sum, point) => sum + point.lon, 0) / points.length
+                };
+            }
+
+            async function findNearestCourse(latitude, longitude, eligibleCourseIds = null) {
+                const gpsManifest = await loadManifest();
+                const entries = Array.isArray(gpsManifest?.courses) ? gpsManifest.courses : [];
+                const candidates = eligibleCourseIds instanceof Set
+                    ? entries.filter(entry => eligibleCourseIds.has(entry.courseId))
+                    : entries;
+
+                const resolved = await Promise.all(candidates.map(async entry => {
+                    try {
+                        const courseConfig = await loadConfig(entry.courseId);
+                        const point = courseReferencePoint(courseConfig);
+                        if (!point) return null;
+                        return {
+                            courseId: entry.courseId,
+                            distance: distanceMeters(latitude, longitude, point.lat, point.lon)
+                        };
+                    } catch (error) {
+                        console.warn(`GPS-kentän ${entry.courseId} sijaintia ei voitu lukea:`, error);
+                        return null;
+                    }
+                }));
+
+                return resolved
+                    .filter(Boolean)
+                    .sort((a, b) => a.distance - b.distance)[0] || null;
             }
 
             function pointFrom(value) {
@@ -331,7 +385,8 @@ async function updateToLatestVersionIfNeeded() {
                 getCount,
                 getConfig,
                 isHoleUnavailable,
-                distanceMeters
+                distanceMeters,
+                findNearestCourse
             };
         })();
 
@@ -731,6 +786,60 @@ async function updateToLatestVersionIfNeeded() {
             }
         }
 
+        function formatCourseDistance(distanceMeters) {
+            if (!Number.isFinite(distanceMeters)) return "";
+            if (distanceMeters < 1000) return `${Math.round(distanceMeters)} m`;
+            return `${(distanceMeters / 1000).toFixed(distanceMeters < 10000 ? 1 : 0).replace(".", ",")} km`;
+        }
+
+        async function autoSelectNearestCourse(position) {
+            if (
+                gpsAutoCourseResolved ||
+                gpsAutoCourseLookupInProgress ||
+                gpsCourseSelectionManuallyChanged ||
+                !position?.coords
+            ) return;
+
+            const { latitude, longitude, accuracy } = position.coords;
+            if (
+                !Number.isFinite(latitude) ||
+                !Number.isFinite(longitude) ||
+                !Number.isFinite(accuracy) ||
+                accuracy > GPS_COURSE_DETECTION_ACCURACY_LIMIT_METERS ||
+                !courseData.length
+            ) return;
+
+            gpsAutoCourseLookupInProgress = true;
+            try {
+                const courses = getUniqueCourses();
+                const eligibleIds = new Set(courses.map(course => course.id));
+                const nearest = await GolfGPS.findNearestCourse(latitude, longitude, eligibleIds);
+                gpsAutoCourseResolved = true;
+                if (!nearest?.courseId) return;
+
+                const matchedCourse = courses.find(course => course.id === nearest.courseId);
+                if (!matchedCourse) return;
+
+                if (selectedCourseId !== nearest.courseId) {
+                    selectedCourseId = nearest.courseId;
+                    courseSelect.value = selectedCourseId;
+                    populateGenderOptions();
+                    populateTeeOptions();
+                    refreshScoreTableForCourse();
+                    await loadSelectedCourseGpsData();
+                }
+
+                if (gpsMessage) {
+                    gpsMessage.textContent =
+                        `Lähin kenttä tunnistettu: ${matchedCourse.name} (${formatCourseDistance(nearest.distance)}).`;
+                }
+            } catch (error) {
+                console.warn("Lähimmän kentän automaattinen tunnistus epäonnistui:", error);
+            } finally {
+                gpsAutoCourseLookupInProgress = false;
+            }
+        }
+
         function handleGpsPosition(position) {
             const { latitude, longitude, accuracy } = position.coords;
             const measurementTime = new Date(Number(position.timestamp) || Date.now());
@@ -769,6 +878,7 @@ async function updateToLatestVersionIfNeeded() {
                 });
             }
             updateGpsPositionAge();
+            void autoSelectNearestCourse(position);
             updateGreenCenterDistance();
             updateObstacleInfo();
         }
@@ -817,6 +927,9 @@ async function updateToLatestVersionIfNeeded() {
         }
 
         function startGps() {
+            gpsAutoCourseResolved = false;
+            gpsAutoCourseLookupInProgress = false;
+            gpsCourseSelectionManuallyChanged = false;
             setGpsDetailsVisible(true);
             setGpsBadge("loading", "Haetaan sijaintia…");
             if (gpsStatus) gpsStatus.textContent = "Haetaan sijaintia";
@@ -5391,6 +5504,8 @@ async function updateToLatestVersionIfNeeded() {
         });
 
         courseSelect.addEventListener("change", () => {
+            gpsCourseSelectionManuallyChanged = true;
+            gpsAutoCourseResolved = true;
             selectedCourseId = courseSelect.value;
             populateGenderOptions();
             populateTeeOptions();
