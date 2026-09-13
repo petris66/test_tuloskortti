@@ -42,3 +42,20 @@ Upload:
 - app.js is included and is byte-for-byte identical to the supplied working baseline.
 
 
+
+
+3.7.25
+- Unified visible app version to 3.7.25.
+- Added Hirvihaara GPS F/C/B data to the main GPS library.
+- Added Hirvihaara active-hole fairway map behind the existing GPS toggle.
+- Hole detection requires 3 consecutive accepted GPS fixes at <= ±5 m.
+- Scorecard hole/score state is not changed by GPS hole detection.
+- GPS off hides/resets the Hirvihaara hole map; scorecard remains unchanged.
+- Uses approved v0.15/v0.16 Hirvihaara hole-board geometry, water and corrected hole 1 green.
+
+
+3.7.26
+- Added Hirvihaara one-click sofa test inside the Scorecard GPS map panel.
+- Sofa test selects holes 1-18 and injects a programmatic ±3 m location without real GPS or 3-fix confirmation.
+- Real field GPS behavior remains unchanged: 3 consecutive accepted fixes at <= ±5 m.
+- When GPS is accurate but user is off-course, status now says that sofa test is available.

@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "country": "FI",
   "courses": [
     {
@@ -93,6 +93,14 @@
       "country": "FI",
       "file": "FI/lahden-golf-mestari.json",
       "status": "pending",
+      "holes": 18
+    },
+    {
+      "courseId": "hirvihaara",
+      "course": "Hirvihaara",
+      "country": "FI",
+      "file": "FI/hirvihaara.json",
+      "status": "field-test",
       "holes": 18
     }
   ]

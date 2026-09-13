@@ -2461,3 +2461,74 @@ body {
 .about-author {
     font-weight: 400;
 }
+
+
+/* Hirvihaara active-hole map integration — v3.7.25 */
+.gps-hole-map-panel {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 14px;
+    background: rgba(238, 245, 232, 0.95);
+    border: 1px solid rgba(23, 63, 24, 0.18);
+}
+
+.gps-hole-map-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.gps-hole-map-heading small {
+    font-weight: 500;
+    opacity: 0.78;
+    text-align: right;
+}
+
+.gps-hole-map {
+    width: 100%;
+    height: min(58vh, 520px);
+    min-height: 390px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #c4dfa8;
+}
+
+.gps-hole-map .leaflet-container,
+.gps-hole-map.leaflet-container {
+    background: #c4dfa8;
+}
+
+@media (max-width: 600px) {
+    .gps-hole-map {
+        height: 52vh;
+        min-height: 360px;
+    }
+    .gps-hole-map-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .gps-hole-map-heading small {
+        text-align: left;
+    }
+}
+
+.gps-hole-map-test {
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin:0 0 8px 0;
+}
+.gps-hole-map-test select,
+.gps-hole-map-test button {
+    min-height:38px;
+}
+@media (max-width:600px) {
+    .gps-hole-map-test strong {
+        width:100%;
+    }
+}
