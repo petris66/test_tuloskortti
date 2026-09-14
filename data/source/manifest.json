@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updated": "2026-09-06",
+  "updated": "2026-09-14",
   "courses": [
     {
       "courseId": "gumbole",
@@ -155,6 +155,13 @@
       "country": "FI",
       "file": "FI/lahden-golf-mestari.json",
       "status": "verified_official_2026"
+    },
+    {
+      "courseId": "ringside",
+      "course": "Espoo Ringside Golf",
+      "country": "FI",
+      "file": "FI/ringside.json",
+      "status": "field_test_official_cr_slope_osm_holedata"
     }
   ]
 }

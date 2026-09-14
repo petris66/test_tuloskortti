@@ -1,0 +1,521 @@
+{
+  "schemaVersion": "1.2",
+  "libraryVersion": "1.0.0",
+  "courseId": "ringside",
+  "course": "Espoo Ringside Golf",
+  "country": "FI",
+  "mode": "green-front-center-back",
+  "source": "OpenStreetMap / saved Overpass snapshot v0.5",
+  "fieldValidation": {
+    "status": "pending",
+    "referenceDevice": "Garmin",
+    "notes": "Verify Green Front / Center / Back distances on course before marking validated."
+  },
+  "holes": [
+    {
+      "hole": 1,
+      "greenFront": {
+        "lat": 60.2723943,
+        "lon": 24.7427929
+      },
+      "greenCenter": {
+        "lat": 60.2721887,
+        "lon": 24.7428364
+      },
+      "greenBack": {
+        "lat": 60.2720007,
+        "lon": 24.7428712
+      },
+      "distancesMeters": {
+        "frontToCenter": 23.0,
+        "centerToBack": 21.0,
+        "frontToBack": 44.0
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729707212",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.1,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 2,
+      "greenFront": {
+        "lat": 60.2717361,
+        "lon": 24.7406252
+      },
+      "greenCenter": {
+        "lat": 60.271803,
+        "lon": 24.7402669
+      },
+      "greenBack": {
+        "lat": 60.2718777,
+        "lon": 24.7399473
+      },
+      "distancesMeters": {
+        "frontToCenter": 21.1,
+        "centerToBack": 19.5,
+        "frontToBack": 40.6
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729707217",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 3.1,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 3,
+      "greenFront": {
+        "lat": 60.2699839,
+        "lon": 24.737588
+      },
+      "greenCenter": {
+        "lat": 60.2699671,
+        "lon": 24.7372255
+      },
+      "greenBack": {
+        "lat": 60.2699188,
+        "lon": 24.7368962
+      },
+      "distancesMeters": {
+        "frontToCenter": 20.1,
+        "centerToBack": 18.9,
+        "frontToBack": 38.8
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729707231",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.7,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 4,
+      "greenFront": {
+        "lat": 60.2711995,
+        "lon": 24.7412579
+      },
+      "greenCenter": {
+        "lat": 60.2713202,
+        "lon": 24.7414935
+      },
+      "greenBack": {
+        "lat": 60.2714246,
+        "lon": 24.7417454
+      },
+      "distancesMeters": {
+        "frontToCenter": 18.7,
+        "centerToBack": 18.1,
+        "frontToBack": 36.7
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729710050",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.6,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 5,
+      "greenFront": {
+        "lat": 60.2759489,
+        "lon": 24.7433434
+      },
+      "greenCenter": {
+        "lat": 60.2760692,
+        "lon": 24.743385
+      },
+      "greenBack": {
+        "lat": 60.2761732,
+        "lon": 24.7433718
+      },
+      "distancesMeters": {
+        "frontToCenter": 13.6,
+        "centerToBack": 11.6,
+        "frontToBack": 25.0
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729710073",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.1,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 6,
+      "greenFront": {
+        "lat": 60.2736766,
+        "lon": 24.7451378
+      },
+      "greenCenter": {
+        "lat": 60.2735455,
+        "lon": 24.7450377
+      },
+      "greenBack": {
+        "lat": 60.2734081,
+        "lon": 24.7450978
+      },
+      "distancesMeters": {
+        "frontToCenter": 15.6,
+        "centerToBack": 15.6,
+        "frontToBack": 29.9
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729713699",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 0.9,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 7,
+      "greenFront": {
+        "lat": 60.2686361,
+        "lon": 24.7421092
+      },
+      "greenCenter": {
+        "lat": 60.2684583,
+        "lon": 24.7420173
+      },
+      "greenBack": {
+        "lat": 60.2683012,
+        "lon": 24.7419181
+      },
+      "distancesMeters": {
+        "frontToCenter": 20.4,
+        "centerToBack": 18.3,
+        "frontToBack": 38.7
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729713711",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 4.3,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 8,
+      "greenFront": {
+        "lat": 60.2709523,
+        "lon": 24.7420278
+      },
+      "greenCenter": {
+        "lat": 60.271122,
+        "lon": 24.7420889
+      },
+      "greenBack": {
+        "lat": 60.271284,
+        "lon": 24.7421676
+      },
+      "distancesMeters": {
+        "frontToCenter": 19.2,
+        "centerToBack": 18.5,
+        "frontToBack": 37.7
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729713717",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 0.6,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 9,
+      "greenFront": {
+        "lat": 60.2758033,
+        "lon": 24.7416812
+      },
+      "greenCenter": {
+        "lat": 60.2759283,
+        "lon": 24.7415722
+      },
+      "greenBack": {
+        "lat": 60.2760633,
+        "lon": 24.7414504
+      },
+      "distancesMeters": {
+        "frontToCenter": 15.1,
+        "centerToBack": 16.4,
+        "frontToBack": 31.6
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729713722",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.0,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 10,
+      "greenFront": {
+        "lat": 60.2793228,
+        "lon": 24.7465151
+      },
+      "greenCenter": {
+        "lat": 60.2794208,
+        "lon": 24.7466415
+      },
+      "greenBack": {
+        "lat": 60.2794124,
+        "lon": 24.7469164
+      },
+      "distancesMeters": {
+        "frontToCenter": 12.9,
+        "centerToBack": 15.2,
+        "frontToBack": 24.3
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729552064",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 2.0,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 11,
+      "greenFront": {
+        "lat": 60.2792343,
+        "lon": 24.7418839
+      },
+      "greenCenter": {
+        "lat": 60.2793062,
+        "lon": 24.7416423
+      },
+      "greenBack": {
+        "lat": 60.2793804,
+        "lon": 24.74139
+      },
+      "distancesMeters": {
+        "frontToCenter": 15.5,
+        "centerToBack": 16.2,
+        "frontToBack": 31.7
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729684745",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.6,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 12,
+      "greenFront": {
+        "lat": 60.2796504,
+        "lon": 24.7405387
+      },
+      "greenCenter": {
+        "lat": 60.2797402,
+        "lon": 24.7405964
+      },
+      "greenBack": {
+        "lat": 60.2798504,
+        "lon": 24.7406272
+      },
+      "distancesMeters": {
+        "frontToCenter": 10.5,
+        "centerToBack": 12.4,
+        "frontToBack": 22.8
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729684751",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.0,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 13,
+      "greenFront": {
+        "lat": 60.2747799,
+        "lon": 24.739013
+      },
+      "greenCenter": {
+        "lat": 60.2746803,
+        "lon": 24.7391174
+      },
+      "greenBack": {
+        "lat": 60.2745877,
+        "lon": 24.7392544
+      },
+      "distancesMeters": {
+        "frontToCenter": 12.5,
+        "centerToBack": 12.8,
+        "frontToBack": 25.2
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729686482",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 0.8,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 14,
+      "greenFront": {
+        "lat": 60.2759241,
+        "lon": 24.7381941
+      },
+      "greenCenter": {
+        "lat": 60.2760915,
+        "lon": 24.7382075
+      },
+      "greenBack": {
+        "lat": 60.2762662,
+        "lon": 24.7382184
+      },
+      "distancesMeters": {
+        "frontToCenter": 18.6,
+        "centerToBack": 19.4,
+        "frontToBack": 38.1
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729686490",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 0.1,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 15,
+      "greenFront": {
+        "lat": 60.2732496,
+        "lon": 24.7378009
+      },
+      "greenCenter": {
+        "lat": 60.2730589,
+        "lon": 24.7377651
+      },
+      "greenBack": {
+        "lat": 60.2728928,
+        "lon": 24.737787
+      },
+      "distancesMeters": {
+        "frontToCenter": 21.3,
+        "centerToBack": 18.5,
+        "frontToBack": 39.7
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729696411",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 3.3,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 16,
+      "greenFront": {
+        "lat": 60.2704737,
+        "lon": 24.7356732
+      },
+      "greenCenter": {
+        "lat": 60.27032,
+        "lon": 24.7355412
+      },
+      "greenBack": {
+        "lat": 60.2701811,
+        "lon": 24.7353889
+      },
+      "distancesMeters": {
+        "frontToCenter": 18.6,
+        "centerToBack": 17.6,
+        "frontToBack": 36.1
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729696427",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 5.7,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 17,
+      "greenFront": {
+        "lat": 60.2720156,
+        "lon": 24.7389507
+      },
+      "greenCenter": {
+        "lat": 60.272169,
+        "lon": 24.739118
+      },
+      "greenBack": {
+        "lat": 60.2723455,
+        "lon": 24.7392457
+      },
+      "distancesMeters": {
+        "frontToCenter": 19.4,
+        "centerToBack": 20.9,
+        "frontToBack": 40.1
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729696434",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 1.9,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    },
+    {
+      "hole": 18,
+      "greenFront": {
+        "lat": 60.2761703,
+        "lon": 24.7410436
+      },
+      "greenCenter": {
+        "lat": 60.2763269,
+        "lon": 24.7411262
+      },
+      "greenBack": {
+        "lat": 60.2764701,
+        "lon": 24.7411422
+      },
+      "distancesMeters": {
+        "frontToCenter": 18.0,
+        "centerToBack": 15.9,
+        "frontToBack": 33.8
+      },
+      "source": {
+        "provider": "OpenStreetMap / Overpass snapshot",
+        "osmElement": "way/729696446",
+        "assignedWith": "golf=hole endpoint + nearest-hole ownership",
+        "matchDistanceMeters": 0.9,
+        "edgeMethod": "front=green boundary nearest tee-side hole endpoint; back=farthest from tee-side endpoint; center=polygon centroid",
+        "verified": false
+      }
+    }
+  ],
+  "generatedAt": "2026-09-14T08:51:56.617068Z"
+}

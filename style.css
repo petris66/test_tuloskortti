@@ -2534,5 +2534,8 @@ body {
 }
 
 
-/* v3.7.29: fields with hole-map support */
-option.holemap-course { font-weight: 800; }
+/* v3.7.30: fields with hole-map support - deliberately obvious in course selector */
+option.holemap-course {
+    font-weight: 800;
+    color: #16752b;
+}

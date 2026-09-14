@@ -1,3 +1,11 @@
+3.7.30
+- FIX: Ringside added to the actual data/source course library used by app.js.
+- Added Espoo Ringside Golf as an 18-hole GPS + hole-map field-test course.
+- Added Ringside static hole boards from the saved/approved OSM snapshot; no runtime Overpass dependency.
+- Added Ringside F/C/B green points using the v0.7/v0.8 tee-side Front/Back method.
+- Hole-map capable courses are now shown bold and green in the course selector: Hirvihaara, Gumböle, Peurunka and Ringside.
+- Ringside remains field-test status; F/C/B verified=false until on-course validation.
+
 3.7.29
 - Lisätty Gumböle Golf väyläkarttoihin hyväksytyn sohvatesti v0.4 -paketin pohjalta.
 - Gumbölen vesigeometria käyttää hyväksyttyä Peurunka–Gumböle v0.16 -vesilogiikkaa (90 m).

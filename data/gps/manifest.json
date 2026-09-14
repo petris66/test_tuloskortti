@@ -102,6 +102,13 @@
       "file": "FI/hirvihaara.json",
       "status": "field-test",
       "holes": 18
+    },
+    {
+      "courseId": "ringside",
+      "course": "Espoo Ringside Golf",
+      "file": "FI/ringside.json",
+      "status": "field-test",
+      "holes": 18
     }
   ]
 }

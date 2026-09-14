@@ -2,20 +2,24 @@
 (() => {
     "use strict";
 
-    // Active-hole map module. Hirvihaara + Peurunka + Gumböle use the same
+    // Active-hole map module. Hirvihaara + Peurunka + Gumböle + Ringside use the same
     // rendering, GPS hole detection and sofa-test behavior.
     const COURSE_CONFIGS = {
         hirvihaara: {
             name: "Hirvihaara",
-            boardUrl: "data/maps/FI/hirvihaara-holeboards.json?v=3.7.29"
+            boardUrl: "data/maps/FI/hirvihaara-holeboards.json?v=3.7.30"
         },
         peurunkagolf: {
             name: "Peurunka",
-            boardUrl: "data/maps/FI/peurunka-holeboards.json?v=3.7.29"
+            boardUrl: "data/maps/FI/peurunka-holeboards.json?v=3.7.30"
         },
         gumbole: {
             name: "Gumböle",
-            boardUrl: "data/maps/FI/gumbole-holeboards.json?v=3.7.29"
+            boardUrl: "data/maps/FI/gumbole-holeboards.json?v=3.7.30"
+        },
+        ringside: {
+            name: "Espoo Ringside Golf",
+            boardUrl: "data/maps/FI/ringside-holeboards.json?v=3.7.30"
         }
     };
     const GPS_FIX_LIMIT_METERS = 5;

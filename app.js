@@ -2,7 +2,7 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.29";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.30";
         const UPDATE_CHECK_URL = "version.json";
 
 const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
@@ -5605,9 +5605,9 @@ async function updateToLatestVersionIfNeeded() {
         initializeApp();
 
 
-/* v3.7.29: hole-map course emphasis */
+/* v3.7.30: hole-map course emphasis */
 (function(){
-    const supported = new Set(["hirvihaara","gumbole","peurunkagolf"]);
+    const supported = new Set(["hirvihaara","gumbole","peurunkagolf","ringside"]);
     function markHoleMapCourses(){
         document.querySelectorAll("select option").forEach(option=>{
             const value=String(option.value||"").toLowerCase();
