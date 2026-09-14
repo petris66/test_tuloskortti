@@ -2532,3 +2532,7 @@ body {
         width:100%;
     }
 }
+
+
+/* v3.7.29: fields with hole-map support */
+option.holemap-course { font-weight: 800; }

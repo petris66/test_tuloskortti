@@ -2,7 +2,7 @@
 
 // Player gender separation v0.11: working scoring/voice base + M/N selector.
 
-        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.26";
+        const APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "3.7.29";
         const UPDATE_CHECK_URL = "version.json";
 
 const PENDING_UPDATE_VERSION_KEY = "golfVoiceScorecard-pendingUpdateVersion";
@@ -5603,3 +5603,21 @@ async function updateToLatestVersionIfNeeded() {
         }
 
         initializeApp();
+
+
+/* v3.7.29: hole-map course emphasis */
+(function(){
+    const supported = new Set(["hirvihaara","gumbole","peurunkagolf"]);
+    function markHoleMapCourses(){
+        document.querySelectorAll("select option").forEach(option=>{
+            const value=String(option.value||"").toLowerCase();
+            option.classList.toggle("holemap-course", supported.has(value));
+        });
+    }
+    if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded",markHoleMapCourses,{once:true});
+    }else{
+        markHoleMapCourses();
+    }
+    new MutationObserver(markHoleMapCourses).observe(document.documentElement,{childList:true,subtree:true});
+})();

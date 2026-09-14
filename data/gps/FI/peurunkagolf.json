@@ -340,47 +340,49 @@
     {
       "hole": 15,
       "greenFront": {
-        "lat": 62.428104346594786,
-        "lon": 25.86950016741362
+        "lat": 62.4280499,
+        "lon": 25.8695969
       },
       "greenCenter": {
-        "lat": 62.42822104649396,
-        "lon": 25.869846271603645
+        "lat": 62.42827225822268,
+        "lon": 25.869860936254025
       },
       "greenBack": {
-        "lat": 62.42832036519852,
-        "lon": 25.870117252403606
+        "lat": 62.4283208,
+        "lon": 25.8701312
       },
       "source": {
-        "provider": "Manual",
-        "osmElement": null,
-        "assignedWith": "GPS Builder manual map click",
-        "matchDistanceMeters": null,
-        "edgeMethod": "manual-front-center-back",
-        "verified": false
+        "provider": "FairwayMapper / OpenStreetMap",
+        "osmElement": "way/878198972",
+        "assignedWith": "derived from exact green polygon",
+        "matchDistanceMeters": 0,
+        "edgeMethod": "polygon-play-direction-extremes + polygon-centroid",
+        "verified": true,
+        "originalOsmTag": "golf=tee"
       }
     },
     {
       "hole": 16,
       "greenFront": {
-        "lat": 62.42994790349633,
-        "lon": 25.86995338304768
+        "lat": 62.4299613,
+        "lon": 25.8698925
       },
       "greenCenter": {
-        "lat": 62.43012294238757,
-        "lon": 25.87020290002188
+        "lat": 62.430076829275045,
+        "lon": 25.870147433367237
       },
       "greenBack": {
-        "lat": 62.43032280823796,
-        "lon": 25.870404123388173
+        "lat": 62.4302931,
+        "lon": 25.8703053
       },
       "source": {
-        "provider": "Manual",
-        "osmElement": null,
-        "assignedWith": "GPS Builder manual map click",
-        "matchDistanceMeters": null,
-        "edgeMethod": "manual-front-center-back",
-        "verified": false
+        "provider": "FairwayMapper / OpenStreetMap",
+        "osmElement": "way/878198980",
+        "assignedWith": "derived from exact green polygon",
+        "matchDistanceMeters": 0,
+        "edgeMethod": "polygon-play-direction-extremes + polygon-centroid",
+        "verified": true,
+        "originalOsmTag": "golf=tee"
       }
     },
     {

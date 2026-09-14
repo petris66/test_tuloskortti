@@ -1,3 +1,15 @@
+3.7.29
+- Lisätty Gumböle Golf väyläkarttoihin hyväksytyn sohvatesti v0.4 -paketin pohjalta.
+- Gumbölen vesigeometria käyttää hyväksyttyä Peurunka–Gumböle v0.16 -vesilogiikkaa (90 m).
+- Hirvihaaran ja Peurungan väyläkarttojen toiminta pidetty ennallaan.
+
+3.7.27
+- Peurunka lisätty väyläkarttoihin samalla toimintamallilla kuin Hirvihaara.
+- Peurunka käyttää data/maps/FI/peurunka-holeboards.json -aineistoa.
+- Väylien 15 ja 16 hyväksytyt tarkat FairwayMapper/OSM-griinipolygonit mukana.
+- Peurungan 15/16 GPS Front/Center/Back päivitetty samoista tarkoista polygoneista.
+- Hirvihaaran toiminta säilytetty ennallaan.
+
 GPS Phase 2 — Peurunka Golf field validation (10.8.2026)
 
 Test result:

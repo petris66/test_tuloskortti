@@ -2,14 +2,31 @@
 (() => {
     "use strict";
 
-    const COURSE_ID = "hirvihaara";
-    const BOARD_URL = "data/maps/FI/hirvihaara-holeboards.json?v=3.7.26";
+    // Active-hole map module. Hirvihaara + Peurunka + Gumböle use the same
+    // rendering, GPS hole detection and sofa-test behavior.
+    const COURSE_CONFIGS = {
+        hirvihaara: {
+            name: "Hirvihaara",
+            boardUrl: "data/maps/FI/hirvihaara-holeboards.json?v=3.7.29"
+        },
+        peurunkagolf: {
+            name: "Peurunka",
+            boardUrl: "data/maps/FI/peurunka-holeboards.json?v=3.7.29"
+        },
+        gumbole: {
+            name: "Gumböle",
+            boardUrl: "data/maps/FI/gumbole-holeboards.json?v=3.7.29"
+        }
+    };
     const GPS_FIX_LIMIT_METERS = 5;
     const CONFIRM_FIXES = 3;
     const FIRST_HOLE_MAX_METERS = 70;
     const SWITCH_HOLE_MAX_METERS = 60;
 
     let boardData = null;
+    let activeCourseId = null;
+    const boardCache = new Map();
+    const boardLoads = new Map();
     let map = null;
     let holeLayer = null;
     let playerMarker = null;
@@ -302,7 +319,7 @@
                 return;
             }
         } else if (best.d>FIRST_HOLE_MAX_METERS) {
-            if (statusEl) statusEl.textContent=`GPS tarkka, mutta et ole Hirvihaaran väylällä · sohvatesti käytettävissä`;
+            if (statusEl) statusEl.textContent=`GPS tarkka, mutta et ole ${COURSE_CONFIGS[activeCourseId]?.name || "valitun kentän"} väylällä · sohvatesti käytettävissä`;
             return;
         }
 
@@ -342,14 +359,60 @@
         if (statusEl) statusEl.textContent="Odotetaan GPS-paikannusta";
     }
 
-    function refreshFromScorecard() {
-        const hirvihaaraSelected = courseSelect?.value === COURSE_ID;
-        const active = isGpsActive();
+    async function loadBoardForCourse(courseId) {
+        const config=COURSE_CONFIGS[courseId];
+        if (!config) return null;
+        if (boardCache.has(courseId)) return boardCache.get(courseId);
+        if (boardLoads.has(courseId)) return boardLoads.get(courseId);
 
-        panel.hidden = !(hirvihaaraSelected && active);
+        const promise=fetch(config.boardUrl,{cache:"no-store"})
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                boardCache.set(courseId,data);
+                boardLoads.delete(courseId);
+                return data;
+            })
+            .catch(error => {
+                boardLoads.delete(courseId);
+                throw error;
+            });
+        boardLoads.set(courseId,promise);
+        return promise;
+    }
+
+    async function refreshFromScorecard() {
+        const selectedCourseId=courseSelect?.value || "";
+        const config=COURSE_CONFIGS[selectedCourseId];
+        const active=isGpsActive();
+
+        panel.hidden = !(config && active);
         if (panel.hidden) {
-            if (!active || !hirvihaaraSelected) resetMapState();
+            if (!active || !config) {
+                resetMapState();
+                activeCourseId=null;
+                boardData=null;
+            }
             return;
+        }
+
+        if (selectedCourseId !== activeCourseId || !boardData) {
+            resetMapState();
+            activeCourseId=selectedCourseId;
+            if (statusEl) statusEl.textContent=`Ladataan ${config.name} väyläkarttoja…`;
+            try {
+                boardData=await loadBoardForCourse(selectedCourseId);
+                // Ignore a completed fetch if the user changed course meanwhile.
+                if (courseSelect?.value !== selectedCourseId) return;
+                if (statusEl) statusEl.textContent=`${config.name} väyläkartat valmiina`;
+            } catch (error) {
+                console.warn(`${config.name} väyläkarttojen lataus epäonnistui:`,error);
+                if (statusEl) statusEl.textContent="Väyläkartan lataus epäonnistui";
+                boardData=null;
+                return;
+            }
         }
 
         if (map) setTimeout(() => map.invalidateSize(false),50);
@@ -381,16 +444,7 @@
     }
 
     async function init() {
-        try {
-            const response=await fetch(BOARD_URL,{cache:"no-store"});
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            boardData=await response.json();
-            if (statusEl) statusEl.textContent="Hirvihaaran väyläkartat valmiina";
-        } catch (error) {
-            console.warn("Hirvihaaran väyläkarttojen lataus epäonnistui:",error);
-            if (statusEl) statusEl.textContent="Väyläkartan lataus epäonnistui";
-            return;
-        }
+        if (statusEl) statusEl.textContent="Väyläkartat valmiina";
 
         [gpsStatus,gpsAccuracy,gpsLatitude,gpsLongitude].forEach(el => {
             if (!el) return;
