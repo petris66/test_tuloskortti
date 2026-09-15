@@ -469,15 +469,38 @@
         return 2*r*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));
     }
 
+    function updateTargetDistance(latlng) {
+        if (!lastPosition || !currentUnproject || !latlng) return;
+        const real=currentUnproject([latlng.lng,latlng.lat]);
+        const meters=Math.round(straightDistanceMeters(lastPosition.lat,lastPosition.lon,real[1],real[0]));
+        if (targetDistanceEl) targetDistanceEl.textContent=`Kohde: ${meters} m`;
+    }
+
+    function createTargetMarker(latlng) {
+        const icon=L.divIcon({
+            className:"holemap-target-icon",
+            html:'<span class="holemap-target-dot" aria-hidden="true"></span>',
+            iconSize:[30,30],
+            iconAnchor:[15,15]
+        });
+        const marker=L.marker(latlng,{
+            icon,
+            draggable:true,
+            keyboard:false,
+            bubblingMouseEvents:false,
+            autoPan:false,
+            title:"Siirrä kohdepistettä vetämällä"
+        }).addTo(map);
+        marker.on("drag",ev => updateTargetDistance(ev.target.getLatLng()));
+        marker.on("dragend",ev => updateTargetDistance(ev.target.getLatLng()));
+        return marker;
+    }
+
     function setTargetFromMapClick(e) {
         if (!map || !lastPosition || !currentUnproject) return;
-        const real=currentUnproject([e.latlng.lng,e.latlng.lat]);
-        const meters=Math.round(straightDistanceMeters(lastPosition.lat,lastPosition.lon,real[1],real[0]));
         if (targetMarker) targetMarker.remove();
-        targetMarker=L.circleMarker(e.latlng,{
-            radius:6, color:"#111", weight:2, fillColor:"#fff", fillOpacity:1, interactive:false
-        }).addTo(map);
-        if (targetDistanceEl) targetDistanceEl.textContent=`Kohde: ${meters} m`;
+        targetMarker=createTargetMarker(e.latlng);
+        updateTargetDistance(e.latlng);
     }
 
     function runSofaTest() {

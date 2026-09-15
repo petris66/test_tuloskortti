@@ -2550,3 +2550,27 @@ option.holemap-course {
 @media (max-width:600px) {
     .gps-hole-map-target-distance { margin-left:0; }
 }
+
+
+/* v3.7.42: draggable hole-map target. Large touch area, small visible dot. */
+.holemap-target-icon {
+    background: transparent !important;
+    border: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
+}
+.holemap-target-icon:active { cursor: grabbing; }
+.holemap-target-dot {
+    display: block;
+    width: 12px;
+    height: 12px;
+    box-sizing: border-box;
+    border: 2px solid #111;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.35);
+    pointer-events: none;
+}

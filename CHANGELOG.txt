@@ -1,4 +1,4 @@
-v3.7.41 - CLEAN TEST BUILD
+v3.7.42 - CLEAN TEST BUILD
 - Based on the v3.7.32 target-distance build, with all GREEN sofa-position injection removed.
 - Permanent GPS-detected-hole -> GREEN F/C/B synchronization retained.
 - Draggable Kohde distance retained.
