@@ -193,6 +193,26 @@ async function updateToLatestVersionIfNeeded() {
         const gpsGreenBackDistance = document.getElementById("gpsGreenBackDistance");
         const gpsObstacleInfo = document.getElementById("gpsObstacleInfo");
         const manualEntryToolbar = document.getElementById("manualEntryToolbar");
+        let gpsDetectedHole = null;
+
+        function getGpsTargetHole() {
+            const detected = Number(gpsDetectedHole);
+            if (Number.isInteger(detected) && detected >= 1 && detected <= 18) {
+                return detected;
+            }
+            return Number(nextHole || 1);
+        }
+
+        window.addEventListener("golf-gps-hole-detected", event => {
+            const detail = event?.detail || {};
+            if (detail.courseId && detail.courseId !== selectedCourseId) return;
+            const hole = Number(detail.hole);
+            gpsDetectedHole = Number.isInteger(hole) && hole >= 1 && hole <= 18
+                ? hole
+                : null;
+            updateGreenCenterDistance();
+            updateObstacleInfo();
+        });
 
 
         const GolfGPS = (() => {
@@ -547,6 +567,7 @@ async function updateToLatestVersionIfNeeded() {
             };
         })();
 
+
         function setGpsDetailsVisible(visible) {
             if (gpsDetails) gpsDetails.hidden = !visible;
         }
@@ -604,7 +625,7 @@ async function updateToLatestVersionIfNeeded() {
 
 
         function resetGreenDistanceDisplay() {
-            if (gpsGreenHole) gpsGreenHole.textContent = String(nextHole || 1);
+            if (gpsGreenHole) gpsGreenHole.textContent = String(getGpsTargetHole());
             if (gpsGreenFrontDistance) gpsGreenFrontDistance.textContent = "—";
             if (gpsGreenCenterDistance) gpsGreenCenterDistance.textContent = "—";
             if (gpsGreenBackDistance) gpsGreenBackDistance.textContent = "—";
@@ -615,7 +636,7 @@ async function updateToLatestVersionIfNeeded() {
 
             const position = GPS.getPosition();
             const config = GolfGPS.getConfig();
-            const currentHole = Number(nextHole || 1);
+            const currentHole = getGpsTargetHole();
             const green = GolfGPS.getGreenCenter(currentHole);
 
             const obstacles = Array.isArray(config?.obstacles)
@@ -702,11 +723,12 @@ async function updateToLatestVersionIfNeeded() {
         }
 
         function updateGreenCenterDistance() {
-            if (gpsGreenHole) gpsGreenHole.textContent = String(nextHole || 1);
+            const targetHole = getGpsTargetHole();
+            if (gpsGreenHole) gpsGreenHole.textContent = String(targetHole);
 
             const position = GPS.getPosition();
-            const green = GolfGPS.getGreen(nextHole);
-            const unavailable = GolfGPS.isHoleUnavailable(nextHole);
+            const green = GolfGPS.getGreen(targetHole);
+            const unavailable = GolfGPS.isHoleUnavailable(targetHole);
             const targets = [
                 [gpsGreenFrontDistance, green?.front],
                 [gpsGreenCenterDistance, green?.center],
@@ -5507,6 +5529,7 @@ async function updateToLatestVersionIfNeeded() {
             gpsCourseSelectionManuallyChanged = true;
             gpsAutoCourseResolved = true;
             selectedCourseId = courseSelect.value;
+            gpsDetectedHole = null;
             populateGenderOptions();
             populateTeeOptions();
             refreshScoreTableForCourse();

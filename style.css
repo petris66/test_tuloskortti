@@ -2539,3 +2539,14 @@ option.holemap-course {
     font-weight: 800;
     color: #16752b;
 }
+
+
+/* v3.7.41: clicked map target distance, outside the map */
+.gps-hole-map-target-distance {
+    margin-left:auto;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+}
+@media (max-width:600px) {
+    .gps-hole-map-target-distance { margin-left:0; }
+}

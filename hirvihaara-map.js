@@ -7,19 +7,19 @@
     const COURSE_CONFIGS = {
         hirvihaara: {
             name: "Hirvihaara",
-            boardUrl: "data/maps/FI/hirvihaara-holeboards.json?v=3.7.30"
+            boardUrl: "data/maps/FI/hirvihaara-holeboards.json?v=3.7.31"
         },
         peurunkagolf: {
             name: "Peurunka",
-            boardUrl: "data/maps/FI/peurunka-holeboards.json?v=3.7.30"
+            boardUrl: "data/maps/FI/peurunka-holeboards.json?v=3.7.31"
         },
         gumbole: {
             name: "Gumböle",
-            boardUrl: "data/maps/FI/gumbole-holeboards.json?v=3.7.30"
+            boardUrl: "data/maps/FI/gumbole-holeboards.json?v=3.7.31"
         },
         ringside: {
             name: "Espoo Ringside Golf",
-            boardUrl: "data/maps/FI/ringside-holeboards.json?v=3.7.30"
+            boardUrl: "data/maps/FI/ringside-holeboards.json?v=3.7.31"
         }
     };
     const GPS_FIX_LIMIT_METERS = 5;
@@ -39,6 +39,8 @@
     let candidateCount = 0;
     let lastPosition = null;
     let currentProject = null;
+    let currentUnproject = null;
+    let targetMarker = null;
 
     const panel = document.getElementById("hirvihaaraMapPanel");
     const mapEl = document.getElementById("hirvihaaraMap");
@@ -51,6 +53,7 @@
     const sofaTest = document.getElementById("hirvihaaraSofaTest");
     const testHoleSelect = document.getElementById("hirvihaaraTestHole");
     const testButton = document.getElementById("hirvihaaraTestButton");
+    const targetDistanceEl = document.getElementById("hirvihaaraTargetDistance");
 
     if (!panel || !mapEl || typeof L === "undefined") return;
 
@@ -193,7 +196,13 @@
             return [cx+(rotated[0]-cx)*scale, cy+(rotated[1]-cy)*scale];
         }
 
-        return { features, line, project };
+        function unproject(coord) {
+            const rotated=[cx+(coord[0]-cx)/scale, cy+(coord[1]-cy)/scale];
+            // Inverse of transformPoint: rotate by -angle around the same origin.
+            return transformPoint(rotated, origin, -angle, cosLat);
+        }
+
+        return { features, line, project, unproject };
     }
 
     function ensureMap() {
@@ -217,6 +226,9 @@
 
         const th=transformedHole(h);
         currentProject=th.project;
+        currentUnproject=th.unproject;
+        if (targetMarker) { targetMarker.remove(); targetMarker=null; }
+        if (targetDistanceEl) targetDistanceEl.textContent="Kohde: –";
 
         if (holeLayer) map.removeLayer(holeLayer);
         holeLayer=L.geoJSON(
@@ -230,8 +242,15 @@
         });
         if (!zoomFeatures.length && th.line) zoomFeatures=[th.line];
 
-        let bounds=L.geoJSON({type:"FeatureCollection",features:zoomFeatures}).getBounds();
-        if (!bounds.isValid() && th.line) bounds=L.geoJSON(th.line).getBounds();
+        let bounds;
+        // Ringside 18: preserve the field-tested line-anchored viewport correction.
+        // All other holes, including Ringside 13, use the original GitHub baseline logic.
+        if (activeCourseId === "ringside" && Number(n) === 18 && th.line) {
+            bounds=L.geoJSON(th.line).getBounds();
+        } else {
+            bounds=L.geoJSON({type:"FeatureCollection",features:zoomFeatures}).getBounds();
+            if (!bounds.isValid() && th.line) bounds=L.geoJSON(th.line).getBounds();
+        }
         if (bounds.isValid()) map.fitBounds(bounds,{padding:[8,12],maxZoom:20,animate:false});
 
         drawPlayer();
@@ -339,6 +358,9 @@
             currentHole=best.n;
             candidateHole=null;
             candidateCount=0;
+            window.dispatchEvent(new CustomEvent("golf-gps-hole-detected", {
+                detail: { courseId: activeCourseId, hole: currentHole }
+            }));
             showHole(currentHole);
         }
     }
@@ -353,11 +375,19 @@
     }
 
     function resetMapState() {
+        if (activeCourseId) {
+            window.dispatchEvent(new CustomEvent("golf-gps-hole-detected", {
+                detail: { courseId: activeCourseId, hole: null }
+            }));
+        }
         currentHole=null;
         candidateHole=null;
         candidateCount=0;
         lastPosition=null;
         currentProject=null;
+        currentUnproject=null;
+        if (targetMarker) { targetMarker.remove(); targetMarker=null; }
+        if (targetDistanceEl) targetDistanceEl.textContent="Kohde: –";
         if (playerMarker) { playerMarker.remove(); playerMarker=null; }
         if (holeLayer && map) { map.removeLayer(holeLayer); holeLayer=null; }
         if (statusEl) statusEl.textContent="Odotetaan GPS-paikannusta";
@@ -430,6 +460,26 @@
         }
     }
 
+    function straightDistanceMeters(aLat,aLon,bLat,bLon) {
+        const r=6371000;
+        const p1=aLat*Math.PI/180, p2=bLat*Math.PI/180;
+        const dp=(bLat-aLat)*Math.PI/180;
+        const dl=(bLon-aLon)*Math.PI/180;
+        const q=Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+        return 2*r*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));
+    }
+
+    function setTargetFromMapClick(e) {
+        if (!map || !lastPosition || !currentUnproject) return;
+        const real=currentUnproject([e.latlng.lng,e.latlng.lat]);
+        const meters=Math.round(straightDistanceMeters(lastPosition.lat,lastPosition.lon,real[1],real[0]));
+        if (targetMarker) targetMarker.remove();
+        targetMarker=L.circleMarker(e.latlng,{
+            radius:6, color:"#111", weight:2, fillColor:"#fff", fillOpacity:1, interactive:false
+        }).addTo(map);
+        if (targetDistanceEl) targetDistanceEl.textContent=`Kohde: ${meters} m`;
+    }
+
     function runSofaTest() {
         if (!boardData || !testHoleSelect) return;
         const n=Number(testHoleSelect.value);
@@ -444,7 +494,7 @@
         candidateHole=null;
         candidateCount=0;
         showHole(n);
-        if (statusEl) statusEl.textContent=`Sohvatesti · väylä ${n} · ohjelmallinen sijainti ±3 m`;
+        if (statusEl) statusEl.textContent=`Karttatesti · väylä ${n} · ohjelmallinen sijainti ±3 m`;
     }
 
     async function init() {
@@ -457,6 +507,8 @@
 
         courseSelect?.addEventListener("change",refreshFromScorecard);
         testButton?.addEventListener("click",runSofaTest);
+        ensureMap();
+        map?.on("click",setTargetFromMapClick);
 
         // Auto-course selection in the scorecard may set the select value without firing change.
         window.setInterval(refreshFromScorecard,1000);
