@@ -1,4 +1,15 @@
-v3.7.43 - PWA MANIFEST FIX
+v3.7.46 - ACTIVE HOLE INFO UI
+- Hide sofa-test hole selector and Testaa sijainti from normal view.
+- Show GPS-detected hole, PAR and Player 1 tee above the hole map.
+- Show tee-to-green-center length when the selected course row contains a verified meters value.
+- Keep draggable Kohde distance and existing GPS/GREEN/map logic unchanged.
+
+v3.7.45 - RINGSIDE VERIFIED OB TEST
+- Added exact OSM way/729795908 (golf=out_of_bounds) to Ringside hole 15.
+- Existing approved penalty-area rendering preserved.
+- Hirvihaara OB not added because exact OSM OB geometry is not present in the available source data; no geometry was guessed.
+
+v3.7.44 - PWA MANIFEST FIX
 - Restore the manifest filename expected by index.html: manifest.webmanifest.
 - No application logic, GPS, GREEN sync, hole-map rendering, or target-marker behavior changed.
 

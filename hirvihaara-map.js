@@ -78,7 +78,18 @@
         if (g === "green") return { color:"#0f5f2f", weight:3, fillColor:"#3f9f55", fillOpacity:1 };
         if (g === "tee") return { color:"#3f6d36", weight:2, fillColor:"#a9cf8d", fillOpacity:.98 };
         if (g === "bunker") return { color:"#967d42", weight:2, fillColor:"#e5ce86", fillOpacity:1 };
-        if (g === "water_hazard" || g === "lateral_water_hazard" || t.natural === "water" || t.water) {
+        // Penalty-area boundaries come directly from OSM/FairwayMapper golf tags.
+        // Keep the water fill blue, but show the actual marked boundary colour.
+        if (g === "lateral_water_hazard") {
+            return { color:"#d62828", weight:3, dashArray:"8 6", fillColor:"#78b9df", fillOpacity:.9 };
+        }
+        if (g === "water_hazard") {
+            return { color:"#e0b400", weight:3, dashArray:"8 6", fillColor:"#78b9df", fillOpacity:.9 };
+        }
+        if (g === "out_of_bounds") {
+            return { color:"#ffffff", weight:4, dashArray:"10 7", fillOpacity:0 };
+        }
+        if (t.natural === "water" || t.water) {
             return { color:"#2875aa", weight:2, fillColor:"#78b9df", fillOpacity:.9 };
         }
         if (t.waterway) return { color:"#2875aa", weight:4, opacity:.95 };

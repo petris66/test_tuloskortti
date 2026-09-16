@@ -193,7 +193,37 @@ async function updateToLatestVersionIfNeeded() {
         const gpsGreenBackDistance = document.getElementById("gpsGreenBackDistance");
         const gpsObstacleInfo = document.getElementById("gpsObstacleInfo");
         const manualEntryToolbar = document.getElementById("manualEntryToolbar");
+        const gpsHoleMapInfo = document.getElementById("gpsHoleMapInfo");
         let gpsDetectedHole = null;
+
+        function updateGpsHoleMapInfo() {
+            if (!gpsHoleMapInfo) return;
+            const hole = Number(gpsDetectedHole);
+            if (!Number.isInteger(hole) || hole < 1 || hole > 18) {
+                gpsHoleMapInfo.textContent = "Odotetaan väylän tunnistusta";
+                return;
+            }
+
+            const player1Selection = playerTees?.[0] || "";
+            const player1 = decodePlayerTee(player1Selection);
+            const gender = player1.gender || selectedGender;
+            const tee = player1.tee || selectedTee;
+            const row = courseData.find(item =>
+                item.courseId === selectedCourseId &&
+                item.gender === gender &&
+                item.tee === tee &&
+                Number(item.hole) === hole
+            ) || getHoleData(hole);
+
+            const par = Number(row?.par);
+            const meters = Number(row?.meters);
+            const teeLabel = tee ? `${tee} tii` : "Tii –";
+            const parts = [`Väylä ${hole}`];
+            if (Number.isFinite(par) && par > 0) parts.push(`PAR ${par}`);
+            parts.push(teeLabel);
+            if (Number.isFinite(meters) && meters > 0) parts.push(`${Math.round(meters)} m`);
+            gpsHoleMapInfo.textContent = parts.join(" · ");
+        }
 
         function getGpsTargetHole() {
             const detected = Number(gpsDetectedHole);
@@ -212,6 +242,7 @@ async function updateToLatestVersionIfNeeded() {
                 : null;
             updateGreenCenterDistance();
             updateObstacleInfo();
+            updateGpsHoleMapInfo();
         });
 
 
@@ -1557,6 +1588,7 @@ async function updateToLatestVersionIfNeeded() {
                 const gender = playerGenders[index] || "Miehet";
                 return tee ? encodePlayerTee(gender, tee) : "";
             });
+            updateGpsHoleMapInfo();
         }
 
         function restorePlayerRoundSettings() {

@@ -2574,3 +2574,20 @@ option.holemap-course {
     box-shadow: 0 1px 3px rgba(0,0,0,.35);
     pointer-events: none;
 }
+
+/* v3.7.46: compact active-hole information row */
+.gps-hole-map-info {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin:8px 0 10px;
+}
+.gps-hole-map-info > strong:first-child {
+    font-size:0.98rem;
+}
+.gps-hole-map-info .gps-hole-map-target-distance {
+    margin-left:auto;
+}
+.gps-hole-map-test[hidden] { display:none !important; }
