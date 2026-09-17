@@ -2591,3 +2591,14 @@ option.holemap-course {
     margin-left:auto;
 }
 .gps-hole-map-test[hidden] { display:none !important; }
+
+
+/* v3.7.48: read-only round/course information */
+.scorecard-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.scorecard-title-row .section-title { margin-bottom:0; }
+.round-info-button { border:1px solid var(--border); border-radius:999px; padding:7px 13px; background:#fff; color:var(--strong); font:inherit; font-weight:800; cursor:pointer; }
+.round-info-grid { display:grid; gap:0; margin:8px 0 16px; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.round-info-row { display:grid; grid-template-columns:minmax(105px,.8fr) minmax(0,1.4fr); gap:10px; padding:10px 12px; border-bottom:1px solid var(--border); align-items:center; }
+.round-info-row:last-child { border-bottom:0; }
+.round-info-row span { color:#59665a; font-size:14px; }
+.round-info-row strong { color:#173f18; overflow-wrap:anywhere; }

@@ -1209,6 +1209,47 @@ async function updateToLatestVersionIfNeeded() {
             return getRowsForSelectedCourse()[0]?.course || "";
         }
 
+        function formatExactHandicapForRoundInfo(value) {
+            const parsed = parseExactHandicap(value);
+            return parsed === null ? "–" : parsed.toFixed(1).replace(".", ",");
+        }
+
+        function openRoundInfo() {
+            const modal = document.getElementById("roundInfoModal");
+            const content = document.getElementById("roundInfoContent");
+            if (!modal || !content) return;
+
+            const playerName = document.getElementById("name1")?.value.trim() || "P1";
+            const player1 = decodePlayerTee(playerTees?.[0] || "");
+            const tee = player1.tee || selectedTee || "–";
+            const exactHcp = formatExactHandicapForRoundInfo(playerHandicaps?.[0]);
+            const courseHcp = calculatePlayerCourseHandicap(0);
+            const gpsText = GPS.isActive() ? "käytössä" : "pois";
+            const courseName = getSelectedCourseName() || "Kenttä ei valittu";
+            const start = Number(startHole) || Number(startHoleInput?.value) || 1;
+
+            const rows = [
+                ["Kenttä", courseName],
+                ["Aloitusreikä", String(start)],
+                ["Pelaaja 1", playerName],
+                ["Tii", tee],
+                ["Tasoitus (HCP)", exactHcp],
+                ["Kenttätasoitus (CH)", courseHcp === null ? "–" : String(courseHcp)],
+                ["GPS", gpsText]
+            ];
+
+            content.innerHTML = rows.map(([label, value]) =>
+                `<div class="round-info-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`
+            ).join("");
+            modal.classList.add("visible");
+        }
+
+        function closeRoundInfo() {
+            document.getElementById("roundInfoModal")?.classList.remove("visible");
+        }
+
+        window.openRoundInfo = openRoundInfo;
+
         function updateSelectedCourseInfo() {
             const rows = getSelectedCourseRows();
             const firstRow = rows[0];
@@ -5643,6 +5684,15 @@ async function updateToLatestVersionIfNeeded() {
             announceStandings = announceStandingsInput.checked;
             saveState();
         });
+
+        const roundInfoModal = document.getElementById("roundInfoModal");
+        const roundInfoCloseButton = document.getElementById("roundInfoCloseButton");
+        if (roundInfoCloseButton) roundInfoCloseButton.addEventListener("click", closeRoundInfo);
+        if (roundInfoModal) {
+            roundInfoModal.addEventListener("click", event => {
+                if (event.target === roundInfoModal) closeRoundInfo();
+            });
+        }
 
         async function initializeApp() {
             const updateStarted = await updateToLatestVersionIfNeeded();
