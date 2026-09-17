@@ -846,7 +846,12 @@ async function updateToLatestVersionIfNeeded() {
         }
 
         async function autoSelectNearestCourse(position) {
+            // Once a round has started, the selected course is locked. GPS may
+            // identify the playing hole, but it must never change the course or
+            // rebuild the scorecard while scores are being recorded.
             if (
+                roundSetupConfirmed ||
+                roundComplete ||
                 gpsAutoCourseResolved ||
                 gpsAutoCourseLookupInProgress ||
                 gpsCourseSelectionManuallyChanged ||
@@ -867,6 +872,12 @@ async function updateToLatestVersionIfNeeded() {
                 const courses = getUniqueCourses();
                 const eligibleIds = new Set(courses.map(course => course.id));
                 const nearest = await GolfGPS.findNearestCourse(latitude, longitude, eligibleIds);
+
+                // The lookup is asynchronous. Re-check the round lock before
+                // applying its result in case the round started while GPS was
+                // resolving the nearest course.
+                if (roundSetupConfirmed || roundComplete) return;
+
                 gpsAutoCourseResolved = true;
                 if (!nearest?.courseId) return;
 
