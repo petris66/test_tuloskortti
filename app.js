@@ -993,7 +993,9 @@ async function updateToLatestVersionIfNeeded() {
         function startGps() {
             gpsAutoCourseResolved = false;
             gpsAutoCourseLookupInProgress = false;
-            gpsCourseSelectionManuallyChanged = false;
+            // Do not clear gpsCourseSelectionManuallyChanged here. Once the
+            // user has explicitly chosen a course, starting or restarting GPS
+            // must not replace that choice with the nearest course.
             setGpsDetailsVisible(true);
             setGpsBadge("loading", "Haetaan sijaintia…");
             if (gpsStatus) gpsStatus.textContent = "Haetaan sijaintia";
@@ -1219,28 +1221,36 @@ async function updateToLatestVersionIfNeeded() {
             const content = document.getElementById("roundInfoContent");
             if (!modal || !content) return;
 
-            const playerName = document.getElementById("name1")?.value.trim() || "P1";
-            const player1 = decodePlayerTee(playerTees?.[0] || "");
-            const tee = player1.tee || selectedTee || "–";
-            const exactHcp = formatExactHandicapForRoundInfo(playerHandicaps?.[0]);
-            const courseHcp = calculatePlayerCourseHandicap(0);
             const gpsText = GPS.isActive() ? "käytössä" : "pois";
             const courseName = getSelectedCourseName() || "Kenttä ei valittu";
             const start = Number(startHole) || Number(startHoleInput?.value) || 1;
 
-            const rows = [
-                ["Kenttä", courseName],
-                ["Aloitusreikä", String(start)],
-                ["Pelaaja 1", playerName],
-                ["Tii", tee],
-                ["Tasoitus (HCP)", exactHcp],
-                ["Kenttätasoitus (CH)", courseHcp === null ? "–" : String(courseHcp)],
-                ["GPS", gpsText]
-            ];
+            const players = Array.from({ length: playerCount }, (_, index) => {
+                const playerNumber = index + 1;
+                const name = document.getElementById(`name${playerNumber}`)?.value.trim() || `P${playerNumber}`;
+                const playerTee = decodePlayerTee(playerTees?.[index] || "");
+                const tee = playerTee.tee || (index === 0 ? selectedTee : "") || "–";
+                const exactHcp = formatExactHandicapForRoundInfo(playerHandicaps?.[index]);
+                const courseHcp = calculatePlayerCourseHandicap(index);
 
-            content.innerHTML = rows.map(([label, value]) =>
-                `<div class="round-info-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`
-            ).join("");
+                return `
+                    <div class="round-info-player-card">
+                        <strong class="round-info-player-name">${escapeHtml(name)}</strong>
+                        <span>${escapeHtml(tee)}</span>
+                        <span>HCP ${escapeHtml(exactHcp)}</span>
+                        <span>CH ${escapeHtml(courseHcp === null ? "–" : String(courseHcp))}</span>
+                    </div>
+                `;
+            }).join("");
+
+            content.innerHTML = `
+                <div class="round-info-common">
+                    <div class="round-info-row"><span>Kenttä</span><strong>${escapeHtml(courseName)}</strong></div>
+                    <div class="round-info-row"><span>Aloitusreikä</span><strong>${escapeHtml(String(start))}</strong></div>
+                    <div class="round-info-row"><span>GPS</span><strong>${escapeHtml(gpsText)}</strong></div>
+                </div>
+                <div class="round-info-players" style="--round-info-player-count:${playerCount}">${players}</div>
+            `;
             modal.classList.add("visible");
         }
 

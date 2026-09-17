@@ -2593,7 +2593,7 @@ option.holemap-course {
 .gps-hole-map-test[hidden] { display:none !important; }
 
 
-/* v3.7.48: read-only round/course information */
+/* v3.7.49: read-only round/course information */
 .scorecard-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .scorecard-title-row .section-title { margin-bottom:0; }
 .round-info-button { border:1px solid var(--border); border-radius:999px; padding:7px 13px; background:#fff; color:var(--strong); font:inherit; font-weight:800; cursor:pointer; }
@@ -2602,3 +2602,14 @@ option.holemap-course {
 .round-info-row:last-child { border-bottom:0; }
 .round-info-row span { color:#59665a; font-size:14px; }
 .round-info-row strong { color:#173f18; overflow-wrap:anywhere; }
+.round-info-common { display:grid; }
+.round-info-players { display:grid; grid-template-columns:repeat(var(--round-info-player-count, 1), minmax(0, 1fr)); gap:6px; padding:8px; border-top:1px solid var(--border); }
+.round-info-player-card { min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; border:1px solid var(--border); border-radius:8px; background:#fff; text-align:center; }
+.round-info-player-card span { color:#59665a; font-size:12px; line-height:1.2; white-space:nowrap; }
+.round-info-player-name { width:100%; color:#173f18; font-size:13px; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:420px) {
+    .round-info-players { gap:4px; padding:6px; }
+    .round-info-player-card { padding:7px 2px; }
+    .round-info-player-card span { font-size:11px; }
+    .round-info-player-name { font-size:12px; }
+}
