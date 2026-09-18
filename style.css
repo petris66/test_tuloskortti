@@ -2613,3 +2613,42 @@ option.holemap-course {
     .round-info-player-card span { font-size:11px; }
     .round-info-player-name { font-size:12px; }
 }
+
+
+/* v3.7.50 eBirdie transfer */
+.ebirdie-transfer-modal-card { max-width: 620px; }
+.ebirdie-course { margin: 0 0 4px; font-size: 17px; color: #173f18; }
+.ebirdie-start-time { margin: 0 0 8px; font-size: 14px; color: #334a35; }
+.ebirdie-help { margin: 0 0 14px; font-size: 14px; line-height: 1.4; color: #59665a; }
+.ebirdie-player-card { margin: 0 0 12px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.ebirdie-player-heading { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 8px; }
+.ebirdie-player-heading strong { color: #173f18; }
+.ebirdie-player-heading span { color: #59665a; font-size: 13px; }
+.ebirdie-hole-numbers, .ebirdie-score-numbers { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; text-align: center; }
+.ebirdie-hole-numbers { margin-top: 5px; color: #667066; font-size: 10px; }
+.ebirdie-score-numbers { margin: 2px 0 7px; }
+.ebirdie-score-numbers strong { display: grid; place-items: center; min-height: 34px; border-radius: 7px; background: #eef5ef; color: #173f18; font-size: 20px; }
+@media (max-width: 520px) {
+  .ebirdie-transfer-modal-card { width: calc(100% - 20px); padding: 14px; }
+  .ebirdie-player-card { padding: 8px 6px; }
+  .ebirdie-score-numbers strong { min-height: 32px; font-size: 19px; }
+}
+
+/* v3.7.50 eBirdie PiP readability test */
+#eBirdiePiPVideo::cue {
+  font-size: 160%;
+  font-weight: 800;
+  color: white;
+  background: rgba(0,0,0,.88);
+}
+.ebirdie-pip-player-button {
+  width: 100%;
+  min-height: 42px;
+  margin: 0 0 8px;
+  border: 1px solid #1f6b34;
+  border-radius: 9px;
+  background: #eef5ef;
+  color: #173f18;
+  font-size: 15px;
+  font-weight: 700;
+}

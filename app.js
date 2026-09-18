@@ -94,6 +94,7 @@ async function updateToLatestVersionIfNeeded() {
         let startHole = 1;
         let roundHoleCount = 18;
         let roundComplete = false;
+        let roundStartedAt = null;
         let frontNineAnnounced = false;
         let pendingVoiceMessage = "";
         let announceStandings = false;
@@ -1901,6 +1902,36 @@ async function updateToLatestVersionIfNeeded() {
             selectedScoreInput.classList.add("selected-score");
 
             const selectedHole = Number(selectedScoreInput.dataset.hole);
+
+            // Kun ensimmäinen tulosruutu valitaan, ota kierrosnäkymän normaali
+            // väritys käyttöön heti. Aiemmin round-active aktivoitui vasta, kun
+            // ensimmäinen reikä valmistui, jolloin reiän 1 syöttönäkymä jäi
+            // hetkeksi "kaljuksi". Tämä ei käynnistä kierroksen aloitusaikaa;
+            // se tallennetaan edelleen vasta ensimmäisestä hyväksytystä tuloksesta.
+            if (selectedHole >= 1 && selectedHole <= 18 && !roundSetupConfirmed) {
+                roundSetupConfirmed = true;
+                updateNextHole();
+                updateRoundCompleteState();
+                updateRoundLayout();
+                saveState();
+
+                // round-active piilottaa aloituskortit ja muuttaa sivun korkeutta.
+                // iPhonella tämä voi nostaa 1. reiän aktiivisen syöttöruudun
+                // näytön yläpuolelle. Kohdista aktiivinen ruutu takaisin näkyviin
+                // vasta uuden layoutin valmistuttua.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (selectedScoreInput && document.body.contains(selectedScoreInput)) {
+                            selectedScoreInput.scrollIntoView({
+                                behavior: "auto",
+                                block: "center",
+                                inline: "nearest"
+                            });
+                        }
+                    });
+                });
+            }
+
             if (selectedHole >= 1 && selectedHole <= 18 && selectedHole !== nextHole) {
                 nextHole = selectedHole;
                 roundSetupConfirmed = true;
@@ -3813,6 +3844,11 @@ async function updateToLatestVersionIfNeeded() {
         function saveState() {
             syncPlayerRoundSettingsFromInputs();
 
+            // v3.7.50 eBirdie: record the round start time when the round first becomes active.
+            if (roundSetupConfirmed && !roundStartedAt) {
+                roundStartedAt = new Date().toISOString();
+            }
+
             const state = {
                 playerCount,
                 roundSetupConfirmed,
@@ -3820,6 +3856,7 @@ async function updateToLatestVersionIfNeeded() {
                 roundHoleCount,
                 nextHole,
                 roundComplete,
+                roundStartedAt,
                 frontNineAnnounced,
                 announceStandings,
                 courseId: selectedCourseId,
@@ -3877,6 +3914,7 @@ async function updateToLatestVersionIfNeeded() {
                         : (state.startHole ? String(startHole) : "");
                 }
                 roundComplete = Boolean(state.roundComplete);
+                roundStartedAt = typeof state.roundStartedAt === "string" ? state.roundStartedAt : null;
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
                 announceStandings = Boolean(state.announceStandings);
                 announceStandingsInput.checked = announceStandings;
@@ -4063,6 +4101,228 @@ async function updateToLatestVersionIfNeeded() {
 
         function hideRoundCompleteModal() {
             roundCompleteModal.classList.remove("visible");
+        }
+
+        function formatEBirdieStartTime() {
+            if (!roundStartedAt) return "–";
+            const date = new Date(roundStartedAt);
+            if (Number.isNaN(date.getTime())) return "–";
+            return new Intl.DateTimeFormat("fi-FI", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+            }).format(date);
+        }
+
+        function getEBirdieScore(player, hole) {
+            const input = document.querySelector(`.p${player}[data-hole="${hole}"]`);
+            const value = normalizeScoreValue(input?.value);
+            if (value === "-") return "-";
+            return value || "?";
+        }
+
+        function openEBirdieTransfer() {
+            hideRoundCompleteModal();
+
+            const modal = document.getElementById("eBirdieTransferModal");
+            const content = document.getElementById("eBirdieTransferContent");
+            if (!modal || !content) return;
+
+            // eBirdie-siirto tehdään vain tämän Scorecardin käyttäjän (pelaaja 1) tulokselle.
+            const player = 1;
+            const holes = getPlayedHoleOrder();
+            const courseName = getSelectedCourseName() || courseNameInput?.value.trim() || "Kenttä";
+            const name = document.getElementById("name1")?.value.trim() || "P1";
+            const decodedTee = decodePlayerTee(playerTees?.[0] || "");
+            const tee = decodedTee.tee || selectedTee || "–";
+            const scores = holes.map(hole => getEBirdieScore(player, hole));
+            const split = Math.min(9, scores.length);
+
+            const row = (rowHoles, rowScores) => rowHoles.length ? `
+                <div class="ebirdie-hole-numbers">${rowHoles.map(h => `<span>${h}</span>`).join("")}</div>
+                <div class="ebirdie-score-numbers">${rowScores.map(score => `<strong>${escapeHtml(score)}</strong>`).join("")}</div>
+            ` : "";
+
+            content.innerHTML = `
+                <p class="ebirdie-course"><strong>${escapeHtml(courseName)}</strong></p>
+                <p class="ebirdie-start-time"><strong>Aloitusaika:</strong> ${escapeHtml(formatEBirdieStartTime())}</p>
+                <p class="ebirdie-help">Avaa eBirdie ja valitse sama kenttä, aloitusaika ja tii. PiP näyttää oman tuloksesi koko syötön ajan. Viiva syötetään eBirdien –-painikkeella.</p>
+                <section class="ebirdie-player-card">
+                    <div class="ebirdie-player-heading">
+                        <strong>${escapeHtml(name)}</strong>
+                        <span>${escapeHtml(tee)} tii</span>
+                    </div>
+                    <button type="button" class="ebirdie-pip-player-button" data-player="1" onclick="startEBirdiePiPTest(1)">Näytä tulokset PiP</button>
+                    ${row(holes.slice(0, split), scores.slice(0, split))}
+                    ${row(holes.slice(split), scores.slice(split))}
+                </section>
+            `;
+            modal.classList.add("visible");
+        }
+
+        function getEBirdiePiPData(player = 1) {
+            player = 1;
+            const holes = getPlayedHoleOrder();
+            const name = document.getElementById("name1")?.value.trim() || "P1";
+            const scores = holes.map(hole => getEBirdieScore(1, hole));
+            const courseName = getSelectedCourseName() || courseNameInput?.value.trim() || "Kenttä";
+            const decodedTee = decodePlayerTee(playerTees?.[0] || "");
+            const tee = decodedTee.tee || selectedTee || "–";
+            const startTime = formatEBirdieStartTime();
+            return { name, holes, scores, courseName, tee, startTime };
+        }
+
+        function drawEBirdiePiPCard(canvas, player = 1) {
+            const { name, holes, scores, courseName, tee, startTime } = getEBirdiePiPData(1);
+            const ctx = canvas.getContext("2d");
+            const W = canvas.width;
+            const H = canvas.height;
+            ctx.fillStyle = "#103f1d";
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "700 34px Arial, sans-serif";
+            ctx.fillText(name, W / 2, 31);
+            ctx.fillStyle = "rgba(255,255,255,0.92)";
+            ctx.font = "600 25px Arial, sans-serif";
+            ctx.fillText(`${courseName}  ·  ${tee} tii  ·  ${startTime}`, W / 2, 68);
+
+            const split = Math.min(9, scores.length);
+            const groups = [
+                [holes.slice(0, split), scores.slice(0, split)],
+                [holes.slice(split), scores.slice(split)]
+            ];
+            const cellW = W / 9;
+            const rowY = [142, 290];
+
+            groups.forEach(([hs, ss], groupIndex) => {
+                if (!hs.length) return;
+                hs.forEach((hole, i) => {
+                    const x = cellW * (i + 0.5);
+                    ctx.fillStyle = "rgba(255,255,255,0.18)";
+                    ctx.beginPath();
+                    ctx.roundRect(i * cellW + 4, rowY[groupIndex] - 40, cellW - 8, 112, 10);
+                    ctx.fill();
+                    ctx.fillStyle = "rgba(255,255,255,0.82)";
+                    ctx.font = "500 22px Arial, sans-serif";
+                    ctx.fillText(String(hole), x, rowY[groupIndex] - 14);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "700 44px Arial, sans-serif";
+                    ctx.fillText(String(ss[i] ?? "?"), x, rowY[groupIndex] + 31);
+                });
+            });
+
+            // Tarkistusrivi eBirdie-syötön varmistamiseen. Viiva ei lisää lyöntejä summaan.
+            const numericScore = value => {
+                const n = Number(value);
+                return Number.isFinite(n) && n > 0 ? n : 0;
+            };
+            const frontTotal = scores.slice(0, 9).reduce((sum, value) => sum + numericScore(value), 0);
+            const backTotal = scores.slice(9, 18).reduce((sum, value) => sum + numericScore(value), 0);
+            const total = frontTotal + backTotal;
+            ctx.fillStyle = "rgba(255,255,255,0.95)";
+            ctx.font = "700 32px Arial, sans-serif";
+            ctx.fillText(`Etu ${frontTotal}   ·   Taka ${backTotal}   ·   Yhteensä ${total}`, W / 2, H - 22);
+        }
+
+        async function createEBirdiePiPVideo(player = 1) {
+            if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
+                throw new Error("iPhone ei tue dynaamisen PiP-videon luontia tässä selaimessa.");
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = 900;
+            canvas.height = 420;
+            drawEBirdiePiPCard(canvas, 1);
+
+            const stream = canvas.captureStream(2);
+            const candidates = [
+                "video/mp4;codecs=avc1.42E01E",
+                "video/mp4",
+                "video/webm;codecs=vp8",
+                "video/webm"
+            ];
+            const mimeType = candidates.find(type => MediaRecorder.isTypeSupported?.(type)) || "";
+            const recorder = new MediaRecorder(stream, mimeType ? { mimeType, videoBitsPerSecond: 1200000 } : undefined);
+            const chunks = [];
+            recorder.ondataavailable = event => { if (event.data?.size) chunks.push(event.data); };
+
+            const done = new Promise((resolve, reject) => {
+                recorder.onerror = event => reject(event.error || new Error("Videon luonti epäonnistui."));
+                recorder.onstop = () => resolve(new Blob(chunks, { type: recorder.mimeType || mimeType || "video/mp4" }));
+            });
+
+            recorder.start();
+            for (let i = 0; i < 5; i++) {
+                drawEBirdiePiPCard(canvas, 1);
+                await new Promise(resolve => setTimeout(resolve, 120));
+            }
+            recorder.stop();
+            const blob = await done;
+            stream.getTracks().forEach(track => track.stop());
+            return blob;
+        }
+
+        async function openPreparedEBirdiePiP() {
+            const video = document.getElementById("eBirdiePiPVideo");
+            video.currentTime = 0;
+            await video.play();
+
+            if (typeof video.webkitSupportsPresentationMode === "function" &&
+                video.webkitSupportsPresentationMode("picture-in-picture") &&
+                typeof video.webkitSetPresentationMode === "function") {
+                video.webkitSetPresentationMode("picture-in-picture");
+                return;
+            }
+            if (document.pictureInPictureEnabled && typeof video.requestPictureInPicture === "function") {
+                await video.requestPictureInPicture();
+                return;
+            }
+            throw new Error("Tämä Safari/iPhone ei tarjoa PiP-tilaa tälle videolle.");
+        }
+
+        async function startEBirdiePiPTest(player = 1) {
+            player = 1;
+            const video = document.getElementById("eBirdiePiPVideo");
+            const button = document.querySelector('.ebirdie-pip-player-button[data-player="1"]');
+            if (!video) return;
+
+            try {
+                if (video.dataset.readyPlayer === "1" && video.src.startsWith("blob:")) {
+                    await openPreparedEBirdiePiP();
+                    return;
+                }
+
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = "Valmistellaan PiP…";
+                }
+
+                const blob = await createEBirdiePiPVideo(1);
+                if (window._eBirdiePiPBlobUrl) URL.revokeObjectURL(window._eBirdiePiPBlobUrl);
+                window._eBirdiePiPBlobUrl = URL.createObjectURL(blob);
+                video.src = window._eBirdiePiPBlobUrl;
+                video.dataset.readyPlayer = "1";
+                video.loop = true;
+                video.load();
+
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = "Avaa tulokset PiP";
+                }
+            } catch (error) {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = "Näytä tulokset PiP";
+                }
+                alert(`PiP-videon valmistelu ei onnistunut: ${error?.message || error}`);
+            }
+        }
+
+        function closeEBirdieTransfer() {
+            document.getElementById("eBirdieTransferModal")?.classList.remove("visible");
         }
 
         function reviewCompletedRound() {
@@ -5432,6 +5692,7 @@ async function updateToLatestVersionIfNeeded() {
 
             nextHole = 1;
             roundComplete = false;
+            roundStartedAt = null;
             frontNineAnnounced = false;
             selectedScoreInput = null;
             roundSetupConfirmed = false;
