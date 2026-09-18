@@ -4227,7 +4227,10 @@ async function updateToLatestVersionIfNeeded() {
             bytes.forEach(b => binary += String.fromCharCode(b));
             const encoded = btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
             const pipUrl = `https://petris66.github.io/Golf-Score-PiP/#data=${encoded}`;
-            window.open(pipUrl, "_blank");
+            // iOS test: use a normal top-level navigation instead of window.open(_blank).
+            // Goal: let WebKit hand the cross-origin destination to Safari rather than
+            // creating a browser context that remains tied to the standalone PWA.
+            window.location.href = pipUrl;
         }
 
         function getEBirdiePiPData(player = 1) {
