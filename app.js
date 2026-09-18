@@ -4152,12 +4152,33 @@ async function updateToLatestVersionIfNeeded() {
                         <strong>${escapeHtml(name)}</strong>
                         <span>${escapeHtml(tee)} tii</span>
                     </div>
-                    <button type="button" class="ebirdie-pip-player-button" data-player="1" onclick="startEBirdiePiPTest(1)">Näytä tulokset PiP</button>
+                    <button type="button" class="ebirdie-pip-player-button" data-player="1">Näytä tulokset PiP</button>
                     ${row(holes.slice(0, split), scores.slice(0, split))}
                     ${row(holes.slice(split), scores.slice(split))}
                 </section>
             `;
             modal.classList.add("visible");
+
+            // iPhone/Safari: run PiP preparation directly from touchend.
+            // WebKit treats touchend as an activation-triggering event, which avoids
+            // GitHub Pages/PWA cases where a later click no longer has transient activation.
+            const pipButton = content.querySelector('.ebirdie-pip-player-button[data-player="1"]');
+            if (pipButton) {
+                let handledTouch = false;
+                pipButton.addEventListener("touchend", event => {
+                    handledTouch = true;
+                    event.preventDefault();
+                    startEBirdiePiPTest(1);
+                    setTimeout(() => { handledTouch = false; }, 700);
+                }, { passive: false });
+                pipButton.addEventListener("click", event => {
+                    if (handledTouch) {
+                        event.preventDefault();
+                        return;
+                    }
+                    startEBirdiePiPTest(1);
+                });
+            }
         }
 
         function getEBirdiePiPData(player = 1) {
