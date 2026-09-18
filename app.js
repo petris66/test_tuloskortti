@@ -4206,6 +4206,30 @@ async function updateToLatestVersionIfNeeded() {
             window.setTimeout(() => URL.revokeObjectURL(url), 1500);
         }
 
+        function openGolfScorePiPInSafari() {
+            // Send the completed player-1 round directly to the standalone Golf Score PiP page.
+            // The data is kept in the URL fragment (#data=...), so it is not sent to GitHub's server.
+            const holes = getPlayedHoleOrder();
+            const player = document.getElementById("name1")?.value.trim() || "P1";
+            const course = getSelectedCourseName() || courseNameInput?.value.trim() || "Kenttä";
+            const decodedTee = decodePlayerTee(playerTees?.[0] || "");
+            const tee = decodedTee.tee || selectedTee || "–";
+            const scores = holes.map(hole => {
+                const score = getEBirdieScore(1, hole);
+                if (score === "-") return "-";
+                const numeric = Number(score);
+                return Number.isFinite(numeric) ? numeric : score;
+            });
+            const payload = { player, course, tee, startTime: formatEBirdieStartTime(), scores };
+            const json = JSON.stringify(payload);
+            const bytes = new TextEncoder().encode(json);
+            let binary = "";
+            bytes.forEach(b => binary += String.fromCharCode(b));
+            const encoded = btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+            const pipUrl = `https://petris66.github.io/Golf-Score-PiP/#data=${encoded}`;
+            window.open(pipUrl, "_blank");
+        }
+
         function getEBirdiePiPData(player = 1) {
             player = 1;
             const holes = getPlayedHoleOrder();
