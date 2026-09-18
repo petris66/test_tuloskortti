@@ -4159,25 +4159,15 @@ async function updateToLatestVersionIfNeeded() {
             `;
             modal.classList.add("visible");
 
-            // iPhone/Safari: run PiP preparation directly from touchend.
-            // WebKit treats touchend as an activation-triggering event, which avoids
-            // GitHub Pages/PWA cases where a later click no longer has transient activation.
+            // Prepare the dynamic PiP video separately from opening PiP.
+            // The user's later button press is reserved only for video.play()/PiP entry,
+            // so no asynchronous video generation can consume Safari's user activation.
             const pipButton = content.querySelector('.ebirdie-pip-player-button[data-player="1"]');
             if (pipButton) {
-                let handledTouch = false;
-                pipButton.addEventListener("touchend", event => {
-                    handledTouch = true;
-                    event.preventDefault();
-                    startEBirdiePiPTest(1);
-                    setTimeout(() => { handledTouch = false; }, 700);
-                }, { passive: false });
-                pipButton.addEventListener("click", event => {
-                    if (handledTouch) {
-                        event.preventDefault();
-                        return;
-                    }
-                    startEBirdiePiPTest(1);
-                });
+                pipButton.disabled = true;
+                pipButton.textContent = "Valmistellaan PiP…";
+                pipButton.addEventListener("click", () => openEBirdiePiPFromButton());
+                prepareEBirdiePiPVideo(1);
             }
         }
 
@@ -4304,23 +4294,15 @@ async function updateToLatestVersionIfNeeded() {
             throw new Error("Tämä Safari/iPhone ei tarjoa PiP-tilaa tälle videolle.");
         }
 
-        async function startEBirdiePiPTest(player = 1) {
+        async function prepareEBirdiePiPVideo(player = 1) {
             player = 1;
             const video = document.getElementById("eBirdiePiPVideo");
             const button = document.querySelector('.ebirdie-pip-player-button[data-player="1"]');
             if (!video) return;
 
             try {
-                if (video.dataset.readyPlayer === "1" && video.src.startsWith("blob:")) {
-                    await openPreparedEBirdiePiP();
-                    return;
-                }
-
-                if (button) {
-                    button.disabled = true;
-                    button.textContent = "Valmistellaan PiP…";
-                }
-
+                // A new transfer view always gets a freshly rendered score video.
+                video.dataset.readyPlayer = "";
                 const blob = await createEBirdiePiPVideo(1);
                 if (window._eBirdiePiPBlobUrl) URL.revokeObjectURL(window._eBirdiePiPBlobUrl);
                 window._eBirdiePiPBlobUrl = URL.createObjectURL(blob);
@@ -4335,11 +4317,22 @@ async function updateToLatestVersionIfNeeded() {
                 }
             } catch (error) {
                 if (button) {
-                    button.disabled = false;
-                    button.textContent = "Näytä tulokset PiP";
+                    button.disabled = true;
+                    button.textContent = "PiP ei valmistunut";
                 }
                 alert(`PiP-videon valmistelu ei onnistunut: ${error?.message || error}`);
             }
+        }
+
+        function openEBirdiePiPFromButton() {
+            const video = document.getElementById("eBirdiePiPVideo");
+            if (!video || video.dataset.readyPlayer !== "1" || !video.src.startsWith("blob:")) return;
+
+            // Intentionally start this promise chain directly in the click handler.
+            // No recording, timers or other awaited preparation happens before play/PiP.
+            openPreparedEBirdiePiP().catch(error => {
+                alert(`PiP:n avaaminen ei onnistunut: ${error?.message || error}`);
+            });
         }
 
         function closeEBirdieTransfer() {
