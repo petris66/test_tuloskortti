@@ -4171,6 +4171,41 @@ async function updateToLatestVersionIfNeeded() {
             }
         }
 
+        function exportRoundForGolfScorePiP() {
+            // Export only the Scorecard user's own round (player 1).
+            // The standalone Safari Golf Score PiP app reads this JSON file.
+            const holes = getPlayedHoleOrder();
+            const player = document.getElementById("name1")?.value.trim() || "P1";
+            const course = getSelectedCourseName() || courseNameInput?.value.trim() || "Kenttä";
+            const decodedTee = decodePlayerTee(playerTees?.[0] || "");
+            const tee = decodedTee.tee || selectedTee || "–";
+            const scores = holes.map(hole => {
+                const score = getEBirdieScore(1, hole);
+                if (score === "-") return "-";
+                const numeric = Number(score);
+                return Number.isFinite(numeric) ? numeric : score;
+            });
+
+            const payload = {
+                player,
+                course,
+                tee,
+                startTime: formatEBirdieStartTime(),
+                scores
+            };
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const safeCourse = course.replace(/[^a-zA-Z0-9\u00C0-\u024F_-]+/g, "-").replace(/^-+|-+$/g, "") || "golf";
+            link.href = url;
+            link.download = `golf-score-${safeCourse}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+        }
+
         function getEBirdiePiPData(player = 1) {
             player = 1;
             const holes = getPlayedHoleOrder();
