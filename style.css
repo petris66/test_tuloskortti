@@ -2652,3 +2652,58 @@ option.holemap-course {
   font-size: 15px;
   font-weight: 700;
 }
+
+
+/* v0.16 test: score colours relative to par */
+.score-input.score-eagle,
+.score-input.score-birdie,
+.score-input.score-par,
+.score-input.score-bogey,
+.score-input.score-double,
+.score-input.score-triple-plus {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 4px 2px !important;
+    text-align: center;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+/* Eagle: red double-ring style. */
+.score-input.score-eagle {
+    color: #ffffff !important;
+    background-image:
+        radial-gradient(circle at center, #c62828 0 11px, transparent 12px),
+        radial-gradient(circle at center, transparent 0 14px, #c62828 15px 17px, transparent 18px) !important;
+    background-color: transparent !important;
+}
+
+/* Birdie: solid red circle with white score. */
+.score-input.score-birdie {
+    color: #ffffff !important;
+    background-image: radial-gradient(circle at center, #c62828 0 14px, transparent 15px) !important;
+    background-color: transparent !important;
+}
+
+.score-input.score-par {
+    color: #111111 !important;
+    background: transparent !important;
+}
+
+.score-input.score-bogey {
+    color: #111111 !important;
+    background: #d7ebf8 !important;
+}
+
+.score-input.score-double {
+    color: #ffffff !important;
+    background: #2f5f91 !important;
+}
+
+.score-input.score-triple-plus {
+    color: #ffffff !important;
+    background: #173b63 !important;
+}

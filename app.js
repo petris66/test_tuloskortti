@@ -2178,7 +2178,50 @@ async function updateToLatestVersionIfNeeded() {
             }
         }
 
+        function updateScoreColors() {
+            const scoreClasses = [
+                "score-eagle",
+                "score-birdie",
+                "score-par",
+                "score-bogey",
+                "score-double",
+                "score-triple-plus"
+            ];
+
+            document.querySelectorAll(".score-input").forEach(input => {
+                input.classList.remove(...scoreClasses);
+
+                const value = normalizeScoreValue(input.value);
+                if (value === "" || value === "-") return;
+
+                const hole = Number(input.dataset.hole);
+                const playerClass = [...input.classList]
+                    .find(className => /^p[1-4]$/.test(className));
+                const playerIndex = playerClass ? Number(playerClass.slice(1)) - 1 : 0;
+                const par = getPlayerHolePar(playerIndex, hole);
+
+                if (!Number.isFinite(par)) return;
+
+                const difference = Number(value) - par;
+                if (difference <= -2) {
+                    input.classList.add("score-eagle");
+                } else if (difference === -1) {
+                    input.classList.add("score-birdie");
+                } else if (difference === 0) {
+                    input.classList.add("score-par");
+                } else if (difference === 1) {
+                    input.classList.add("score-bogey");
+                } else if (difference === 2) {
+                    input.classList.add("score-double");
+                } else if (difference >= 3) {
+                    input.classList.add("score-triple-plus");
+                }
+            });
+        }
+
         function calculateScores() {
+            updateScoreColors();
+
             for (let player = 1; player <= MAX_PLAYERS; player++) {
                 const front = calculateNineResult(player, 1, 9);
                 const back = calculateNineResult(player, 10, 18);
