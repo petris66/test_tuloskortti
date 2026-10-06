@@ -87,6 +87,8 @@ async function updateToLatestVersionIfNeeded() {
         const MAX_PLAYERS = 4;
         const GPS_DISTANCE_ACCURACY_LIMIT_METERS = 15;
         const GPS_COURSE_DETECTION_ACCURACY_LIMIT_METERS = 100;
+        const GARMIN_ROUND_SETUP_URL = "https://golf-score-epix-sync.petri-suokas.workers.dev/round-setup";
+        const GARMIN_SCORES_URL = "https://golf-score-epix-sync.petri-suokas.workers.dev/";
 
         let playerCount = 1;
         let roundSetupConfirmed = false;
@@ -95,6 +97,7 @@ async function updateToLatestVersionIfNeeded() {
         let roundHoleCount = 18;
         let roundComplete = false;
         let roundStartedAt = null;
+        let roundId = null;
         let frontNineAnnounced = false;
         let pendingVoiceMessage = "";
         let announceStandings = false;
@@ -3884,6 +3887,265 @@ async function updateToLatestVersionIfNeeded() {
                 .replaceAll("'", "&#039;");
         }
 
+        function ensureRoundId() {
+            if (roundId) return roundId;
+
+            if (window.crypto?.randomUUID) {
+                roundId = window.crypto.randomUUID();
+            } else {
+                roundId = `round-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+            }
+
+            return roundId;
+        }
+
+        function buildGarminRoundSetupPayload() {
+            syncPlayerRoundSettingsFromInputs();
+
+            const players = [];
+            for (let player = 1; player <= playerCount; player++) {
+                const index = player - 1;
+                const decodedTee = decodePlayerTee(playerTees[index] || "");
+                players.push({
+                    name: document.getElementById(`name${player}`)?.value.trim() || `P${player}`,
+                    handicap: playerHandicaps[index] || "",
+                    gender: playerGenders[index] || "Miehet",
+                    tee: decodedTee.tee || playerTeeSelects[index]?.value || ""
+                });
+            }
+
+            const holes = Array.from({ length: 18 }, (_, index) => {
+                const hole = index + 1;
+                const data = getHoleData(hole);
+                return {
+                    hole,
+                    par: Number(data?.par) || 0,
+                    hcp: Number(data?.hcp) || 0
+                };
+            });
+
+            return {
+                roundId: ensureRoundId(),
+                course: getSelectedCourseName() || courseNameInput?.value.trim() || "",
+                courseId: selectedCourseId,
+                playerCount,
+                players,
+                startHole,
+                roundHoleCount,
+                holes,
+                updatedAt: new Date().toISOString()
+            };
+        }
+
+        async function sendGarminRoundSetup() {
+            if (!selectedCourseId || !courseData.length) return false;
+
+            const payload = buildGarminRoundSetupPayload();
+
+            try {
+                const response = await fetch(GARMIN_ROUND_SETUP_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload),
+                    cache: "no-store"
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (!result?.ok) {
+                    throw new Error(result?.message || "Worker rejected round setup");
+                }
+
+                saveState();
+                console.info("Garmin round setup synced:", payload);
+                return true;
+            } catch (error) {
+                console.warn("Garmin round setup sync failed:", error);
+                return false;
+            }
+        }
+
+        async function sendGarminRoundSetupFromButton() {
+            const button = document.getElementById("garminSetupButton");
+            const originalText = button?.textContent || "⌚ Lähetä Garminiin";
+
+            if (!selectedCourseId || !courseData.length) {
+                alert("Valitse ensin kenttä ennen Garminiin lähettämistä.");
+                return;
+            }
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = "⌚ Lähetetään…";
+            }
+
+            const ok = await sendGarminRoundSetup();
+
+            if (button) {
+                button.disabled = false;
+                button.textContent = ok ? "✓ Lähetetty Garminiin" : "⌚ Lähetä Garminiin";
+            }
+
+            if (ok) {
+                window.setTimeout(() => {
+                    if (button) button.textContent = originalText;
+                }, 2500);
+            } else {
+                alert("Garmin-lähtötietojen lähetys epäonnistui. Scorecard toimii silti normaalisti ilman Garminia.");
+            }
+        }
+
+        function normalizeGarminPlayerName(value) {
+            return String(value || "").trim().toLocaleLowerCase("fi-FI");
+        }
+
+        function currentPwaPlayerNames() {
+            return Array.from({ length: playerCount }, (_, index) =>
+                document.getElementById(`name${index + 1}`)?.value.trim() || `P${index + 1}`
+            );
+        }
+
+        function validateGarminScorePayload(data) {
+            if (!data || !Array.isArray(data.scores)) {
+                throw new Error("Garmin-tuloksia ei löytynyt.");
+            }
+
+            const incomingRoundId = String(data.roundId || "").trim();
+            const currentRoundId = String(roundId || "").trim();
+
+            if (!currentRoundId) {
+                throw new Error("Nykyiseltä kierrokselta puuttuu roundId. Lähetä kierros ensin Garminiin.");
+            }
+
+            if (!incomingRoundId) {
+                throw new Error("Garmin-datasta puuttuu kierroksen tunniste.");
+            }
+
+            if (incomingRoundId !== currentRoundId) {
+                throw new Error("Garmin-data kuuluu eri kierrokselle.");
+            }
+
+            const workerCourse = String(data.course || "").trim();
+            const currentCourse = String(getSelectedCourseName() || courseNameInput?.value || "").trim();
+
+            if (workerCourse && currentCourse &&
+                workerCourse.toLocaleLowerCase("fi-FI") !== currentCourse.toLocaleLowerCase("fi-FI")) {
+                throw new Error(`Garmin-data kuuluu eri kentälle (${workerCourse}).`);
+            }
+
+            if (Number(data.playerCount) !== playerCount) {
+                throw new Error("Garmin-datan pelaajamäärä ei vastaa nykyistä kierrosta.");
+            }
+
+            if (Array.isArray(data.players) && data.players.length >= playerCount) {
+                const currentNames = currentPwaPlayerNames().map(normalizeGarminPlayerName);
+                const garminNames = data.players.slice(0, playerCount).map(normalizeGarminPlayerName);
+                if (!currentNames.every((name, index) => name === garminNames[index])) {
+                    throw new Error("Garmin-datan pelaajat eivät vastaa nykyisen kierroksen pelaajia.");
+                }
+            }
+        }
+
+        function applyGarminScoresToScorecard(data) {
+            validateGarminScorePayload(data);
+
+            let importedHoles = 0;
+            let importedScores = 0;
+            let skippedExistingScores = 0;
+
+            data.scores.forEach(row => {
+                const hole = Number(row?.hole);
+                const scores = Array.isArray(row?.scores) ? row.scores : [];
+                if (!Number.isInteger(hole) || hole < 1 || hole > 18) return;
+
+                let holeImported = false;
+                for (let player = 1; player <= playerCount; player++) {
+                    const normalized = normalizeScoreValue(scores[player - 1]);
+                    if (normalized === "") continue;
+
+                    const input = document.querySelector(`.p${player}[data-hole="${hole}"]`);
+                    if (!input) continue;
+
+                    // Älä ylikirjoita puhelimessa jo olevaa tulosta.
+                    if (normalizeScoreValue(input.value) !== "") {
+                        skippedExistingScores += 1;
+                        continue;
+                    }
+
+                    input.value = normalized === "-" ? "-" : String(normalized);
+                    importedScores += 1;
+                    holeImported = true;
+                }
+                if (holeImported) importedHoles += 1;
+            });
+
+            if (importedScores > 0) {
+                calculateScores();
+                roundSetupConfirmed = true;
+                nextHole = findNextIncompleteHole();
+                updateNextHole();
+                updateRoundCompleteState();
+                updateRoundLayout();
+                checkFrontNineCompletion();
+                saveState();
+            }
+
+            return { importedHoles, importedScores, skippedExistingScores };
+        }
+
+        async function fetchGarminScoresFromButton() {
+            const button = document.getElementById("garminScoresButton");
+            const originalText = button?.textContent || "⌚ Hae Garmin-tulokset";
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = "⌚ Haetaan…";
+            }
+
+            try {
+                const response = await fetch(`${GARMIN_SCORES_URL}?t=${Date.now()}`, {
+                    method: "GET",
+                    headers: { "Accept": "application/json" },
+                    cache: "no-store"
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const result = await response.json();
+                if (!result?.ok || !result?.data) {
+                    throw new Error("Workerissa ei ole Garmin-tuloksia.");
+                }
+
+                const imported = applyGarminScoresToScorecard(result.data);
+
+                if (button) {
+                    button.textContent = imported.importedScores > 0
+                        ? `✓ ${imported.importedScores} tulosta haettu`
+                        : "✓ Ei uusia Garmin-tuloksia";
+                }
+
+                window.setTimeout(() => {
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = originalText;
+                    }
+                }, 2500);
+            } catch (error) {
+                console.warn("Garmin score import failed:", error);
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
+                alert(`Garmin-tulosten haku epäonnistui: ${error.message}\n\nScorecard toimii edelleen normaalisti ilman Garminia.`);
+            }
+        }
+
+        window.fetchGarminScoresFromButton = fetchGarminScoresFromButton;
+
         function saveState() {
             syncPlayerRoundSettingsFromInputs();
 
@@ -3900,6 +4162,7 @@ async function updateToLatestVersionIfNeeded() {
                 nextHole,
                 roundComplete,
                 roundStartedAt,
+                roundId,
                 frontNineAnnounced,
                 announceStandings,
                 courseId: selectedCourseId,
@@ -3958,6 +4221,9 @@ async function updateToLatestVersionIfNeeded() {
                 }
                 roundComplete = Boolean(state.roundComplete);
                 roundStartedAt = typeof state.roundStartedAt === "string" ? state.roundStartedAt : null;
+                roundId = typeof state.roundId === "string" && state.roundId.trim()
+                    ? state.roundId.trim()
+                    : null;
                 frontNineAnnounced = Boolean(state.frontNineAnnounced);
                 announceStandings = Boolean(state.announceStandings);
                 announceStandingsInput.checked = announceStandings;
@@ -5559,6 +5825,7 @@ async function updateToLatestVersionIfNeeded() {
             nextHole = 1;
             roundComplete = false;
             roundStartedAt = null;
+            roundId = null;
             frontNineAnnounced = false;
             selectedScoreInput = null;
             roundSetupConfirmed = false;

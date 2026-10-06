@@ -167,6 +167,15 @@
                     <input id="startHoleInput" type="number" inputmode="numeric" min="1" max="18" placeholder="1" aria-label="Aloitusreikä">
                 </label>
             </div>
+
+            <button
+                type="button"
+                class="action-button"
+                id="garminSetupButton"
+                onclick="sendGarminRoundSetupFromButton()"
+            >
+                ⌚ Lähetä Garminiin
+            </button>
         </section>
 
         <section class="card next-hole-box next-hole-card" id="nextHoleCard">
@@ -187,6 +196,15 @@
                 onclick="startVoiceInput()"
             >
                 🎤 Anna tulokset puheella
+            </button>
+
+            <button
+                type="button"
+                class="action-button"
+                id="garminScoresButton"
+                onclick="fetchGarminScoresFromButton()"
+            >
+                ⌚ Hae Garmin-tulokset
             </button>
 
             <div id="voiceStatus">
