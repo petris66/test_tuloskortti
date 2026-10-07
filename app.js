@@ -3917,11 +3917,24 @@ async function updateToLatestVersionIfNeeded() {
             const holes = Array.from({ length: 18 }, (_, index) => {
                 const hole = index + 1;
                 const data = getHoleData(hole);
-                return {
+                const green = GolfGPS.getGreen(hole);
+                const row = {
                     hole,
                     par: Number(data?.par) || 0,
                     hcp: Number(data?.hcp) || 0
                 };
+
+                if (green?.front) {
+                    row.greenFront = { lat: green.front.lat, lon: green.front.lon };
+                }
+                if (green?.center) {
+                    row.greenCenter = { lat: green.center.lat, lon: green.center.lon };
+                }
+                if (green?.back) {
+                    row.greenBack = { lat: green.back.lat, lon: green.back.lon };
+                }
+
+                return row;
             });
 
             return {
@@ -3939,6 +3952,14 @@ async function updateToLatestVersionIfNeeded() {
 
         async function sendGarminRoundSetup() {
             if (!selectedCourseId || !courseData.length) return false;
+
+            // Garmin needs the static green coordinates even when phone GPS is not enabled.
+            // Loading the course library does not request the phone's location permission.
+            try {
+                await GolfGPS.loadCourse(selectedCourseId);
+            } catch (error) {
+                console.warn("Garmin GPS course data unavailable; sending setup without green coordinates:", error);
+            }
 
             const payload = buildGarminRoundSetupPayload();
 
