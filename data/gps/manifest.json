@@ -109,6 +109,14 @@
       "file": "FI/ringside.json",
       "status": "field-test",
       "holes": 18
+    },
+    {
+      "courseId": "seagolf-ronnas-meri",
+      "course": "Sea Golf Rönnäs – Meri",
+      "country": "FI",
+      "file": "FI/seagolf-ronnas-meri.json",
+      "status": "pending",
+      "holes": 18
     }
   ]
 }

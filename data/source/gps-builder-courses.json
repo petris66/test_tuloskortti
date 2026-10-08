@@ -142,5 +142,13 @@
     "lat": 61.026554,
     "lon": 25.725449,
     "radius": 3200
+  },
+  {
+    "name": "Sea Golf Rönnäs – Meri",
+    "courseId": "seagolf-ronnas-meri",
+    "country": "FI",
+    "lat": 60.371732,
+    "lon": 26.040387,
+    "radius": 3200
   }
 ]

@@ -162,6 +162,13 @@
       "country": "FI",
       "file": "FI/ringside.json",
       "status": "field_test_official_cr_slope_osm_holedata"
+    },
+    {
+      "courseId": "seagolf-ronnas-meri",
+      "course": "Sea Golf Rönnäs – Meri",
+      "country": "FI",
+      "file": "FI/seagolf-ronnas-meri.json",
+      "status": "official_par_hcp_meters_2026"
     }
   ]
 }
