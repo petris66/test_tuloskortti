@@ -2713,3 +2713,48 @@ option.holemap-course {
 .excel-test-toggle { display: flex; align-items: center; gap: 10px; }
 .excel-test-toggle input { width: 20px; height: 20px; accent-color: #267a4c; }
 .excel-test-help { font-size: 13px; line-height: 1.45; margin: 8px 0 12px; }
+
+/* iPhone PWA: keep the completed-round dialog scrollable independently
+   when the Excel test options make it taller than the viewport. */
+#roundCompleteModal {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+#roundCompleteModal.visible {
+  align-items: safe center;
+}
+#roundCompleteModal .modal-card {
+  max-height: calc(100vh - 36px);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+/* Excel test: robust independent completed-round scrolling on desktop and iOS PWA.
+   Make the backdrop itself the scroll container; avoid vertically centering
+   a dialog taller than the viewport. */
+#roundCompleteModal.visible {
+  display: block;
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom));
+}
+#roundCompleteModal .modal-card {
+  display: block;
+  position: relative;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
