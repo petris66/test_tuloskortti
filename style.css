@@ -2707,3 +2707,9 @@ option.holemap-course {
     color: #ffffff !important;
     background: #173b63 !important;
 }
+
+/* Excel TESTI export (local file only; no OneDrive access) */
+.excel-test-panel { margin: 16px 0; padding: 13px; border: 1px solid #b9c8b8; border-radius: 10px; background: rgba(120, 160, 120, .08); }
+.excel-test-toggle { display: flex; align-items: center; gap: 10px; }
+.excel-test-toggle input { width: 20px; height: 20px; accent-color: #267a4c; }
+.excel-test-help { font-size: 13px; line-height: 1.45; margin: 8px 0 12px; }

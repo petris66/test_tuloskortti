@@ -4585,12 +4585,65 @@ async function updateToLatestVersionIfNeeded() {
             return snapshot;
         }
 
+        // Excel TESTI: only a local JSON transfer file, never a OneDrive write.
+        // The user's own workbook is updated separately after reviewing this file.
+        function exportExcelTestRound(snapshot) {
+            const goldCard = document.getElementById("excelGoldCard")?.value || "Ei";
+            const roundType = document.getElementById("excelRoundType")?.value || "Tasoitus";
+            const total = snapshot.totals[1];
+            if (!Number.isFinite(total) || total <= 0) {
+                throw new Error("Pelaajan 1 lyöntitulos puuttuu. Excel-vientiä ei tehty.");
+            }
+            const data = {
+                format: "golf-voice-excel-test-v1",
+                roundId: snapshot.id,
+                targetWorkbook: "Golfkierrokset_TESTI.xlsx",
+                yearSheet: String(snapshot.date).slice(0, 4),
+                // Lkm and Kultakortti count are intentionally calculated from the workbook later.
+                row: {
+                    "Kenttä": snapshot.course,
+                    "Pvm": snapshot.date,
+                    "Kultakortti": goldCard,
+                    "Tulos": total,
+                    "Kierros": roundType,
+                    "Vaihtokenttä": ""
+                },
+                player: snapshot.names[0],
+                createdAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `golf-excel-testi-${snapshot.date}-${snapshot.id.slice(0, 8)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+        }
+
         function saveCompletedRound() {
             const snapshot = buildRoundSnapshot();
             const history = getRoundHistory();
 
+            // Do not duplicate a round when the Save button is tapped twice.
+            if (history.some(item => item.sourceRoundId && item.sourceRoundId === ensureRoundId())) {
+                return;
+            }
+            snapshot.sourceRoundId = ensureRoundId();
             history.unshift(snapshot);
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            const excelEnabled = document.getElementById("excelTestEnabled")?.checked === true;
+            if (excelEnabled) {
+                try {
+                    exportExcelTestRound(snapshot);
+                    voiceStatus.textContent = "Kierros tallennettu. Excel-testitiedosto ladattu laitteelle (ei vielä OneDriveen).";
+                } catch (error) {
+                    // The round is still safely saved to local history.
+                    console.warn("Excel-testivienti epäonnistui:", error);
+                    window.alert(`Kierros tallentui tuloshistoriaan, mutta Excel-testivienti epäonnistui: ${error.message}`);
+                }
+            }
 
             rememberCourse(snapshot.course);
             hideRoundCompleteModal();
@@ -4605,6 +4658,9 @@ async function updateToLatestVersionIfNeeded() {
                     )
                     .join(", ");
 
+            if (excelEnabled) {
+                voiceStatus.innerHTML += "<br><small>Excel-testivienti: tiedosto ladattiin laitteelle, ei vielä OneDriveen.</small>";
+            }
             speakMessage("Kierros tallennettu");
         }
 
@@ -6141,6 +6197,14 @@ async function updateToLatestVersionIfNeeded() {
             renderHistory();
             processResultsFromUrl();
             showAppUpdatedToastIfNeeded();
+        }
+
+        const excelGoldCardInput = document.getElementById("excelGoldCard");
+        const excelCardCountHint = document.getElementById("excelCardCountHint");
+        if (excelGoldCardInput && excelCardCountHint) {
+            excelGoldCardInput.addEventListener("change", () => {
+                excelCardCountHint.hidden = excelGoldCardInput.value !== "Kyllä";
+            });
         }
 
         initializeApp();
