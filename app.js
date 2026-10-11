@@ -4395,7 +4395,7 @@ async function updateToLatestVersionIfNeeded() {
                 roundComplete || (!roundSetupConfirmed && !startHoleConfirmed);
 
             if (historyActionButton) {
-                historyActionButton.hidden = !historyAvailable;
+                historyActionButton.hidden = false;
             }
 
             if (!historyAvailable && historyCard) {
@@ -4521,6 +4521,8 @@ async function updateToLatestVersionIfNeeded() {
                 gender: selectedGender,
                 date: roundDateInput.value || getTodayDateValue(),
                 gameFormat: gameFormatInput.value,
+                goldCard: document.getElementById("excelGoldCard")?.value || "Ei",
+                roundType: document.getElementById("excelRoundType")?.value || "Tasoitus",
                 notes: roundNotesInput.value.trim(),
                 startHole,
                 roundHoleCount,
