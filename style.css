@@ -2758,3 +2758,14 @@ option.holemap-course {
   margin: 0 auto;
   box-sizing: border-box;
 }
+
+/* Omat tilastot: erillinen lisäosa */
+#statsCard[hidden] {display:none !important}
+#statsCard {margin-top:14px}
+.stats-summary {display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin:12px 0}
+.stats-summary > div {padding:12px;border:1px solid #cbd7ca;border-radius:10px;background:rgba(130,160,130,.08)}
+.stats-summary strong {display:block;font-size:1.3em}
+.stats-manual-form {display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
+.stats-manual-form label {display:flex;flex-direction:column;gap:5px}
+.stats-manual-form button {align-self:end}
+.stats-course-row {padding:9px 0;border-bottom:1px solid #cbd7ca}
